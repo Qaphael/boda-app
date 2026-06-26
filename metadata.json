@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Boda Gulu",
+  "description": "Android-first Boda ride-hailing and delivery customer application for Gulu, Uganda, optimized for budget devices with MTN and Airtel Mobile Money payments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

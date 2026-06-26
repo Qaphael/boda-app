@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "387194086675",
+    "firebase_url": "https://boda-app-99092-default-rtdb.firebaseio.com",
+    "project_id": "boda-app-99092",
+    "storage_bucket": "boda-app-99092.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387194086675:android:ffabacdd0f5af1a1aee6e6",
+        "android_client_info": {
+          "package_name": "com.qaphael.bodaapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "387194086675-ienqkfpd7gigo6h3ckb5mnapuniaai3a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.qaphael.bodaapp",
+            "certificate_hash": "e0b3dda4eba2117b31a96f27c28da975259acd42"
+          }
+        },
+        {
+          "client_id": "387194086675-2c2v0c3rk9o7v49cm998gu48qgaqp6pn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDiS6zB1Nu4as7_34NBy-GfuIRYA7bafUY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "387194086675-2c2v0c3rk9o7v49cm998gu48qgaqp6pn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
