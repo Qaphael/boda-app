@@ -510,7 +510,7 @@ fun BodaAppContent(viewModel: BodaViewModel) {
     val trips by viewModel.trips.collectAsState()
     val txns by viewModel.transactions.collectAsState()
     val contacts by viewModel.emergencyContacts.collectAsState()
-    val balance by viewModel.walletBalance.collectAsState()
+    val balance by viewModel.effectiveBalance.collectAsState()
     val referralsList by viewModel.referrals.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -2776,7 +2776,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             BodaButton(
                 text = "Apply",
-                onClick = { viewModel.applyPromoCode() },
+                onClick = { viewModel.validatePromoViaBackend(viewModel.promoCodeInput) },
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(Sp.sm))
