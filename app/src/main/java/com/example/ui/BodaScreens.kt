@@ -400,7 +400,7 @@ fun BodaTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    contentColor: ComposeColor = Color(0xFFFDB913),
+    contentColor: ComposeColor = Color.White,
     testTag: String? = null
 ) {
     TextButton(
