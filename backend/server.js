@@ -82,14 +82,18 @@ app.post('/api/users/sync', verifyFirebaseToken, syncLimiter, async (req, res) =
   const { uid } = req.user;
   const { phone, name, language, referral_code } = req.body;
   const fullName = name || req.user.name || 'Gulu Passenger';
-  const phoneNum = phone || req.user.phone_number || '+256770000000';
+  const phoneNum = phone || req.user.phone_number || null;
   console.log(`[SYNC] uid=${uid} phone=${phoneNum} name=${fullName}`);
   try {
     const query = `
       INSERT INTO users (uid, phone, full_name, email, wallet_balance, language, referral_code)
       VALUES ($1, $2, $3, $4, 0.00, $5, $6)
       ON CONFLICT (uid) DO UPDATE
-      SET full_name = $3, phone = $2, language = $5, referral_code = $6, updated_at = NOW()
+      SET full_name = $3,
+          phone = COALESCE(EXCLUDED.phone, users.phone),
+          language = $5,
+          referral_code = $6,
+          updated_at = NOW()
       RETURNING *;
     `;
     const result = await db.query(query, [

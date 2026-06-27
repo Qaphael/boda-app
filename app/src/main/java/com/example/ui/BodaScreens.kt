@@ -48,6 +48,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.PathEffect
@@ -261,6 +262,60 @@ object BodaLang {
 
     fun get(lang: String, key: String): String {
         return strings[lang]?.get(key) ?: strings["en"]?.get(key) ?: key
+    }
+}
+
+@Composable
+fun GoogleSignInButton(
+    onClick: () -> Unit,
+    isLoading: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        modifier = modifier.height(56.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = ComposeColor.White,
+            contentColor = ComposeColor(0xFF1F1F1F),
+            disabledContainerColor = ComposeColor.White.copy(alpha = 0.6f)
+        ),
+        border = BorderStroke(1.dp, ComposeColor(0xFFDADCE0))
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = ComposeColor(0xFF4285F4),
+                strokeWidth = 2.dp
+            )
+        } else {
+            // Google "G" logo drawn with Canvas — no image asset needed
+            Canvas(modifier = Modifier.size(20.dp)) {
+                val w = size.width
+                val h = size.height
+                val strokeW = w * 0.18f
+                // Blue arc (right side)
+                drawArc(ComposeColor(0xFF4285F4), -10f, 100f, false,
+                    topLeft = Offset(0f, 0f), size = Size(w, h), style = Stroke(strokeW))
+                // Red arc (bottom)
+                drawArc(ComposeColor(0xFFEA4335), 90f, 90f, false,
+                    topLeft = Offset(0f, 0f), size = Size(w, h), style = Stroke(strokeW))
+                // Yellow arc (left)
+                drawArc(ComposeColor(0xFFFBBC05), 180f, 90f, false,
+                    topLeft = Offset(0f, 0f), size = Size(w, h), style = Stroke(strokeW))
+                // Green arc (top)
+                drawArc(ComposeColor(0xFF34A853), 270f, 90f, false,
+                    topLeft = Offset(0f, 0f), size = Size(w, h), style = Stroke(strokeW))
+            }
+            Spacer(Modifier.width(12.dp))
+            Text(
+                "Continue with Google",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = ComposeColor(0xFF3C4043)
+            )
+        }
     }
 }
 
@@ -1487,6 +1542,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
         }
     } else {
         // Step 3: Standard Registration & Verification Flow
+        android.util.Log.d("BODA_GOOGLE", "OnboardingScreen rendering Step 3 - otpSent=${viewModel.otpSent}, isOtpVerified=${viewModel.isOtpVerified}")
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1578,6 +1634,39 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                         borderColor = Color(0xFFFDB913),
                         contentColor = Color(0xFFFDB913),
                         icon = Icons.Default.TwoWheeler,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(Sp.md))
+
+                    // Divider with "or" label
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFF334155)
+                        )
+                        Text(
+                            "  or  ",
+                            color = Color(0xFF64748B),
+                            fontSize = 12.sp
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFF334155)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(Sp.md))
+
+                    // Must pass Activity context — Credential Manager requires it for the bottom sheet
+                    val googleActivity = LocalContext.current as? android.app.Activity
+                        ?: LocalContext.current
+                    GoogleSignInButton(
+                        onClick = { viewModel.signInWithGoogle(googleActivity) },
+                        isLoading = viewModel.isSigningInWithGoogle,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

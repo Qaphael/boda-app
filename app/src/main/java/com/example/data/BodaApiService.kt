@@ -106,11 +106,11 @@ data class UserSyncRequest(
 
 data class UserMeResponse(
     val uid: String = "",
-    val phone: String = "",
+    val phone: String? = null,
     val full_name: String = "",
     val wallet_balance: Double = 0.0,
     val language: String = "en",
-    val referral_code: String = ""
+    val referral_code: String? = null
 )
 
 data class ApiResponse<T>(
@@ -132,11 +132,11 @@ data class SyncApiResponse(
 
 data class UserSyncResponse(
     val uid: String = "",
-    val phone: String = "",
+    val phone: String? = null,
     val full_name: String = "",
     val wallet_balance: Double = 0.0,
     val language: String = "en",
-    val referral_code: String = ""
+    val referral_code: String? = null
 )
 
 data class SavePlaceRequest(

@@ -180,13 +180,18 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         apiRepository.fetchUserProfile().fold(
             onSuccess = { backendUser ->
                 val existingProfile = repository.userProfile.firstOrNull()
+                // Treat the old fake fallback number as empty
+                val cleanPhone = backendUser.phone
+                    ?.takeIf { it.isNotEmpty() && it != "+256770000000" && it != "256770000000" }
+                    ?: ""
                 val profile = UserProfile(
                     id = 1,
                     name = backendUser.full_name.ifEmpty { existingProfile?.name ?: "" },
-                    phoneNumber = backendUser.phone.ifEmpty { existingProfile?.phoneNumber ?: "" },
+                    phoneNumber = cleanPhone.ifEmpty { existingProfile?.phoneNumber ?: "" },
                     language = backendUser.language.ifEmpty { existingProfile?.language ?: "en" },
                     isSetupComplete = backendUser.full_name.isNotEmpty(),
-                    referralCode = backendUser.referral_code.ifEmpty { existingProfile?.referralCode ?: "" }
+                    referralCode = backendUser.referral_code?.ifEmpty { existingProfile?.referralCode ?: "" }
+                        ?: existingProfile?.referralCode ?: ""
                 )
                 repository.saveUserProfile(profile)
                 backendBalance = backendUser.wallet_balance
@@ -826,13 +831,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         backendBalance = null
         lastBackendFetchMs = 0L
 
-        onboardingCarouselCompleted = false
-        onboardingLanguageSelected = false
-        onboardingSlideIndex = 0
+        // Keep carousel + language completed so returning users skip straight to sign-in
+        // onboardingCarouselCompleted and onboardingLanguageSelected are intentionally NOT reset
 
         prefs.edit()
-            .putBoolean("onboarding_carousel_completed", false)
-            .putBoolean("onboarding_language_selected", false)
             .apply()
 
         viewModelScope.launch {
@@ -1299,6 +1301,12 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var signupName by mutableStateOf("")
     var selectedAvatarRes by mutableStateOf(1)
 
+    // Google Sign-In state
+    var isSigningInWithGoogle by mutableStateOf(false)
+        private set
+    var googleSignInError by mutableStateOf<String?>(null)
+        private set
+
     // Booking Inputs
     var serviceType by mutableStateOf("ride") // "ride" or "delivery"
     var pickupPlace by mutableStateOf<SavedPlace?>(null)
@@ -1733,9 +1741,46 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
         auth.signInWithCredential(credential)
             .addOnSuccessListener {
-                isOtpVerified = true
                 isVerifyingOtp = false
                 otpTimerJob?.cancel()
+                ApiClient.invalidateToken()
+
+                // Check if this is a returning user or a new one
+                viewModelScope.launch {
+                    val backendResult = apiRepository.fetchUserProfile()
+                    backendResult.fold(
+                        onSuccess = { backendUser ->
+                            val cleanPhone = backendUser.phone
+                                ?.takeIf { it.isNotEmpty() && it != "+256770000000" && it != "256770000000" }
+                                ?: ""
+                            val profile = UserProfile(
+                                id = 1,
+                                name = backendUser.full_name,
+                                phoneNumber = cleanPhone.ifEmpty {
+                                    "+256 " + phoneInput.removePrefix("+256").trim()
+                                },
+                                language = backendUser.language.ifEmpty { appLanguage },
+                                isSetupComplete = backendUser.full_name.isNotEmpty(),
+                                referralCode = backendUser.referral_code ?: ""
+                            )
+                            repository.saveUserProfile(profile)
+                            backendBalance = backendUser.wallet_balance
+
+                            if (profile.isSetupComplete) {
+                                // Returning user — skip profile setup, go straight to Home
+                                fetchBackendData(force = true)
+                                navigateTo(Screen.Home)
+                            } else {
+                                // Account exists but profile setup was never finished
+                                isOtpVerified = true
+                            }
+                        },
+                        onFailure = {
+                            // New user — show profile setup step
+                            isOtpVerified = true
+                        }
+                    )
+                }
             }
             .addOnFailureListener { e ->
                 errorMessage.value = "Invalid code: ${e.message}"
@@ -1749,7 +1794,11 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             val genCode = "GULU-${signupName.filter { it.isLetter() }.take(4).uppercase().ifEmpty { "BODA" }}-${Random.nextInt(100, 999)}"
             val profile = UserProfile(
                 name = signupName,
-                phoneNumber = "+256 " + phoneInput.removePrefix("+256").trim(),
+                phoneNumber = if (phoneInput.isNotEmpty()) {
+                    "+256 " + phoneInput.removePrefix("+256").trim()
+                } else {
+                    auth.currentUser?.phoneNumber ?: ""
+                },
                 language = appLanguage,
                 isSetupComplete = true,
                 profileImageResId = selectedAvatarRes,
@@ -2535,8 +2584,161 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         stopLocationTracking()
         driverSimulationJob?.cancel()
         simulationJob?.cancel()
+        otpTimerJob?.cancel()
+        callTimerJob?.cancel()
+        postgresWebSocketJob?.cancel()
+        searchJob?.cancel()
         webSocketClient.disconnect()
         authStateListener?.let { auth.removeAuthStateListener(it) }
+    }
+
+    companion object {
+        // From google-services.json → oauth_client → client_type 3
+        const val GOOGLE_WEB_CLIENT_ID =
+            "387194086675-2c2v0c3rk9o7v49cm998gu48qgaqp6pn.apps.googleusercontent.com"
+    }
+
+    /**
+     * Launches the Google account picker via Credential Manager, exchanges the
+     * Google ID token for a Firebase credential, signs in, then syncs the
+     * user profile to Room and the backend exactly like the OTP path does.
+     *
+     * @param context  Pass LocalContext.current from the composable.
+     */
+    fun signInWithGoogle(context: android.content.Context) {
+        isSigningInWithGoogle = true
+        googleSignInError = null
+
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("BODA_GOOGLE", "Starting Google Sign-In flow...")
+                
+                // 1. Build the Google ID token request
+                val googleIdOption = com.google.android.libraries.identity.googleid
+                    .GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(GOOGLE_WEB_CLIENT_ID)
+                    .setAutoSelectEnabled(false)
+                    .build()
+
+                val request = androidx.credentials.GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                android.util.Log.d("BODA_GOOGLE", "Launching credential picker...")
+                
+                // 2. Launch the system account picker (bottom sheet)
+                val credentialManager = androidx.credentials.CredentialManager.create(context)
+                val result = credentialManager.getCredential(context, request)
+                
+                android.util.Log.d("BODA_GOOGLE", "Got credential result")
+
+                // 3. Extract the Google ID token from the result
+                val credential = result.credential
+                if (credential !is androidx.credentials.CustomCredential ||
+                    credential.type != com.google.android.libraries.identity.googleid
+                        .GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                ) {
+                    throw Exception("Unexpected credential type: ${credential.type}")
+                }
+
+                val googleIdTokenCredential = com.google.android.libraries.identity.googleid
+                    .GoogleIdTokenCredential.createFrom(credential.data)
+                val idToken = googleIdTokenCredential.idToken
+                
+                android.util.Log.d("BODA_GOOGLE", "Got ID token, exchanging for Firebase credential...")
+
+                // 4. Exchange Google ID token for a Firebase credential and sign in
+                val firebaseCredential = com.google.firebase.auth.GoogleAuthProvider
+                    .getCredential(idToken, null)
+                    
+                android.util.Log.d("BODA_GOOGLE", "Signing in to Firebase...")
+                
+                val authResult = withContext(Dispatchers.IO) {
+                    Tasks.await(auth.signInWithCredential(firebaseCredential))
+                }
+
+                val firebaseUser = authResult.user
+                    ?: throw Exception("Firebase sign-in succeeded but user is null")
+
+                android.util.Log.d("BODA_GOOGLE", "Signed in: ${firebaseUser.uid} ${firebaseUser.email}")
+
+                // 5. Mark as verified and populate phone input if available
+                isOtpVerified = true
+                otpSent = true  // Set this so OnboardingScreen shows profile setup, not phone input
+                phoneInput = firebaseUser.phoneNumber?.removePrefix("+256") ?: ""
+                
+                android.util.Log.d("BODA_GOOGLE", "Set isOtpVerified=true, otpSent=true, phoneInput=$phoneInput")
+
+                // Invalidate any stale OkHttp token cache so the next API call
+                // fetches a fresh token for this new Google Firebase session
+                ApiClient.invalidateToken()
+                
+                android.util.Log.d("BODA_GOOGLE", "Fetching user profile from backend...")
+
+                // 6. Try to restore profile from backend first (returning user path)
+                val backendResult = apiRepository.fetchUserProfile()
+
+                backendResult.fold(
+                    onSuccess = { backendUser ->
+                        android.util.Log.d("BODA_GOOGLE", "Backend profile found: ${backendUser.full_name}")
+                        // Treat the old fake fallback number as empty
+                        val cleanPhone = backendUser.phone
+                            ?.takeIf { it.isNotEmpty() && it != "+256770000000" && it != "256770000000" }
+                            ?: ""
+                        // Returning user — profile already exists on backend
+                        val profile = UserProfile(
+                            id = 1,
+                            name = backendUser.full_name.ifEmpty {
+                                firebaseUser.displayName ?: ""
+                            },
+                            phoneNumber = cleanPhone.ifEmpty {
+                                firebaseUser.phoneNumber ?: ""
+                            },
+                            language = backendUser.language.ifEmpty { appLanguage },
+                            isSetupComplete = backendUser.full_name.isNotEmpty(),
+                            referralCode = backendUser.referral_code ?: ""
+                        )
+                        repository.saveUserProfile(profile)
+                        backendBalance = backendUser.wallet_balance
+
+                        if (profile.isSetupComplete) {
+                            android.util.Log.d("BODA_GOOGLE", "Profile complete, navigating to Home")
+                            fetchBackendData(force = true)
+                            navigateTo(Screen.Home)
+                        } else {
+                            android.util.Log.d("BODA_GOOGLE", "Profile incomplete, going to onboarding")
+                            signupName = firebaseUser.displayName ?: ""
+                            navigateTo(Screen.WelcomeOnboarding)
+                        }
+                    },
+                    onFailure = { error ->
+                        android.util.Log.d("BODA_GOOGLE", "Backend profile not found (new user): ${error.message}")
+                        
+                        // New user — pre-fill name from Google and send them to profile setup
+                        signupName = firebaseUser.displayName ?: ""
+                        android.util.Log.d("BODA_GOOGLE", "New user flow - set signupName='$signupName', calling navigateTo")
+                        navigateTo(Screen.WelcomeOnboarding)
+                        android.util.Log.d("BODA_GOOGLE", "After navigateTo, currentScreen=${currentScreen}, isOtpVerified=$isOtpVerified")
+                    }
+                )
+
+            } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
+                android.util.Log.d("BODA_GOOGLE", "Google sign-in cancelled by user")
+            } catch (e: androidx.credentials.exceptions.NoCredentialException) {
+                android.util.Log.e("BODA_GOOGLE", "No Google account found", e)
+                googleSignInError = "No Google account found on this device. Please add a Google account in Settings."
+                errorMessage.value = googleSignInError
+            } catch (e: Exception) {
+                android.util.Log.e("BODA_GOOGLE", "Google sign-in failed: ${e.message}", e)
+                e.printStackTrace()
+                googleSignInError = "Google sign-in failed: ${e.message}"
+                errorMessage.value = googleSignInError
+            } finally {
+                android.util.Log.d("BODA_GOOGLE", "Finally block - isSigningInWithGoogle = false")
+                isSigningInWithGoogle = false
+            }
+        }
     }
 }
 
