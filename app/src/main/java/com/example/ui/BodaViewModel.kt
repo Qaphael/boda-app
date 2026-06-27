@@ -1423,7 +1423,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         driverSimulationCountdown = 8
         driverSimulationProgress = 0f
 
-        apiRepository.updateTripStatus(req.id, "accepted")
+        viewModelScope.launch { apiRepository.updateTripStatus(req.id, "accepted") }
 
         fetchRouteForPoints(
             com.google.android.gms.maps.model.LatLng(2.775, 32.295),
@@ -1470,7 +1470,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         driverSimulationCountdown = 10
         driverSimulationProgress = 0f
 
-        apiRepository.updateTripStatus(trip.id, "active")
+        viewModelScope.launch { apiRepository.updateTripStatus(trip.id, "active") }
         
         fetchRouteForPoints(
             getLatLngForPlace(trip.pickupName),
@@ -1987,7 +1987,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 latitude = lat,
                 longitude = lng
             ))
-            apiRepository.savePlace(newPlaceLabel, newPlaceName, lat, lng)
+            apiRepository.savePlaceToBackend(newPlaceLabel, newPlaceName, lat, lng)
             newPlaceLabel = ""
             newPlaceName = ""
             navigateBack()

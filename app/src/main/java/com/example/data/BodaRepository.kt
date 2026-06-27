@@ -94,6 +94,20 @@ class BodaRepository(private val dao: BodaDao? = null) {
         }
     }
 
+    suspend fun savePlaceToBackend(label: String, name: String, latitude: Double, longitude: Double): Result<SavedPlace> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.savePlace(SavePlaceRequest(label, name, latitude, longitude))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val place = response.body()?.savedPlace
+                    if (place != null) Result.success(place) else Result.failure(Exception("Place data is null"))
+                } else {
+                    Result.failure(Exception(response.body()?.error ?: "Failed to save place"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
     suspend fun fetchTrips(): Result<List<TripDto>> {
         return withContext(Dispatchers.IO) {
             try {

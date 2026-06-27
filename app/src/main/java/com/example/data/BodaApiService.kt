@@ -95,6 +95,8 @@ data class ApiResponse<T>(
     val trip: T? = null,
     val driver: T? = null,
     val savedPlace: T? = null,
+    val contact: T? = null,
+    val referral: T? = null,
     val error: String? = null
 )
 
