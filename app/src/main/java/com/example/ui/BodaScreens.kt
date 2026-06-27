@@ -2209,13 +2209,18 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
         ) {
             Box(
                 modifier = Modifier
+                    .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF0F172A).copy(alpha = 0.85f))
-                    .border(1.dp, Color(0xFF334155), CircleShape)
-                    .clickable { viewModel.navigateTo(Screen.ProfileSettings) }
-                    .padding(8.dp)
+                    .background(Color(0xFFFDB913))
+                    .clickable { viewModel.navigateTo(Screen.ProfileSettings) },
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
+                val name = viewModel.userProfile.collectAsState().value?.name ?: "?"
+                val initials = name.split(" ")
+                    .filter { it.isNotEmpty() }
+                    .take(2)
+                    .joinToString("") { it.first().uppercase() }
+                Text(initials, color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
         }
 
