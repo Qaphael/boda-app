@@ -2774,21 +2774,21 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
 
         // Promo Code Row
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.weight(1.5f)) {
-                BodaTextField(
-                    value = viewModel.promoCodeInput,
-                    onValueChange = { viewModel.promoCodeInput = it },
-                    label = "Promo Code",
-                    placeholder = "Promo (e.g. GULU3000)",
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Spacer(modifier = Modifier.width(Sp.sm))
             BodaButton(
                 text = "Apply",
                 onClick = { viewModel.applyPromoCode() },
                 modifier = Modifier.weight(1f)
             )
+            Spacer(modifier = Modifier.width(Sp.sm))
+            Box(modifier = Modifier.weight(2f)) {
+                BodaTextField(
+                    value = viewModel.promoCodeInput,
+                    onValueChange = { viewModel.promoCodeInput = it },
+                    label = "Promo Code",
+                    placeholder = "e.g. GULU3000",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
         if (viewModel.activePromoMessage.isNotEmpty()) {
             Text(viewModel.activePromoMessage, color = Color(0xFF10B981), fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))

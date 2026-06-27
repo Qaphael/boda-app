@@ -220,3 +220,7 @@ curl http://localhost:3002/health
 8. **Network isolation** — containers must be on same Docker network (`boda_default`) to communicate.
 9. **Firebase RTDB removed** — all ride/driver data flows through PostgreSQL + Socket.IO. No Firebase Realtime Database usage remains.
 10. **FCM push notifications** — `BodaMessagingService` handles token registration and incoming pushes. Backend sends via `admin.messaging().send()`. Requires `fcm_token` column in users/drivers tables.
+11. **Commit on confirmation** — When the user confirms a change works (tested in Android Studio or on device), immediately commit and push to GitHub.
+8. **Network isolation** — containers must be on same Docker network (`boda_default`) to communicate.
+9. **Firebase RTDB removed** — all ride/driver data flows through PostgreSQL + Socket.IO. No Firebase Realtime Database usage remains.
+10. **FCM push notifications** — `BodaMessagingService` handles token registration and incoming pushes. Backend sends via `admin.messaging().send()`. Requires `fcm_token` column in users/drivers tables.
