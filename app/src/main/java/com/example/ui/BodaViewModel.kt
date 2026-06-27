@@ -19,6 +19,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.android.gms.tasks.Tasks
 
 import com.example.data.BodaRepository
 import com.example.data.ApiClient
@@ -67,6 +68,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private var verificationId: String? = null
     private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
+    private var authStateListener: FirebaseAuth.AuthStateListener? = null
     
 
     
@@ -156,14 +158,37 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 isOtpVerified = true
                 prefs.edit().putBoolean("otp_verified", true).apply()
                 phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
-                syncUserToBackend()
-                fetchBackendData()
-                refreshWalletBalance()
+                restoreSessionFromBackend()
             }
         }
         connectPostgresWebSocket()
         connectToBackend()
         registerFcmToken()
+    }
+
+    private suspend fun restoreSessionFromBackend() {
+        addPostgresLog("Restoring session from backend...")
+        apiRepository.fetchUserProfile().fold(
+            onSuccess = { backendUser ->
+                val existingProfile = repository.userProfile.firstOrNull()
+                val profile = UserProfile(
+                    id = 1,
+                    name = backendUser.full_name.ifEmpty { existingProfile?.name ?: "" },
+                    phoneNumber = backendUser.phone.ifEmpty { existingProfile?.phoneNumber ?: "" },
+                    language = backendUser.language.ifEmpty { existingProfile?.language ?: "en" },
+                    isSetupComplete = backendUser.full_name.isNotEmpty(),
+                    referralCode = backendUser.referral_code.ifEmpty { existingProfile?.referralCode ?: "" }
+                )
+                repository.saveUserProfile(profile)
+                backendBalance = backendUser.wallet_balance
+                addPostgresLog("Session restored for ${backendUser.full_name}")
+                fetchBackendData()
+            },
+            onFailure = { e ->
+                addPostgresLog("Session restore failed (offline?): ${e.message}")
+                fetchBackendData()
+            }
+        )
     }
 
     private suspend fun fetchBackendData() {
@@ -960,14 +985,26 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         android.util.Log.d("BODA_SYNC", "Syncing user: phone=$phone name=${user.name}")
 
         viewModelScope.launch {
-            apiRepository.syncUser(phone, user.name).fold(
+            val tokenRefreshed = withContext(Dispatchers.IO) {
+                try {
+                    Tasks.await(
+                        auth.currentUser?.getIdToken(true)
+                            ?: Tasks.forResult(null)
+                    )?.token != null
+                } catch (e: Exception) { false }
+            }
+            if (!tokenRefreshed) {
+                addPostgresLog("Sync skipped: could not refresh Firebase token")
+                return@launch
+            }
+            apiRepository.syncUser(phone, user.name, language = user.language, referralCode = user.referralCode).fold(
                 onSuccess = { backendUser ->
                     android.util.Log.d("BODA_SYNC", "Sync success: uid=${backendUser.uid}")
-                    addPostgresLog("✓ User synced to PostgreSQL backend")
+                    addPostgresLog("User synced to PostgreSQL")
                 },
                 onFailure = { e ->
                     android.util.Log.e("BODA_SYNC", "Sync failed: ${e.message}", e)
-                    addPostgresLog("✗ User sync failed: ${e.message}")
+                    addPostgresLog("Sync failed: ${e.message}")
                 }
             )
         }
@@ -1173,6 +1210,8 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var otpSent by mutableStateOf(false)
     var otpResendTimer by mutableStateOf(45)
     var isOtpVerified by mutableStateOf(prefs.getBoolean("otp_verified", false))
+    var isSendingOtp by mutableStateOf(false)
+    var isVerifyingOtp by mutableStateOf(false)
     private var otpTimerJob: Job? = null
 
     // Location & notification permission simulation
@@ -1548,32 +1587,35 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             errorMessage.value = "Phone number must be at least 9 digits."
             return
         }
-        
+
         val phoneNumber = "+256" + phoneInput.removePrefix("+256").trim()
-        
+
+        isSendingOtp = true
         otpSent = true
         otpInput = ""
         otpResendTimer = 45
         isOtpVerified = false
-        
+
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                // Auto-verification on some devices
                 val code = credential.smsCode
                 if (code != null) {
                     otpInput = code
+                    isSendingOtp = false
                     verifyOtp()
                 }
             }
-            
+
             override fun onVerificationFailed(e: com.google.firebase.FirebaseException) {
                 errorMessage.value = "Verification failed: ${e.message}"
                 otpSent = false
+                isSendingOtp = false
             }
-            
+
             override fun onCodeSent(id: String, token: PhoneAuthProvider.ForceResendingToken) {
                 verificationId = id
                 resendToken = token
+                isSendingOtp = false
             }
         }
         
@@ -1601,22 +1643,25 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             errorMessage.value = "Verification not started. Please request a new code."
             return
         }
-        
+
         if (otpInput.length != 6) {
             errorMessage.value = "Please enter the 6-digit code."
             return
         }
-        
+
+        isVerifyingOtp = true
         val credential = PhoneAuthProvider.getCredential(vid, otpInput)
-        
+
         auth.signInWithCredential(credential)
             .addOnSuccessListener {
                 isOtpVerified = true
+                isVerifyingOtp = false
                 prefs.edit().putBoolean("otp_verified", true).apply()
                 otpTimerJob?.cancel()
             }
             .addOnFailureListener { e ->
                 errorMessage.value = "Invalid code: ${e.message}"
+                isVerifyingOtp = false
             }
     }
 
@@ -2405,6 +2450,15 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 delay(400)
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopLocationTracking()
+        driverSimulationJob?.cancel()
+        simulationJob?.cancel()
+        webSocketClient.disconnect()
+        authStateListener?.let { auth.removeAuthStateListener(it) }
     }
 }
 
