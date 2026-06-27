@@ -148,6 +148,11 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    var isLoadingData by mutableStateOf(true)
+        private set
+
+    private var lastBackendFetchMs = 0L
+
     init {
         viewModelScope.launch {
             repository.initializeDefaultData()
@@ -159,6 +164,8 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 prefs.edit().putBoolean("otp_verified", true).apply()
                 phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
                 restoreSessionFromBackend()
+            } else {
+                isLoadingData = false
             }
         }
         connectPostgresWebSocket()
@@ -189,9 +196,16 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 fetchBackendData()
             }
         )
+        isLoadingData = false
     }
 
-    private suspend fun fetchBackendData() {
+    private suspend fun fetchBackendData(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - lastBackendFetchMs < 5 * 60 * 1000L) {
+            addPostgresLog("Data cache is fresh. Skipping backend fetch.")
+            return
+        }
+        lastBackendFetchMs = now
         apiRepository.fetchTrips().onSuccess { dtos ->
             dtos.forEach { dto ->
                 if (dto.id != 0) repository.addTrip(Trip(
