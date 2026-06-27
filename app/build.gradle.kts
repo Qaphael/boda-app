@@ -19,7 +19,13 @@ android {
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    // MAPS_API_KEY is injected from .env by the Secrets Gradle Plugin — do not hardcode here
+    // Read MAPS_API_KEY from .env for the manifest meta-data tag
+    val envFile = rootProject.file(".env")
+    val mapsApiKey = if (envFile.exists()) {
+      envFile.readLines().firstOrNull { it.startsWith("MAPS_API_KEY=") }
+        ?.substringAfter("=")?.trim()?.takeIf { it.isNotEmpty() } ?: "MY_MAPS_API_KEY"
+    } else "MY_MAPS_API_KEY"
+    manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
   }
 
   signingConfigs {
