@@ -4346,6 +4346,10 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
     val referralEarnings by viewModel.referralEarnings.collectAsState()
     val myReferralCode = user?.referralCode?.ifEmpty { "GULU-BODA-256" } ?: "GULU-BODA-256"
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    val trips by viewModel.trips.collectAsState()
+    val tripCount = trips.size
+    val avgRating = if (trips.any { it.rating > 0 })
+        trips.filter { it.rating > 0 }.map { it.rating }.average() else 0.0
 
     if (viewModel.isLoadingData) {
         Box(Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
@@ -4376,6 +4380,12 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             Column {
                 Text(user?.name ?: "Boda Gulu Customer", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Text(user?.phoneNumber ?: "No verified phone", color = Color(0xFF64748B), fontSize = 14.sp)
+                Text(
+                    "$tripCount trips · ⭐ ${"%.1f".format(avgRating)} rating",
+                    color = Color(0xFF64748B),
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
             }
         }
 
@@ -4405,7 +4415,11 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         Spacer(modifier = Modifier.height(Sp.md))
 
         // Gulu Local Language Selector Card
-        Text("App Language Localization", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Language, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(Sp.xs))
+            Text("App Language Localization", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
         Spacer(modifier = Modifier.height(Sp.sm))
         BodaCard(
             modifier = Modifier.fillMaxWidth()
@@ -4459,7 +4473,11 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         Spacer(modifier = Modifier.height(Sp.md))
 
         // App Theme Selector Card
-        Text("App Theme & Styling Mode", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.DarkMode, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(Sp.xs))
+            Text("App Theme & Styling Mode", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
         Spacer(modifier = Modifier.height(Sp.sm))
         BodaCard(
             modifier = Modifier.fillMaxWidth()
@@ -4651,7 +4669,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { 
+                    .clickable {
                         if (viewModel.isDriverRegistered) {
                             viewModel.isDriverMode = !viewModel.isDriverMode
                             viewModel.navigateTo(Screen.Home)
@@ -4671,8 +4689,8 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         Text(
                             if (!viewModel.isDriverRegistered) "Tap to Register as Vetted Rider"
                             else if (viewModel.isDriverMode) "Active (Gulu Cockpit)"
-                            else "Inactive (Passenger)", 
-                            color = if (viewModel.isDriverRegistered) Color(0xFF10B981) else Color(0xFFFDB913), 
+                            else "Inactive (Passenger)",
+                            color = if (viewModel.isDriverRegistered) Color(0xFF10B981) else Color(0xFFFDB913),
                             fontSize = 12.sp
                         )
                     }
@@ -4752,7 +4770,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.HelpCenter, contentDescription = null, tint = Color(0xFFFDB913))
+                Icon(Icons.Default.Help, contentDescription = null, tint = Color(0xFFFDB913))
                 Spacer(modifier = Modifier.width(Sp.sm))
                 Text("Help & Support", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
