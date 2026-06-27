@@ -194,6 +194,11 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             },
             onFailure = { e ->
                 addPostgresLog("Session restore failed (offline?): ${e.message}")
+                val localProfile = repository.userProfile.firstOrNull()
+                if (localProfile != null && localProfile.phoneNumber.isNotEmpty()) {
+                    addPostgresLog("User not found on backend. Syncing from local profile...")
+                    syncUserToBackend(localProfile)
+                }
                 fetchBackendData()
             }
         )
