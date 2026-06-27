@@ -11,7 +11,31 @@ function getAdminHeaders() {
     return { 'Content-Type': 'application/json', 'x-admin-key': key };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+async function attemptLogin() {
+    const key = document.getElementById('login-key-input').value.trim();
+    if (!key) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/stats`, {
+            headers: { 'Content-Type': 'application/json', 'x-admin-key': key }
+        });
+        if (res.ok) {
+            localStorage.setItem('admin_secret_key', key);
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('login-error').classList.add('hidden');
+            bootDashboard();
+        } else {
+            document.getElementById('login-error').classList.remove('hidden');
+        }
+    } catch (e) {
+        document.getElementById('login-error').classList.remove('hidden');
+    }
+}
+
+document.getElementById('login-key-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') attemptLogin();
+});
+
+function bootDashboard() {
     const saved = localStorage.getItem('admin_secret_key') || '';
     const input = document.getElementById('admin-key-input');
     if (input && saved) input.value = saved;
@@ -21,6 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPromoCampaigns();
     setInterval(loadProductionData, 10000);
     setInterval(checkSOSAlerts, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('admin_secret_key') || '';
+    if (saved) {
+        attemptLogin();
+    }
 });
 
 function initMap() {
