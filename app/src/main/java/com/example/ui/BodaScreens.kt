@@ -1,6 +1,7 @@
 package com.example.ui
 
 import android.Manifest
+import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -270,6 +271,7 @@ fun BodaButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    loading: Boolean = false,
     containerColor: ComposeColor = Color(0xFFFDB913),
     contentColor: ComposeColor = ComposeColor.Black,
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
@@ -277,7 +279,7 @@ fun BodaButton(
 ) {
     Button(
         onClick = onClick,
-        enabled = enabled,
+        enabled = enabled && !loading,
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
@@ -291,29 +293,37 @@ fun BodaButton(
         shape = RoundedCornerShape(12.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = contentColor
-                )
-                Spacer(modifier = Modifier.width(Sp.sm))
-            }
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = contentColor
-                ),
-                maxLines = 1,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                color = contentColor,
+                strokeWidth = 2.dp
             )
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = contentColor
+                    )
+                    Spacer(modifier = Modifier.width(Sp.sm))
+                }
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = contentColor
+                    ),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
@@ -535,9 +545,14 @@ fun BodaAppContent(viewModel: BodaViewModel) {
                 }
             }
         } ?: run {
-            // First run
             if (viewModel.currentScreen == Screen.Splash) {
-                viewModel.navigateTo(Screen.WelcomeOnboarding)
+                val firebaseUser = FirebaseAuth.getInstance().currentUser
+                if (firebaseUser != null) {
+                    // Firebase session exists — wait for fetchBackendData() to populate Room
+                    // Do NOT navigate yet; LaunchedEffect will fire again when Room emits the profile
+                } else {
+                    viewModel.navigateTo(Screen.WelcomeOnboarding)
+                }
             }
         }
     }
@@ -1548,7 +1563,8 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                                 viewModel.startOtpFlow()
                             }
                         },
-                        enabled = viewModel.phoneInput.length >= 9,
+                        enabled = viewModel.phoneInput.length >= 9 && !viewModel.isSendingOtp,
+                        loading = viewModel.isSendingOtp,
                         modifier = Modifier.fillMaxWidth(),
                         testTag = "send_otp_btn"
                     )
@@ -1605,24 +1621,25 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                         } else {
                             Text(
                                 "Resend Code Now",
-                                color = Color(0xFFFDB913),
+                                color = if (viewModel.isSendingOtp) Color(0xFF64748B) else Color(0xFFFDB913),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clickable { viewModel.startOtpFlow() }
+                                modifier = Modifier.clickable(enabled = !viewModel.isSendingOtp) { viewModel.startOtpFlow() }
                             )
                         }
                         Text(
                             "Change Number",
-                            color = Color(0xFFE4002B),
+                            color = if (viewModel.isSendingOtp) Color(0xFF64748B) else Color(0xFFE4002B),
                             fontSize = 12.sp,
-                            modifier = Modifier.clickable { viewModel.otpSent = false }
+                            modifier = Modifier.clickable(enabled = !viewModel.isSendingOtp) { viewModel.otpSent = false }
                         )
                     }
                     Spacer(modifier = Modifier.height(Sp.lg))
                     BodaButton(
                         text = "Verify & Continue",
                         onClick = { viewModel.verifyOtp() },
-                        enabled = viewModel.otpInput.length == 6,
+                        enabled = viewModel.otpInput.length == 6 && !viewModel.isVerifyingOtp,
+                        loading = viewModel.isVerifyingOtp,
                         modifier = Modifier.fillMaxWidth(),
                         testTag = "verify_otp_btn"
                     )
@@ -3520,7 +3537,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                         .background(if (isCurrent) Color(0xFFFDB913) else Color(0xFF334155)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("${idx + 1}", color = if (isCurrent) Color(0xFF0F172A) else Color(0xFF94A3B8), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    Text("${idx + 1}", color = if (isCurrent) Color(0xFF0F172A) else Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                                 Spacer(modifier = Modifier.width(Sp.sm))
                                 Column(modifier = Modifier.weight(1f)) {
@@ -3533,7 +3550,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                     Text(
                                         text = "${step.distanceMeters / 1000.0} km · ${step.durationSeconds / 60} min",
                                         color = Color(0xFF64748B),
-                                        fontSize = 9.sp
+                                        fontSize = 11.sp
                                     )
                                 }
                             }
