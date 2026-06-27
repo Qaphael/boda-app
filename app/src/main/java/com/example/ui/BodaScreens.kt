@@ -2761,6 +2761,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text("Select MTN / Airtel / Wallet Payment", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
+                val walletSufficient = walletBalance >= viewModel.calculatedFare - viewModel.activePromoDiscount.value
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     listOf("MTN" to "MTN MoMo", "Airtel" to "Airtel", "Wallet" to "Boda Wallet").forEach { (method, label) ->
                         val isSelected = viewModel.selectedPaymentMethod == method
@@ -2771,12 +2772,21 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                                 .clickable { viewModel.selectedPaymentMethod = method }
                                 .padding(horizontal = 12.dp, vertical = 8.dp)
                         ) {
-                            Text(
-                                text = if (method == "Wallet") "$label (UGX ${walletBalance.toInt()})" else label,
-                                color = if (isSelected) Color.Black else Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = label,
+                                    color = if (isSelected) Color.Black else Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 11.sp
+                                )
+                                if (method == "Wallet") {
+                                    Text(
+                                        text = "UGX ${walletBalance.toInt()}",
+                                        color = if (walletSufficient) Color(0xFF10B981) else Color(0xFFF87171),
+                                        fontSize = 10.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -2992,9 +3002,14 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
         Spacer(modifier = Modifier.height(Sp.md))
 
         // CONFIRM CTA
+        val walletSufficient = walletBalance >= viewModel.calculatedFare - viewModel.activePromoDiscount.value
+        val walletBlocked = viewModel.selectedPaymentMethod == "Wallet" && !walletSufficient
         BodaButton(
-            text = if (viewModel.isOnline) BodaLang.get(viewModel.appLanguage, "confirm_booking") else "Book via SMS Fallback",
-            onClick = { 
+            text = if (walletBlocked) "Insufficient balance — top up first"
+                else if (viewModel.isOnline) "Confirm — UGX ${(viewModel.calculatedFare - viewModel.activePromoDiscount.value).toInt()}"
+                else "Book via SMS Fallback",
+            enabled = !walletBlocked,
+            onClick = {
                 if (viewModel.isOnline) {
                     viewModel.confirmBooking()
                 } else {
