@@ -562,6 +562,26 @@ app.post('/api/referrals/:id/complete', verifyFirebaseToken, async (req, res) =>
        VALUES ($1, $2, 'bonus', $3, 'Wallet', 'completed')`,
       [ref.referrer_uid, txRef, rewardAmt]
     );
+
+    // Also credit the new user (the one who used the referral code)
+    const newUserResult = await db.query(
+      'SELECT uid FROM users WHERE phone = $1',
+      [ref.referred_phone]
+    );
+    if (newUserResult.rows.length > 0) {
+      const newUserUid = newUserResult.rows[0].uid;
+      const newUserTxRef = `REF-NEWUSER-${referralId}-${Date.now()}`;
+      await db.query(
+        `INSERT INTO transactions (user_uid, transaction_ref, type, amount, payment_provider, status)
+         VALUES ($1, $2, 'bonus', 3000, 'Wallet', 'completed')`,
+        [newUserUid, newUserTxRef]
+      );
+      await db.query(
+        'UPDATE users SET wallet_balance = wallet_balance + 3000, updated_at = NOW() WHERE uid = $1',
+        [newUserUid]
+      );
+    }
+
     await db.query('COMMIT');
     res.json({ success: true, reward: rewardAmt, referrer_uid: ref.referrer_uid });
   } catch (error) {

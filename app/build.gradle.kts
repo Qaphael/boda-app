@@ -19,7 +19,7 @@ android {
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    manifestPlaceholders["MAPS_API_KEY"] = "MY_MAPS_API_KEY"
+    // MAPS_API_KEY is injected from .env by the Secrets Gradle Plugin — do not hardcode here
   }
 
   signingConfigs {
@@ -94,6 +94,8 @@ dependencies {
   implementation(libs.androidx.credentials)
   implementation(libs.androidx.credentials.play.services)
   implementation(libs.googleid)
+  implementation(libs.firebase.dynamic.links)
+  implementation(libs.play.services.auth)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.logging.interceptor)

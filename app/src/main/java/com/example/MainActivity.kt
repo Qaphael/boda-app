@@ -1,5 +1,6 @@
 package com.example
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,6 +16,7 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     val viewModel = ViewModelProvider(this)[BodaViewModel::class.java]
+    viewModel.handleDeepLink(intent)
     setContent {
       val themeSetting = viewModel.appThemeSetting
       val darkTheme = when (themeSetting) {
@@ -27,5 +29,11 @@ class MainActivity : ComponentActivity() {
       }
     }
   }
-}
 
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    val viewModel = ViewModelProvider(this)[BodaViewModel::class.java]
+    viewModel.handleDeepLink(intent)
+  }
+}

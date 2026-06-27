@@ -59,18 +59,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.TextStyle
-import com.example.ui.theme.NunitoFamily
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
-import com.example.data.*
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.tasks.Tasks
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
@@ -316,6 +313,157 @@ fun GoogleSignInButton(
                 color = ComposeColor(0xFF3C4043)
             )
         }
+    }
+}
+
+@Composable
+fun OnboardingProgressBar(
+    currentStep: Int,
+    totalSteps: Int = 3,
+    stepLabel: String
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(stepLabel, color = Color(0xFF94A3B8), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+            Text("Step $currentStep of $totalSteps", color = Color(0xFF64748B), fontSize = 11.sp)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            repeat(totalSteps) { index ->
+                val isComplete = index < currentStep
+                val isCurrent = index == currentStep - 1
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            when {
+                                isComplete -> Color(0xFFFDB913)
+                                isCurrent -> Color(0xFFFDB913).copy(alpha = 0.4f)
+                                else -> Color(0xFF334155)
+                            }
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun WelcomeBonusDialog(
+    userName: String,
+    usedReferralCode: Boolean,
+    onDismiss: () -> Unit,
+    onGoToReferrals: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color(0xFF1E293B))
+                .padding(28.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("\uD83C\uDF89", fontSize = 48.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    "Welcome to Boda Gulu, ${userName.substringBefore(" ").ifEmpty { "Rider" }}!",
+                    color = Color.White, fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp, textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                if (usedReferralCode) {
+                    Text(
+                        "Your referral bonus of UGX 3,000 will be added to your wallet automatically after your first completed ride.",
+                        color = Color(0xFF94A3B8), fontSize = 13.sp,
+                        textAlign = TextAlign.Center, lineHeight = 20.sp
+                    )
+                } else {
+                    Text(
+                        "Your account is ready. Share your referral code with friends and earn UGX 3,000 for every friend who completes their first ride.",
+                        color = Color(0xFF94A3B8), fontSize = 13.sp,
+                        textAlign = TextAlign.Center, lineHeight = 20.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFFDB913).copy(alpha = 0.15f))
+                        .border(1.dp, Color(0xFFFDB913), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                ) {
+                    Text(
+                        if (usedReferralCode) "UGX 3,000 bonus incoming \uD83C\uDFCD\uFE0F"
+                        else "Earn UGX 3,000 per referral \uD83C\uDFCD\uFE0F",
+                        color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 14.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                BodaButton(text = "Book My First Ride", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(10.dp))
+                if (!usedReferralCode) {
+                    TextButton(onClick = onGoToReferrals) {
+                        Text("Share my referral code", color = Color(0xFFFDB913), fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NotificationPermissionNudge() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("boda_prefs", android.content.Context.MODE_PRIVATE) }
+    val alreadyAsked = remember { prefs.getBoolean("notif_permission_asked", false) }
+    if (alreadyAsked) return
+
+    val notifState = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+    } else return
+
+    var showNudge by remember { mutableStateOf(!notifState.status.isGranted) }
+
+    if (showNudge) {
+        AlertDialog(
+            onDismissRequest = {
+                showNudge = false
+                prefs.edit().putBoolean("notif_permission_asked", true).apply()
+            },
+            containerColor = Color(0xFF1E293B),
+            title = { Text("Know when your driver arrives", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "Get notified the moment your boda is 2 minutes away — so you're ready at the pickup point.",
+                    color = Color(0xFF94A3B8), fontSize = 14.sp
+                )
+            },
+            confirmButton = {
+                BodaButton(
+                    text = "Allow Notifications",
+                    onClick = {
+                        notifState.launchPermissionRequest()
+                        showNudge = false
+                        prefs.edit().putBoolean("notif_permission_asked", true).apply()
+                    }
+                )
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showNudge = false
+                    prefs.edit().putBoolean("notif_permission_asked", true).apply()
+                }) {
+                    Text("Maybe later", color = Color(0xFF64748B))
+                }
+            }
+        )
     }
 }
 
@@ -1569,8 +1717,50 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
             }
             Spacer(modifier = Modifier.height(Sp.lg))
 
+            OnboardingProgressBar(
+                currentStep = viewModel.onboardingStep,
+                stepLabel = viewModel.onboardingStepLabel
+            )
+
+            Spacer(modifier = Modifier.height(Sp.lg))
+
             if (!viewModel.otpSent) {
                 // STEP 1: Phone number entry (+256)
+                // Phone Hint API
+                val activity = LocalContext.current as androidx.activity.ComponentActivity
+                val phoneHintLauncher = rememberLauncherForActivityResult(
+                    contract = androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
+                ) { result ->
+                    if (result.resultCode == android.app.Activity.RESULT_OK) {
+                        val phoneNumber = com.google.android.gms.auth.api.identity.Identity
+                            .getSignInClient(activity)
+                            .getPhoneNumberFromIntent(result.data)
+                        val digits = phoneNumber
+                            ?.replace(Regex("[^0-9]"), "")
+                            ?.removePrefix("256")
+                            ?.take(9)
+                            ?: ""
+                        if (digits.isNotEmpty()) {
+                            viewModel.phoneInput = digits
+                        }
+                    }
+                }
+                LaunchedEffect(Unit) {
+                    try {
+                        val request = com.google.android.gms.auth.api.identity
+                            .GetPhoneNumberHintIntentRequest.builder().build()
+                        val result = com.google.android.gms.auth.api.identity.Identity
+                            .getSignInClient(activity)
+                            .getPhoneNumberHintIntent(request)
+                        val senderResult = Tasks.await(result)
+                        phoneHintLauncher.launch(
+                            androidx.activity.result.IntentSenderRequest.Builder(senderResult).build()
+                        )
+                    } catch (e: Exception) {
+                        android.util.Log.d("BODA_HINT", "Phone hint unavailable: ${e.message}")
+                    }
+                }
+
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(BodaLang.get(viewModel.appLanguage, "phone_title"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(Sp.xs))
@@ -1782,73 +1972,11 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                         }
                     }
 
-                    // Explain and grant Location
-                    Spacer(modifier = Modifier.height(Sp.md))
-                    val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
-                    BodaCard {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.MyLocation, contentDescription = null, tint = if (locationPermissionState.status.isGranted) Color(0xFF10B981) else Color(0xFFFDB913))
-                                Spacer(modifier = Modifier.width(Sp.sm))
-                                Text(BodaLang.get(viewModel.appLanguage, "perm_location"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
-                            Spacer(modifier = Modifier.height(Sp.sm))
-                            Text(BodaLang.get(viewModel.appLanguage, "perm_location_desc"), color = Color(0xFF94A3B8), fontSize = 12.sp, lineHeight = 16.sp)
-                            Spacer(modifier = Modifier.height(Sp.sm))
-                            BodaButton(
-                                text = if (locationPermissionState.status.isGranted) "Location Access Granted!" else "Grant Gulu Location Access",
-                                onClick = {
-                                    viewModel.locationPermissionGranted = true
-                                    if (!locationPermissionState.status.isGranted) {
-                                        locationPermissionState.launchPermissionRequest()
-                                    }
-                                },
-                                containerColor = if (locationPermissionState.status.isGranted) Color(0xFF10B981) else Color(0xFF334155),
-                                contentColor = Color.White,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
-                    // Explain and grant Notifications
-                    Spacer(modifier = Modifier.height(Sp.md))
-                    val notifPermissionState = rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-                    BodaCard {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.NotificationsActive, contentDescription = null, tint = if (notifPermissionState.status.isGranted) Color(0xFF10B981) else Color(0xFFFDB913))
-                                Spacer(modifier = Modifier.width(Sp.sm))
-                                Text(BodaLang.get(viewModel.appLanguage, "perm_notify"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            }
-                            Spacer(modifier = Modifier.height(Sp.sm))
-                            Text(BodaLang.get(viewModel.appLanguage, "perm_notify_desc"), color = Color(0xFF94A3B8), fontSize = 12.sp, lineHeight = 16.sp)
-                            Spacer(modifier = Modifier.height(Sp.sm))
-                            BodaButton(
-                                text = if (notifPermissionState.status.isGranted) "Notifications Granted!" else "Enable Arrival Notifications",
-                                onClick = {
-                                    viewModel.notificationPermissionGranted = true
-                                    if (!notifPermissionState.status.isGranted) {
-                                        notifPermissionState.launchPermissionRequest()
-                                    }
-                                },
-                                containerColor = if (notifPermissionState.status.isGranted) Color(0xFF10B981) else Color(0xFF334155),
-                                contentColor = Color.White,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
                     Spacer(modifier = Modifier.height(Sp.lg))
-                    val locationGranted = locationPermissionState.status.isGranted
-                    val notifGranted = notifPermissionState.status.isGranted
-                    LaunchedEffect(locationGranted, notifGranted) {
-                        if (locationGranted) viewModel.locationPermissionGranted = true
-                        if (notifGranted) viewModel.notificationPermissionGranted = true
-                    }
                     BodaButton(
                         text = "Register & Open App",
                         onClick = { viewModel.completeProfileSetup() },
-                        enabled = viewModel.signupName.isNotEmpty() && locationGranted && notifGranted,
+                        enabled = viewModel.signupName.isNotEmpty(),
                         modifier = Modifier.fillMaxWidth(),
                         testTag = "complete_setup_btn"
                     )
@@ -2270,6 +2398,21 @@ fun DriverMiniStat(title: String, value: String, icon: androidx.compose.ui.graph
 // --- SCREEN 3: HOME & BOOKING MAP SCREEN ---
 @Composable
 fun HomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) {
+    NotificationPermissionNudge()
+
+    if (viewModel.showWelcomeBonus) {
+        val user by viewModel.userProfile.collectAsState()
+        WelcomeBonusDialog(
+            userName = user?.name ?: "Rider",
+            usedReferralCode = viewModel.referralCodeInput.isNotEmpty(),
+            onDismiss = { viewModel.dismissWelcomeBonus() },
+            onGoToReferrals = {
+                viewModel.dismissWelcomeBonus()
+                viewModel.navigateTo(Screen.Referrals)
+            }
+        )
+    }
+
     if (viewModel.isDriverMode) {
         DriverHomeScreen(viewModel)
     } else {
@@ -6586,6 +6729,14 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(Sp.sm))
+                    val shareContext = LocalContext.current
+                    BodaButton(
+                        text = "Share My Referral Link",
+                        onClick = { viewModel.shareReferralLink(shareContext) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
 

@@ -157,6 +157,28 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var otpInput by mutableStateOf("")
     var otpSent by mutableStateOf(false)
 
+    var triggerPhoneHint by mutableStateOf(false)
+
+    var showWelcomeBonus by mutableStateOf(false)
+        private set
+    var isNewUserSession by mutableStateOf(false)
+        private set
+
+    val onboardingStep: Int
+        get() = when {
+            !otpSent -> 1
+            !isOtpVerified -> 2
+            else -> 3
+        }
+
+    val onboardingStepLabel: String
+        get() = when (onboardingStep) {
+            1 -> "Enter your phone number"
+            2 -> "Verify your number"
+            3 -> "Set up your profile"
+            else -> ""
+        }
+
     private var lastBackendFetchMs = 0L
 
     init {
@@ -173,6 +195,65 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         connectPostgresWebSocket()
         connectToBackend()
         registerFcmToken()
+    }
+
+    fun handleDeepLink(intent: android.content.Intent?) {
+        intent ?: return
+        com.google.firebase.dynamiclinks.ktx.dynamicLinks
+            .getDynamicLink(intent)
+            .addOnSuccessListener { pendingDynamicLinkData ->
+                val deepLink = pendingDynamicLinkData?.link ?: return@addOnSuccessListener
+                val code = deepLink.getQueryParameter("code") ?: return@addOnSuccessListener
+                if (code.isNotEmpty()) {
+                    referralCodeInput = code.uppercase().trim()
+                    android.util.Log.d("BODA_DEEPLINK", "Referral code from deep link: $code")
+                }
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e("BODA_DEEPLINK", "Deep link handling failed: ${e.message}")
+            }
+    }
+
+    fun shareReferralLink(context: android.content.Context) {
+        val myCode = userProfile.value?.referralCode ?: return
+        viewModelScope.launch {
+            try {
+                val dynamicLink = com.google.firebase.dynamiclinks.ktx.dynamicLinks
+                    .shortLinkAsync {
+                        link = android.net.Uri.parse(
+                            "https://bodagulu.page.link/ref?code=$myCode"
+                        )
+                        domainUriPrefix = "https://bodagulu.page.link"
+                        androidParameters("com.qaphael.bodaapp") {}
+                        socialMetaTagParameters {
+                            title = "Join me on Boda Gulu!"
+                            description = "Use my code $myCode and we both get UGX 3,000 on your first ride."
+                        }
+                    }
+                    .await()
+
+                val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(
+                        android.content.Intent.EXTRA_TEXT,
+                        "Join Boda Gulu — affordable boda rides in Gulu!\n" +
+                        "Use my referral code $myCode and we both get UGX 3,000 on your first ride.\n" +
+                        dynamicLink.shortLink.toString()
+                    )
+                }
+                context.startActivity(
+                    android.content.Intent.createChooser(shareIntent, "Share via")
+                )
+            } catch (e: Exception) {
+                errorMessage.value = "Could not generate share link: ${e.message}"
+            }
+        }
+    }
+
+    fun dismissWelcomeBonus() {
+        showWelcomeBonus = false
+        isNewUserSession = false
+        prefs.edit().putBoolean("welcome_bonus_shown", true).apply()
     }
 
     private suspend fun restoreSessionFromBackend() {
@@ -1820,6 +1901,13 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                     signupName, profile.phoneNumber, referralCodeInput.uppercase().trim()
                 )
             }
+
+            val welcomeBonusShown = prefs.getBoolean("welcome_bonus_shown", false)
+            if (!welcomeBonusShown) {
+                isNewUserSession = true
+                showWelcomeBonus = true
+            }
+
             navigateTo(Screen.Home)
         }
     }
@@ -2663,13 +2751,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
                 android.util.Log.d("BODA_GOOGLE", "Signed in: ${firebaseUser.uid} ${firebaseUser.email}")
 
-                // 5. Mark as verified and populate phone input if available
-                isOtpVerified = true
-                otpSent = true  // Set this so OnboardingScreen shows profile setup, not phone input
-                phoneInput = firebaseUser.phoneNumber?.removePrefix("+256") ?: ""
-                
-                android.util.Log.d("BODA_GOOGLE", "Set isOtpVerified=true, otpSent=true, phoneInput=$phoneInput")
-
                 // Invalidate any stale OkHttp token cache so the next API call
                 // fetches a fresh token for this new Google Firebase session
                 ApiClient.invalidateToken()
@@ -2704,22 +2785,27 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
                         if (profile.isSetupComplete) {
                             android.util.Log.d("BODA_GOOGLE", "Profile complete, navigating to Home")
+                            // Returning user — go straight to Home, no profile setup flash
                             fetchBackendData(force = true)
                             navigateTo(Screen.Home)
                         } else {
-                            android.util.Log.d("BODA_GOOGLE", "Profile incomplete, going to onboarding")
+                            android.util.Log.d("BODA_GOOGLE", "Profile incomplete, showing profile setup")
+                            // Account exists but setup was never finished — show Step 3
                             signupName = firebaseUser.displayName ?: ""
-                            navigateTo(Screen.WelcomeOnboarding)
+                            phoneInput = firebaseUser.phoneNumber?.removePrefix("+256") ?: ""
+                            otpSent = true
+                            isOtpVerified = true
                         }
                     },
                     onFailure = { error ->
                         android.util.Log.d("BODA_GOOGLE", "Backend profile not found (new user): ${error.message}")
                         
-                        // New user — pre-fill name from Google and send them to profile setup
+                        // New user — show profile setup step
                         signupName = firebaseUser.displayName ?: ""
-                        android.util.Log.d("BODA_GOOGLE", "New user flow - set signupName='$signupName', calling navigateTo")
-                        navigateTo(Screen.WelcomeOnboarding)
-                        android.util.Log.d("BODA_GOOGLE", "After navigateTo, currentScreen=${currentScreen}, isOtpVerified=$isOtpVerified")
+                        phoneInput = firebaseUser.phoneNumber?.removePrefix("+256") ?: ""
+                        otpSent = true
+                        isOtpVerified = true
+                        android.util.Log.d("BODA_GOOGLE", "New user flow - signupName='$signupName', showing profile setup")
                     }
                 )
 

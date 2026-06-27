@@ -41,6 +41,8 @@ firebaseBom = "34.12.0"
 secretsGradlePlugin = "2.0.1"
 googleid = "1.1.1"
 credentialsManager = "1.5.0"
+firebaseDynamicLinks = "22.1.0"
+playServicesAuth = "21.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -97,6 +99,8 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentialsManager" }
 androidx-credentials-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsManager" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+firebase-dynamic-links = { group = "com.google.firebase", name = "firebase-dynamic-links-ktx", version.ref = "firebaseDynamicLinks" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
