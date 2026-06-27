@@ -87,7 +87,7 @@ app.post('/api/users/sync', verifyFirebaseToken, syncLimiter, async (req, res) =
   try {
     const query = `
       INSERT INTO users (uid, phone, full_name, email, wallet_balance, language, referral_code)
-      VALUES ($1, $2, $3, $4, 5000.00, $5, $6)
+      VALUES ($1, $2, $3, $4, 0.00, $5, $6)
       ON CONFLICT (uid) DO UPDATE
       SET full_name = $3, phone = $2, language = $5, referral_code = $6, updated_at = NOW()
       RETURNING *;
