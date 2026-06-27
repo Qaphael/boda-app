@@ -3948,13 +3948,22 @@ fun PostTripScreen(viewModel: BodaViewModel) {
                 )
             }
         } else {
-            BodaButton(
-                text = "Rating Completed. Return Home",
-                onClick = { viewModel.submitPostTripRating(starRating, feedbackComment) },
-                containerColor = Color(0xFF10B981),
-                contentColor = Color.White,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.sm)) {
+                BodaSecondaryButton(
+                    text = "Skip",
+                    onClick = {
+                        viewModel.currentSimulationTrip = null
+                        viewModel.simulationState = "idle"
+                        viewModel.navigateTo(Screen.Home)
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                BodaButton(
+                    text = "Done",
+                    onClick = { viewModel.submitPostTripRating(starRating, feedbackComment) },
+                    modifier = Modifier.weight(2f)
+                )
+            }
         }
     }
 }
