@@ -728,6 +728,7 @@ fun BodaCard(
 }
 
 // --- MAIN ENTRANCE APP VIEW ---
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BodaAppContent(viewModel: BodaViewModel) {
     val context = LocalContext.current
@@ -2916,6 +2917,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
 }
 
 // --- SCREEN 5: ROUTE PREVIEW & PRICE ESTIMATES ---
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
     val locationPermState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
