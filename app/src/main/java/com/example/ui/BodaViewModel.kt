@@ -1030,14 +1030,24 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
+                val idToken = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    com.google.android.gms.tasks.Tasks.await(
+                        auth.currentUser?.getIdToken(false)
+                            ?: com.google.android.gms.tasks.Tasks.forResult(null)
+                    )?.token
+                }
                 val client = okhttp3.OkHttpClient()
                 val json = org.json.JSONObject().put("fcm_token", token).put("uid", uid)
                 val body = json.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-                val request = okhttp3.Request.Builder()
+                val requestBuilder = okhttp3.Request.Builder()
                     .url("${com.example.data.ApiClient.getBaseUrl()}/api/users/fcm-token")
                     .post(body)
-                    .build()
-                client.newCall(request).execute()
+                if (idToken != null) {
+                    requestBuilder.addHeader("Authorization", "Bearer $idToken")
+                }
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    client.newCall(requestBuilder.build()).execute()
+                }
             } catch (_: Exception) { }
         }
     }
