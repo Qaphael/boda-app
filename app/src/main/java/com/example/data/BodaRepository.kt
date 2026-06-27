@@ -40,6 +40,10 @@ class BodaRepository(private val dao: BodaDao? = null) {
         dao?.insertTransaction(txn)
     }
 
+    suspend fun completePendingPayment(reference: String) {
+        dao?.completePendingPayment(reference)
+    }
+
     suspend fun addSavedPlace(place: SavedPlace) {
         dao?.insertSavedPlace(place)
     }
@@ -118,7 +122,7 @@ class BodaRepository(private val dao: BodaDao? = null) {
         }
     }
 
-    suspend fun fetchUserProfile(): Result<UserProfile> {
+    suspend fun fetchUserProfile(): Result<UserMeResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = api.getMe()
@@ -127,6 +131,20 @@ class BodaRepository(private val dao: BodaDao? = null) {
                     if (user != null) Result.success(user) else Result.failure(Exception("User not found"))
                 } else {
                     Result.failure(Exception("Failed to load profile"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun fetchWalletBalance(): Result<Double> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getMe()
+                if (response.isSuccessful) {
+                    val balance = response.body()?.wallet_balance ?: 0.0
+                    Result.success(balance)
+                } else {
+                    Result.failure(Exception("Failed to load balance"))
                 }
             } catch (e: Exception) { Result.failure(e) }
         }
