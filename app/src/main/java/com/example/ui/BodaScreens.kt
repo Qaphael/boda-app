@@ -4809,15 +4809,10 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         }
         HorizontalDivider(color = Color(0xFF1E293B))
 
-        // Delete Account button
-        Spacer(modifier = Modifier.height(Sp.lg))
-        BodaButton(
-            text = "Delete Account & Logout",
-            onClick = {
-                showDeleteConfirmDialog = true
-            },
-            containerColor = Color(0xFFE4002B),
-            contentColor = Color.White,
+        Spacer(Modifier.height(Sp.md))
+        BodaSecondaryButton(
+            text = "Sign out",
+            onClick = { viewModel.signOut() },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -5826,10 +5821,21 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                                             color = if (key in listOf("Clear", "Delete")) Color(0xFF94A3B8) else ComposeColor.White,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 14.sp
-                                        )
-                                    }
-                                }
-                            }
+            )
+        }
+
+        Spacer(Modifier.height(Sp.xl))
+        Text(
+            "Delete account",
+            color = Color(0xFF475569),
+            fontSize = 11.sp,
+            modifier = Modifier
+                .clickable { showDeleteConfirmDialog = true }
+                .align(Alignment.CenterHorizontally)
+        )
+        Spacer(Modifier.height(Sp.md))
+    }
+}
                         }
                     }
 
