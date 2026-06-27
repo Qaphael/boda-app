@@ -838,8 +838,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         appLanguage = lang
         viewModelScope.launch {
             val current = userProfile.value ?: UserProfile()
-            repository.saveUserProfile(current.copy(language = lang))
-            syncUserToBackend()
+            val updated = current.copy(language = lang)
+            repository.saveUserProfile(updated)
+            syncUserToBackend(updated)
         }
     }
 
@@ -952,10 +953,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         webSocketClient.connect()
     }
 
-    fun syncUserToBackend() {
-        val user = userProfile.value ?: return
+    fun syncUserToBackend(profile: UserProfile? = null) {
+        val user = profile ?: userProfile.value ?: return
         val phone = user.phoneNumber.replace("+256", "").trim()
-        
+
         viewModelScope.launch {
             apiRepository.syncUser(phone, user.name).fold(
                 onSuccess = { backendUser ->
@@ -1628,7 +1629,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 referralCode = genCode
             )
             repository.saveUserProfile(profile)
-            syncUserToBackend()
+            syncUserToBackend(profile)
 
             if (referralCodeInput.isNotEmpty()) {
                 repository.addReferral(Referral(
@@ -1650,7 +1651,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun saveUserProfile(profile: UserProfile) {
         viewModelScope.launch {
             repository.saveUserProfile(profile)
-            syncUserToBackend()
+            syncUserToBackend(profile)
         }
     }
 
