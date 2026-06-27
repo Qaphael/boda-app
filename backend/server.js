@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const db = require('./db');
 const { verifyFirebaseToken, getFirebaseAdmin } = require('./middleware/auth');
 require('dotenv').config();
@@ -15,6 +16,34 @@ const io = new Server(server, {
   }
 });
 
+// Rate limiters
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, slow down.' }
+});
+
+const bookingLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: 'Too many booking attempts. Please wait.' }
+});
+
+const walletLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many wallet requests. Please wait.' }
+});
+
+const syncLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many sync requests.' }
+});
+
+app.use(globalLimiter);
 app.use(cors());
 app.use(express.json());
 
@@ -43,7 +72,7 @@ const adminAuth = (req, res, next) => {
 // ==========================================
 
 // Register / Sync User details in database
-app.post('/api/users/sync', verifyFirebaseToken, async (req, res) => {
+app.post('/api/users/sync', verifyFirebaseToken, syncLimiter, async (req, res) => {
   const { uid, phone_number, name, email } = req.user;
   try {
     const query = `
@@ -171,7 +200,7 @@ app.get('/api/trips', verifyFirebaseToken, async (req, res) => {
 });
 
 // Create a new ride booking
-app.post('/api/trips/book', verifyFirebaseToken, async (req, res) => {
+app.post('/api/trips/book', verifyFirebaseToken, bookingLimiter, async (req, res) => {
   const {
     pickup_name, pickup_lat, pickup_lon,
     dropoff_name, dropoff_lat, dropoff_lon,
@@ -328,7 +357,7 @@ app.get('/api/wallet/transactions', verifyFirebaseToken, async (req, res) => {
   }
 });
 
-app.post('/api/wallet/topup', verifyFirebaseToken, async (req, res) => {
+app.post('/api/wallet/topup', verifyFirebaseToken, walletLimiter, async (req, res) => {
   const { amount, payment_provider } = req.body;
   const uid = req.user.uid;
   const amt = parseFloat(amount);
@@ -355,7 +384,7 @@ app.post('/api/wallet/topup', verifyFirebaseToken, async (req, res) => {
 });
 
 // Record a ride payment (deduct from wallet or record mobile money payment)
-app.post('/api/wallet/pay', verifyFirebaseToken, async (req, res) => {
+app.post('/api/wallet/pay', verifyFirebaseToken, walletLimiter, async (req, res) => {
   const { amount, payment_provider, trip_id } = req.body;
   const uid = req.user.uid;
   const amt = parseFloat(amount);
