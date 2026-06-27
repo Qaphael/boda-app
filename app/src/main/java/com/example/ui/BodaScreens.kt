@@ -4,8 +4,11 @@ import android.Manifest
 import android.content.Intent
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import com.example.R
 import com.example.data.*
+import com.example.ui.theme.NunitoFamily
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
