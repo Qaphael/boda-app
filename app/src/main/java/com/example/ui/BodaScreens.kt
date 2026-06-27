@@ -921,16 +921,11 @@ fun GoogleMapViewWrapper(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    val mapView = remember {
-        com.google.android.gms.maps.MapView(context).apply {
-            onCreate(null)
-            onStart()
-            onResume()
-        }
-    }
+    val mapViewRef = remember { java.lang.ref.WeakReference<com.google.android.gms.maps.MapView>(null) }
 
     androidx.compose.DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            val mapView = mapViewRef.get() ?: return@LifecycleEventObserver
             when (event) {
                 androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> mapView.onPause()
                 androidx.lifecycle.Lifecycle.Event.ON_STOP -> mapView.onStop()
@@ -941,14 +936,26 @@ fun GoogleMapViewWrapper(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            mapView.onPause()
-            mapView.onStop()
-            mapView.onDestroy()
+            mapViewRef.get()?.let { mv ->
+                mv.onPause()
+                mv.onDestroy()
+            }
         }
     }
 
     androidx.compose.ui.viewinterop.AndroidView(
-        factory = { mapView },
+        factory = {
+            com.google.android.gms.maps.MapView(context).apply {
+                mapViewRef.set(this)
+                onCreate(null)
+                onResume()
+                getMapAsync { googleMap ->
+                    googleMap.uiSettings.isZoomControlsEnabled = true
+                    googleMap.uiSettings.isMapToolbarEnabled = false
+                    googleMap.mapType = com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
+                }
+            }
+        },
         modifier = modifier,
         update = { mapV ->
             mapV.getMapAsync { googleMap ->
@@ -2706,7 +2713,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 viewModel.pickupText = it
                 activeFocus = "pickup"
             },
-            label = "Pickup Location" + if (activeFocus == "pickup") " ðŸŸ¢ (Searching...)" else "",
+            label = "Pickup Location" + if (activeFocus == "pickup") " 🟢 (Searching...)" else "",
             placeholder = "Search pickup location...",
             leadingIcon = { Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color(0xFF10B981)) },
             trailingIcon = if (viewModel.pickupText.isNotEmpty() || viewModel.pickupPlace != null) {
@@ -2734,7 +2741,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 viewModel.dropoffText = it
                 activeFocus = "dropoff"
             },
-            label = "Drop-off Destination" + if (activeFocus == "dropoff") " ðŸ”´ (Searching...)" else "",
+            label = "Drop-off Destination" + if (activeFocus == "dropoff") " 4�  (Searching...)" else "",
             placeholder = "Where are you heading?",
             leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFFE4002B)) },
             trailingIcon = if (viewModel.dropoffText.isNotEmpty() || viewModel.dropoffPlace != null) {
