@@ -3834,6 +3834,29 @@ fun PostTripScreen(viewModel: BodaViewModel) {
 
         Spacer(modifier = Modifier.height(Sp.md))
 
+        // Rider Card
+        BodaCard(modifier = Modifier.fillMaxWidth()) {
+            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF334155)),
+                    contentAlignment = Alignment.Center) {
+                    Text(trip.riderName.first().uppercase(), color = Color(0xFFFDB913),
+                        fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(trip.riderName, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(trip.riderPlate, color = Color(0xFF64748B), fontSize = 11.sp)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("UGX ${trip.fare.toInt()}",
+                        color = Color(0xFFFDB913), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("via ${trip.paymentMethod}", color = Color(0xFF64748B), fontSize = 10.sp)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(Sp.md))
+
         // Receipt Details
         BodaCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
