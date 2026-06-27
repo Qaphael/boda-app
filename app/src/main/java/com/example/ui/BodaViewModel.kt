@@ -128,9 +128,23 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
     val walletBalance: StateFlow<Double> = transactions.map { list ->
         val deposits = list.filter { it.type == "topup" && it.status == "completed" }.sumOf { it.amount }
-        val payments = list.filter { it.type == "payment" && it.status == "completed" }.sumOf { it.amount }
+        val payments = list.filter { it.type == "payment" && (it.status == "completed" || it.status == "pending") }.sumOf { it.amount }
         (deposits - payments).coerceAtLeast(0.0)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    var backendBalance by mutableStateOf<Double?>(null)
+        private set
+    val effectiveBalance: StateFlow<Double> = walletBalance.map { local ->
+        backendBalance ?: local
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    fun refreshWalletBalance() {
+        viewModelScope.launch {
+            apiRepository.fetchWalletBalance().onSuccess { balance ->
+                backendBalance = balance
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -142,6 +156,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
                 syncUserToBackend()
                 fetchBackendData()
+                refreshWalletBalance()
             }
         }
         connectPostgresWebSocket()
@@ -152,7 +167,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     private suspend fun fetchBackendData() {
         apiRepository.fetchTrips().onSuccess { dtos ->
             dtos.forEach { dto ->
-                repository.addTrip(Trip(
+                if (dto.id != 0) repository.addTrip(Trip(
                     id = dto.id,
                     type = "ride",
                     pickupName = dto.pickup_name,
@@ -168,7 +183,8 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
         apiRepository.fetchWalletTransactions().onSuccess { dtos ->
             dtos.forEach { dto ->
-                repository.addTransaction(WalletTransaction(
+                if (dto.id != 0) repository.addTransaction(WalletTransaction(
+                    id = dto.id,
                     amount = dto.amount,
                     type = dto.type,
                     status = dto.status,
@@ -181,7 +197,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
         apiRepository.fetchEmergencyContactsFromBackend().onSuccess { dtos ->
             dtos.forEach { dto ->
-                repository.addEmergencyContact(EmergencyContact(
+                if (dto.id != 0) repository.addEmergencyContact(EmergencyContact(
                     id = dto.id,
                     name = dto.name,
                     phoneNumber = dto.phone_number
@@ -190,7 +206,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
         apiRepository.fetchReferralsFromBackend().onSuccess { dtos ->
             dtos.forEach { dto ->
-                repository.addReferral(Referral(
+                if (dto.id != 0) repository.addReferral(Referral(
                     id = dto.id,
                     referredName = dto.referred_name,
                     referredPhone = dto.referred_phone,
@@ -832,8 +848,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 if (isDriverMode && isDriverOnline && driverTripState == "none") {
                     driverIncomingRequest = trip
                     driverTripState = "requested"
+                    val driverLat = currentLocation?.latitude ?: 2.775
+                    val driverLng = currentLocation?.longitude ?: 32.295
                     fetchRouteForPoints(
-                        com.google.android.gms.maps.model.LatLng(2.775, 32.295),
+                        com.google.android.gms.maps.model.LatLng(driverLat, driverLng),
                         getLatLngForPlace(trip.pickupName)
                     )
                 }
@@ -1274,7 +1292,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var activePromoMessage by mutableStateOf("")
     var activePromoDiscount = mutableStateOf(0.0)
     var referralCodeInput by mutableStateOf("")
-    var promoList = mutableListOf("GULU3000", "BODARIDE")
 
     // Emergency profile
     var newEmergencyName by mutableStateOf("")
@@ -1373,41 +1390,12 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleDriverOnline() {
         isDriverOnline = !isDriverOnline
         if (isDriverOnline) {
-            // Cancel any old simulation jobs
             driverSimulationJob?.cancel()
-            driverSimulationJob = viewModelScope.launch {
-                // Wait 4 seconds to trigger a realistic incoming Gulu booking request
-                delay(4000)
-                if (isDriverOnline) {
-                    val pickupLocations = listOf("Gulu University Campus", "Lacor Hospital Gate", "Gulu Main Market", "Pece Stadium Roundabout")
-                    val dropoffLocations = listOf("Laroo Commercial Centre", "Cereleno Market Hub", "Layibi College Gate", "Gulu General Hospital")
-                    val pickup = pickupLocations.random()
-                    var dropoff = dropoffLocations.random()
-                    while (dropoff == pickup) {
-                        dropoff = dropoffLocations.random()
-                    }
-                    val calculatedFare = 3500.0 + Random.nextInt(4) * 500.0
-                    val riderNames = listOf("Kassim Okello", "Auma Nighty", "Obote Brian", "Lanyero Mercy")
-                    val phone = "+256 78" + (1000000 + Random.nextInt(8999999))
-                    
-                    driverIncomingRequest = Trip(
-                        id = 9999,
-                        type = if (Random.nextBoolean()) "ride" else "delivery",
-                        pickupName = pickup,
-                        dropoffName = dropoff,
-                        fare = calculatedFare,
-                        paymentMethod = listOf("MTN", "Airtel", "Wallet").random(),
-                        status = "searching",
-                        riderName = riderNames.random(),
-                        riderPlate = "BODA-GULU-MEMBER",
-                        riderPhone = phone,
-                        packageDetails = "Organic food items from Gulu Main Market"
-                    )
-                    driverTripState = "requested"
-                    fetchRouteForPoints(getLatLngForPlace(pickup), getLatLngForPlace(dropoff))
-                }
-            }
+            updateDriverStatusViaBackend(true)
+            startLocationTracking()
         } else {
+            updateDriverStatusViaBackend(false)
+            stopLocationTracking()
             driverIncomingRequest = null
             driverActiveTrip = null
             driverTripState = "none"
@@ -1425,8 +1413,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch { apiRepository.updateTripStatus(req.id, "accepted") }
 
+        val driverLat = currentLocation?.latitude ?: 2.775
+        val driverLng = currentLocation?.longitude ?: 32.295
         fetchRouteForPoints(
-            com.google.android.gms.maps.model.LatLng(2.775, 32.295),
+            com.google.android.gms.maps.model.LatLng(driverLat, driverLng),
             getLatLngForPlace(req.pickupName)
         )
         
@@ -1445,18 +1435,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun driverRejectTrip() {
         driverIncomingRequest = null
         driverTripState = "none"
-        // Wait another 6 seconds before trying to trigger a new order
-        if (isDriverOnline) {
-            driverSimulationJob?.cancel()
-            driverSimulationJob = viewModelScope.launch {
-                delay(6000)
-                if (isDriverOnline && driverTripState == "none") {
-                    // Quick reset of online simulation triggers
-                    isDriverOnline = false
-                    toggleDriverOnline()
-                }
-            }
-        }
     }
 
     fun driverArrivePickup() {
@@ -1658,31 +1636,96 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             
             val fareWithDiscount = (calculatedFare - activePromoDiscount.value).coerceAtLeast(1000.0)
 
-            val newTrip = Trip(
-                type = serviceType,
-                pickupName = pickupPlace!!.name,
-                dropoffName = dropoffPlace!!.name,
-                fare = fareWithDiscount,
-                paymentMethod = selectedPaymentMethod,
-                status = "matched",
-                riderName = riderNames[index],
-                riderPlate = plates[index],
-                riderPhone = "+256 781 " + (100000 + Random.nextInt(899999)),
-                riderPhotoResId = photoIds[index],
-                packageDetails = if (serviceType == "delivery") parcelDetails else null,
-                recipientName = if (serviceType == "delivery") recipientName else null,
-                recipientPhone = if (serviceType == "delivery") recipientPhone else null
-            )
-            
-            val tripId = repository.addTrip(newTrip)
-            bookingMatchTripId = tripId
-            currentSimulationTrip = newTrip.copy(id = tripId.toInt())
+            val riderPhone = "+256 781 " + (100000 + Random.nextInt(899999))
+            val packageDetails = if (serviceType == "delivery") parcelDetails else null
+            val recipientNameVal = if (serviceType == "delivery") recipientName else null
+            val recipientPhoneVal = if (serviceType == "delivery") recipientPhone else null
 
-            // Also book via backend
-            bookTripViaBackend()
+            val backendTrip = apiRepository.bookTrip(
+                pickupName = pickupPlace!!.name,
+                pickupLat = pickupPlace!!.latitude,
+                pickupLon = pickupPlace!!.longitude,
+                dropoffName = dropoffPlace!!.name,
+                dropoffLat = dropoffPlace!!.latitude,
+                dropoffLon = dropoffPlace!!.longitude,
+                distanceKm = googleDistanceKm ?: 0.0,
+                durationMins = googleDurationMins ?: 0,
+                fare = fareWithDiscount,
+                paymentMethod = selectedPaymentMethod
+            ).getOrNull()
+
+            if (backendTrip != null) {
+                currentSimulationTrip = Trip(
+                    id = backendTrip.id,
+                    type = serviceType,
+                    pickupName = pickupPlace!!.name,
+                    dropoffName = dropoffPlace!!.name,
+                    fare = fareWithDiscount,
+                    paymentMethod = selectedPaymentMethod,
+                    status = "matched",
+                    riderName = riderNames[index],
+                    riderPlate = plates[index],
+                    riderPhone = riderPhone,
+                    riderPhotoResId = photoIds[index],
+                    packageDetails = packageDetails,
+                    recipientName = recipientNameVal,
+                    recipientPhone = recipientPhoneVal
+                )
+                bookingMatchTripId = backendTrip.id.toLong()
+                currentRideRequest = com.example.data.RideRequest(
+                    id = backendTrip.id.toString(),
+                    riderId = auth.currentUser?.uid ?: "",
+                    riderName = userProfile.value?.name ?: "",
+                    riderPhone = userProfile.value?.phoneNumber ?: "",
+                    pickupName = pickupPlace!!.name,
+                    pickupLat = pickupPlace!!.latitude,
+                    pickupLng = pickupPlace!!.longitude,
+                    dropoffName = dropoffPlace!!.name,
+                    dropoffLat = dropoffPlace!!.latitude,
+                    dropoffLng = dropoffPlace!!.longitude,
+                    fare = fareWithDiscount,
+                    paymentMethod = selectedPaymentMethod,
+                    status = "matched"
+                )
+                addPostgresLog("✓ Trip booked via PostgreSQL: ${backendTrip.id}")
+            } else {
+                val localTrip = Trip(
+                    type = serviceType,
+                    pickupName = pickupPlace!!.name,
+                    dropoffName = dropoffPlace!!.name,
+                    fare = fareWithDiscount,
+                    paymentMethod = selectedPaymentMethod,
+                    status = "matched",
+                    riderName = riderNames[index],
+                    riderPlate = plates[index],
+                    riderPhone = riderPhone,
+                    riderPhotoResId = photoIds[index],
+                    packageDetails = packageDetails,
+                    recipientName = recipientNameVal,
+                    recipientPhone = recipientPhoneVal
+                )
+                val tripId = repository.addTrip(localTrip)
+                bookingMatchTripId = tripId
+                currentSimulationTrip = localTrip.copy(id = tripId.toInt())
+            }
 
             // Shift screen to Rider En Route
             simulationState = "enroute"
+
+            // Wallet hold at booking confirmation
+            if (selectedPaymentMethod == "Wallet") {
+                val holdRef = "HOLD-BODA-${bookingMatchTripId}"
+                repository.addTransaction(WalletTransaction(
+                    amount = fareWithDiscount,
+                    type = "payment",
+                    status = "pending",
+                    phoneNumber = userProfile.value?.phoneNumber ?: "",
+                    timestamp = System.currentTimeMillis(),
+                    provider = "Wallet",
+                    reference = holdRef
+                ))
+                refreshWalletBalance()
+            }
             simulationCountdown = 8
             fetchRouteForPoints(
                 com.google.android.gms.maps.model.LatLng(2.775, 32.295),
@@ -1746,9 +1789,8 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 repository.updateTrip(updated)
                 apiRepository.updateTripStatus(ongoing.id, "canceled")
                 
-                // If it was Wallet payment, nothing was deducted yet.
-                // But let's show a small cancellation charge of 1000 UGX on next ride if they canceled late.
-                if (simulationState == "active" || simulationState == "arrived") {
+                // Cancellation fee only if trip is actively in progress
+                if (simulationState == "active") {
                     repository.addTransaction(WalletTransaction(
                         amount = 1000.0,
                         type = "payment",
@@ -1756,8 +1798,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                         phoneNumber = userProfile.value?.phoneNumber ?: "+256 772 123456",
                         timestamp = System.currentTimeMillis(),
                         provider = "Wallet",
-                        reference = "BODA-CANCELLATION-FEE"
+                        reference = "BODA-CANCELLATION-FEE-${ongoing.id}"
                     ))
+                    apiRepository.walletPay(1000.0, "Wallet")
+                    refreshWalletBalance()
                 }
             }
             simulationState = "idle"
@@ -1775,21 +1819,13 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 apiRepository.updateTripStatus(ongoing.id, "completed", stars, comment)
             }
             
-            // Record the wallet debit transaction if payment method is Wallet
+            // Complete the pending wallet hold if payment method is Wallet
             val finalFare = (calculatedFare - activePromoDiscount.value).coerceAtLeast(1000.0)
             if (selectedPaymentMethod == "Wallet" && ongoing != null) {
-                repository.addTransaction(WalletTransaction(
-                    amount = finalFare,
-                    type = "payment",
-                    status = "completed",
-                    phoneNumber = userProfile.value?.phoneNumber ?: "+256 772 123456",
-                    timestamp = System.currentTimeMillis(),
-                    provider = "Wallet",
-                    reference = "BODA-RIDE-${ongoing.id}"
-                ))
+                repository.completePendingPayment("HOLD-BODA-${ongoing.id}")
                 apiRepository.walletPay(finalFare, "Wallet")
             } else if (ongoing != null) {
-                // Mobile money payments
+                // Mobile money payments — record at completion
                 repository.addTransaction(WalletTransaction(
                     amount = finalFare,
                     type = "payment",
@@ -1801,7 +1837,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 ))
                 apiRepository.walletPay(finalFare, selectedPaymentMethod)
             }
-            
+
+            refreshWalletBalance()
+
             // Reset state
             pickupPlace = null
             dropoffPlace = null
@@ -1867,6 +1905,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                     )
                     repository.addTransaction(transaction)
                     walletTopupStatus = "success"
+                    refreshWalletBalance()
                 },
                 onFailure = { e ->
                     errorMessage.value = "Topup failed: ${e.message}"
@@ -2039,17 +2078,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Promo Code
-    fun applyPromoCode() {
-        val code = promoCodeInput.uppercase().trim()
-        if (promoList.contains(code)) {
-            activePromoCode = code
-            activePromoDiscount.value = if (code == "GULU3000") 3000.0 else 1500.0
-            activePromoMessage = "Promo Code $code Applied! Saving UGX ${activePromoDiscount.value.toInt()}"
-        } else {
-            activePromoMessage = "Invalid Code for Gulu region."
-            activePromoDiscount.value = 0.0
-        }
-    }
 
     fun onPassengerTripCompleted() {
         viewModelScope.launch {
