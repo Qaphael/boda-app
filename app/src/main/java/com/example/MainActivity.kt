@@ -17,6 +17,10 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     val viewModel = ViewModelProvider(this)[BodaViewModel::class.java]
     viewModel.handleDeepLink(intent)
+
+    val manifestKey = try { packageManager.getApplicationInfo(packageName, android.content.pm.PackageManager.GET_META_DATA).metaData?.getString("com.google.android.geo.API_KEY", "NOT_FOUND") } catch (e: Exception) { "ERROR: ${e.message}" }
+    android.util.Log.d("BODA_MAPS", "Manifest API key: '$manifestKey'")
+
     com.google.android.gms.maps.MapsInitializer.initialize(
       applicationContext,
       com.google.android.gms.maps.MapsInitializer.Renderer.LATEST

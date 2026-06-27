@@ -950,10 +950,13 @@ fun GoogleMapViewWrapper(
 
     androidx.compose.ui.viewinterop.AndroidView(
         factory = { ctx ->
+            android.util.Log.d("BODA_MAPS", "MapView factory creating...")
             com.google.android.gms.maps.MapView(ctx).apply {
                 onCreate(null)
                 onResume()
+                android.util.Log.d("BODA_MAPS", "MapView onCreate+onResume called")
                 getMapAsync { googleMap ->
+                    android.util.Log.d("BODA_MAPS", "getMapAsync callback fired, map=$googleMap")
                     googleMap.uiSettings.isZoomControlsEnabled = true
                     googleMap.uiSettings.isMapToolbarEnabled = false
                     googleMap.mapType = com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
@@ -962,11 +965,13 @@ fun GoogleMapViewWrapper(
                             pickupLatLng, 14f
                         )
                     )
+                    android.util.Log.d("BODA_MAPS", "Map configured, camera moved to ${pickupLatLng.latitude},${pickupLatLng.longitude}")
                 }
             }
         },
         modifier = modifier,
         update = { mapV ->
+            android.util.Log.d("BODA_MAPS", "update block running")
             mapV.getMapAsync { googleMap ->
                 googleMap.clear()
 
@@ -1059,12 +1064,13 @@ fun GuluMapView(
     viewModel: BodaViewModel? = null
 ) {
     val hasMapsApiKey = try {
-        com.example.BuildConfig.MAPS_API_KEY.isNotEmpty() && 
-        com.example.BuildConfig.MAPS_API_KEY != "MY_MAPS_API_KEY" && 
+        com.example.BuildConfig.MAPS_API_KEY.isNotEmpty() &&
+        com.example.BuildConfig.MAPS_API_KEY != "MY_MAPS_API_KEY" &&
         com.example.BuildConfig.MAPS_API_KEY != "MAPS_API_KEY_DEFAULT_VALUE"
     } catch (e: Throwable) {
         false
     }
+    android.util.Log.d("BODA_MAPS", "hasMapsApiKey=$hasMapsApiKey key='${com.example.BuildConfig.MAPS_API_KEY}'")
 
     Box(
         modifier = modifier
