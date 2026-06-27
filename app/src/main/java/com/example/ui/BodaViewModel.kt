@@ -151,6 +151,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             repository.initializeDefaultData()
 
             val currentUser = auth.currentUser
+            android.util.Log.d("BODA_INIT", "auth.currentUser=${currentUser?.uid ?: "NULL"} otp_verified=${prefs.getBoolean("otp_verified", false)}")
             if (currentUser != null) {
                 isOtpVerified = true
                 prefs.edit().putBoolean("otp_verified", true).apply()
@@ -956,13 +957,16 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun syncUserToBackend(profile: UserProfile? = null) {
         val user = profile ?: userProfile.value ?: return
         val phone = user.phoneNumber.replace("+256", "").trim()
+        android.util.Log.d("BODA_SYNC", "Syncing user: phone=$phone name=${user.name}")
 
         viewModelScope.launch {
             apiRepository.syncUser(phone, user.name).fold(
                 onSuccess = { backendUser ->
+                    android.util.Log.d("BODA_SYNC", "Sync success: uid=${backendUser.uid}")
                     addPostgresLog("✓ User synced to PostgreSQL backend")
                 },
                 onFailure = { e ->
+                    android.util.Log.e("BODA_SYNC", "Sync failed: ${e.message}", e)
                     addPostgresLog("✗ User sync failed: ${e.message}")
                 }
             )

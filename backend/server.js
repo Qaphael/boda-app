@@ -74,6 +74,7 @@ const adminAuth = (req, res, next) => {
 // Register / Sync User details in database
 app.post('/api/users/sync', verifyFirebaseToken, syncLimiter, async (req, res) => {
   const { uid, phone_number, name, email } = req.user;
+  console.log(`[SYNC] uid=${uid} phone=${phone_number} name=${name} body_phone=${req.body.phone} body_name=${req.body.name}`);
   try {
     const query = `
       INSERT INTO users (uid, phone, full_name, email, wallet_balance)
@@ -83,9 +84,10 @@ app.post('/api/users/sync', verifyFirebaseToken, syncLimiter, async (req, res) =
       RETURNING *;
     `;
     const result = await db.query(query, [uid, phone_number || req.body.phone || '+256770000000', name || req.body.name || 'Gulu Passenger', email]);
+    console.log(`[SYNC] Success: ${JSON.stringify(result.rows[0])}`);
     res.json({ success: true, user: result.rows[0] });
   } catch (error) {
-    console.error('Error syncing user:', error);
+    console.error('[SYNC] Error:', error);
     res.status(500).json({ error: 'Database sync failure: ' + error.message });
   }
 });
