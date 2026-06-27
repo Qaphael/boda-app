@@ -153,6 +153,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             val currentUser = auth.currentUser
             if (currentUser != null) {
                 isOtpVerified = true
+                prefs.edit().putBoolean("otp_verified", true).apply()
                 phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
                 syncUserToBackend()
                 fetchBackendData()
@@ -765,6 +766,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         stopLocationTracking()
         auth.signOut()
         isOtpVerified = false
+        prefs.edit().putBoolean("otp_verified", false).apply()
         otpSent = false
         otpInput = ""
         verificationId = null
@@ -1153,6 +1155,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit()
             .putBoolean("onboarding_carousel_completed", false)
             .putBoolean("onboarding_language_selected", false)
+            .putBoolean("otp_verified", false)
             .apply()
     }
 
@@ -1164,7 +1167,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var otpInput by mutableStateOf("")
     var otpSent by mutableStateOf(false)
     var otpResendTimer by mutableStateOf(45)
-    var isOtpVerified by mutableStateOf(false)
+    var isOtpVerified by mutableStateOf(prefs.getBoolean("otp_verified", false))
     private var otpTimerJob: Job? = null
 
     // Location & notification permission simulation
@@ -1604,6 +1607,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         auth.signInWithCredential(credential)
             .addOnSuccessListener {
                 isOtpVerified = true
+                prefs.edit().putBoolean("otp_verified", true).apply()
                 otpTimerJob?.cancel()
             }
             .addOnFailureListener { e ->
