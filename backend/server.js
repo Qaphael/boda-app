@@ -79,22 +79,24 @@ const adminAuth = (req, res, next) => {
 
 // Register / Sync User details in database
 app.post('/api/users/sync', verifyFirebaseToken, syncLimiter, async (req, res) => {
-  const { uid, phone_number, name, email } = req.user;
-  const { language, referral_code } = req.body;
-  console.log(`[SYNC] uid=${uid} phone=${phone_number} name=${name} body_phone=${req.body.phone} body_name=${req.body.name}`);
+  const { uid } = req.user;
+  const { phone, name, language, referral_code } = req.body;
+  const fullName = name || req.user.name || 'Gulu Passenger';
+  const phoneNum = phone || req.user.phone_number || '+256770000000';
+  console.log(`[SYNC] uid=${uid} phone=${phoneNum} name=${fullName}`);
   try {
     const query = `
       INSERT INTO users (uid, phone, full_name, email, wallet_balance, language, referral_code)
       VALUES ($1, $2, $3, $4, 5000.00, $5, $6)
       ON CONFLICT (uid) DO UPDATE
-      SET full_name = EXCLUDED.full_name, language = EXCLUDED.language, referral_code = EXCLUDED.referral_code, updated_at = NOW()
+      SET full_name = $3, phone = $2, language = $5, referral_code = $6, updated_at = NOW()
       RETURNING *;
     `;
     const result = await db.query(query, [
       uid,
-      phone_number || req.body.phone || '+256770000000',
-      name || req.body.name || 'Gulu Passenger',
-      email,
+      phoneNum,
+      fullName,
+      req.user.email,
       language || 'en',
       referral_code || null
     ]);
