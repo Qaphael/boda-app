@@ -757,8 +757,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                         .build()
                         
                     client.newCall(request).execute().use { response ->
+                        val bodyString = response.body?.string() ?: ""
+                        addPostgresLog("Distance Matrix HTTP ${response.code}: ${bodyString.take(300)}")
                         if (response.isSuccessful) {
-                            val bodyString = response.body?.string() ?: ""
                             val json = org.json.JSONObject(bodyString)
                             val status = json.optString("status")
                             if (status == "OK") {
@@ -824,6 +825,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 } catch (e: Exception) {
                     withContext(kotlinx.coroutines.Dispatchers.Main) {
                         distanceMatrixError = e.message
+                        errorMessage.value = "Distance calculation failed. Using estimated distance."
                         addPostgresLog("Distance Matrix API query failed (${e.message}). Using Haversine fallback.")
                     }
                 } finally {
