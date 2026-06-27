@@ -58,6 +58,10 @@ interface BodaApiService {
     @DELETE("api/emergency-contacts/{id}")
     suspend fun deleteEmergencyContact(@Path("id") contactId: Int): Response<ApiResponse<Any>>
 
+    // SOS endpoints
+    @POST("api/sos")
+    suspend fun postSosAlert(@Body body: SosAlertRequest): Response<ApiResponse<Any>>
+
     // Saved places endpoints
     @DELETE("api/saved-places/{id}")
     suspend fun deleteSavedPlace(@Path("id") placeId: Int): Response<ApiResponse<Any>>
@@ -268,6 +272,13 @@ data class EmergencyContactDto(
 data class EmergencyContactRequest(
     val name: String,
     val phone_number: String
+)
+
+data class SosAlertRequest(
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val trip_id: Int? = null,
+    val description: String = "SOS Emergency"
 )
 
 data class ReferralDto(

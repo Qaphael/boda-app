@@ -2375,9 +2375,22 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dispatchSOSSMS() {
         val message = "EMERGENCY ALERT: I am on a Boda ride in Gulu and triggered SOS. Track me here: https://boda-gulu.ug/track/GULU-SECURE-SOS"
-        
+
         emergencySMSDispatchLogs.clear()
         viewModelScope.launch {
+            // Post SOS alert to backend so admin dashboard sees it
+            apiRepository.postSosAlert(
+                latitude = currentLocation?.latitude,
+                longitude = currentLocation?.longitude,
+                tripId = currentSimulationTrip?.id,
+                description = message
+            ).onSuccess {
+                addPostgresLog("SOS alert sent to backend")
+            }.onFailure { e ->
+                addPostgresLog("SOS alert failed: ${e.message}")
+            }
+
+            // Dispatch SMS to emergency contacts
             emergencyContacts.value.forEach { contact ->
                 emergencySMSDispatchLogs.add("SMS dispatched to ${contact.name} (${contact.phoneNumber}): \"$message\"")
                 delay(400)

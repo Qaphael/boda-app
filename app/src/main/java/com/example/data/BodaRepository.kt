@@ -233,6 +233,16 @@ class BodaRepository(private val dao: BodaDao? = null) {
         }
     }
 
+    suspend fun postSosAlert(latitude: Double?, longitude: Double?, tripId: Int?, description: String = "SOS Emergency"): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.postSosAlert(SosAlertRequest(latitude, longitude, tripId, description))
+                if (response.isSuccessful && response.body()?.success == true) Result.success(true)
+                else Result.failure(Exception("Failed to send SOS alert"))
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
     suspend fun deleteSavedPlaceFromBackend(placeId: Int): Result<Boolean> {
         return withContext(Dispatchers.IO) {
             try {
