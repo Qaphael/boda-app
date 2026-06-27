@@ -824,8 +824,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 } catch (e: Exception) {
                     withContext(kotlinx.coroutines.Dispatchers.Main) {
                         distanceMatrixError = e.message
-                        errorMessage.value = "Distance calculation failed. Using estimated distance."
-                        addPostgresLog("Distance Matrix API query failed (${e.message}). Using high-fidelity Haversine fallback.")
+                        addPostgresLog("Distance Matrix API query failed (${e.message}). Using Haversine fallback.")
                     }
                 } finally {
                     withContext(kotlinx.coroutines.Dispatchers.Main) {
@@ -1439,7 +1438,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             val roadMultiplier = 1.4
             val estimated = straightLine * roadMultiplier
             return estimated.coerceAtLeast(0.8)
-        }
         }
 
     // Simulation Live States
