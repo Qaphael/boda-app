@@ -134,20 +134,72 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            // Initialize default data if DB is empty
             repository.initializeDefaultData()
 
-            // Check if user is already signed in with Firebase
             val currentUser = auth.currentUser
             if (currentUser != null) {
                 isOtpVerified = true
                 phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
                 syncUserToBackend()
+                fetchBackendData()
             }
         }
         connectPostgresWebSocket()
         connectToBackend()
         registerFcmToken()
+    }
+
+    private suspend fun fetchBackendData() {
+        apiRepository.fetchTrips().onSuccess { dtos ->
+            dtos.forEach { dto ->
+                repository.addTrip(Trip(
+                    id = dto.id,
+                    type = "ride",
+                    pickupName = dto.pickup_name,
+                    dropoffName = dto.dropoff_name,
+                    fare = dto.fare,
+                    paymentMethod = dto.payment_method,
+                    status = dto.status,
+                    riderName = dto.driver_name ?: "",
+                    riderPlate = dto.plate_number ?: "",
+                    rating = dto.rating
+                ))
+            }
+        }
+        apiRepository.fetchWalletTransactions().onSuccess { dtos ->
+            dtos.forEach { dto ->
+                repository.addTransaction(WalletTransaction(
+                    amount = dto.amount,
+                    type = dto.type,
+                    status = dto.status,
+                    phoneNumber = userProfile.value?.phoneNumber ?: "",
+                    timestamp = System.currentTimeMillis(),
+                    provider = dto.payment_provider,
+                    reference = dto.transaction_ref
+                ))
+            }
+        }
+        apiRepository.fetchEmergencyContactsFromBackend().onSuccess { dtos ->
+            dtos.forEach { dto ->
+                repository.addEmergencyContact(EmergencyContact(
+                    id = dto.id,
+                    name = dto.name,
+                    phoneNumber = dto.phone_number
+                ))
+            }
+        }
+        apiRepository.fetchReferralsFromBackend().onSuccess { dtos ->
+            dtos.forEach { dto ->
+                repository.addReferral(Referral(
+                    id = dto.id,
+                    referredName = dto.referred_name,
+                    referredPhone = dto.referred_phone,
+                    referralCodeUsed = dto.referral_code,
+                    status = dto.status,
+                    rewardAmount = dto.reward_amount
+                ))
+            }
+        }
     }
 
     // Routing points
@@ -769,6 +821,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val current = userProfile.value ?: UserProfile()
             repository.saveUserProfile(current.copy(language = lang))
+            syncUserToBackend()
         }
     }
 
@@ -1369,7 +1422,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         driverTripState = "accepted"
         driverSimulationCountdown = 8
         driverSimulationProgress = 0f
-        
+
+        apiRepository.updateTripStatus(req.id, "accepted")
+
         fetchRouteForPoints(
             com.google.android.gms.maps.model.LatLng(2.775, 32.295),
             getLatLngForPlace(req.pickupName)
@@ -1414,6 +1469,8 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         driverTripState = "active"
         driverSimulationCountdown = 10
         driverSimulationProgress = 0f
+
+        apiRepository.updateTripStatus(trip.id, "active")
         
         fetchRouteForPoints(
             getLatLngForPlace(trip.pickupName),
@@ -1438,6 +1495,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             driverEarnings += trip.fare
             driverCompletedTrips += 1
+            apiRepository.updateTripStatus(trip.id, "completed")
             
             // Log completed trip in Room DB histories
             repository.addTrip(trip.copy(id = 0, status = "completed"))
@@ -1548,7 +1606,8 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 referralCode = genCode
             )
             repository.saveUserProfile(profile)
-            
+            syncUserToBackend()
+
             if (referralCodeInput.isNotEmpty()) {
                 repository.addReferral(Referral(
                     referredName = signupName,
@@ -1558,6 +1617,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                     timestamp = System.currentTimeMillis(),
                     rewardAmount = 3000.0
                 ))
+                apiRepository.addReferralToBackend(
+                    signupName, profile.phoneNumber, referralCodeInput.uppercase().trim()
+                )
             }
             navigateTo(Screen.Home)
         }
@@ -1566,6 +1628,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun saveUserProfile(profile: UserProfile) {
         viewModelScope.launch {
             repository.saveUserProfile(profile)
+            syncUserToBackend()
         }
     }
 
@@ -1614,7 +1677,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             val tripId = repository.addTrip(newTrip)
             bookingMatchTripId = tripId
             currentSimulationTrip = newTrip.copy(id = tripId.toInt())
-            
+
+            // Also book via backend
+            bookTripViaBackend()
+
             // Shift screen to Rider En Route
             simulationState = "enroute"
             simulationCountdown = 8
@@ -1678,6 +1744,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             if (ongoing != null) {
                 val updated = ongoing.copy(status = "canceled", comment = "Canceled: $reason")
                 repository.updateTrip(updated)
+                apiRepository.updateTripStatus(ongoing.id, "canceled")
                 
                 // If it was Wallet payment, nothing was deducted yet.
                 // But let's show a small cancellation charge of 1000 UGX on next ride if they canceled late.
@@ -1705,6 +1772,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             if (ongoing != null) {
                 val updated = ongoing.copy(rating = stars, comment = comment)
                 repository.updateTrip(updated)
+                apiRepository.updateTripStatus(ongoing.id, "completed", stars, comment)
             }
             
             // Record the wallet debit transaction if payment method is Wallet
@@ -1719,6 +1787,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                     provider = "Wallet",
                     reference = "BODA-RIDE-${ongoing.id}"
                 ))
+                apiRepository.walletPay(finalFare, "Wallet")
             } else if (ongoing != null) {
                 // Mobile money payments
                 repository.addTransaction(WalletTransaction(
@@ -1730,6 +1799,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                     provider = selectedPaymentMethod,
                     reference = "${selectedPaymentMethod}-MOM-RIDE-${ongoing.id}"
                 ))
+                apiRepository.walletPay(finalFare, selectedPaymentMethod)
             }
             
             // Reset state
@@ -1780,21 +1850,29 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
         showMoMoPinDialog = false
         walletTopupStatus = "pending"
-        activeTransactionReference = "MOM-" + Random.nextInt(100000, 999999)
-        
+
         viewModelScope.launch {
-            delay(2000) // Brief simulation of secure gateway handshake
-            val transaction = WalletTransaction(
-                amount = momoPromptAmount,
-                type = "topup",
-                status = "completed",
-                phoneNumber = momoPromptPhone,
-                timestamp = System.currentTimeMillis(),
-                provider = if (momoPromptProvider.contains("MTN")) "MTN" else "Airtel",
-                reference = activeTransactionReference
+            val provider = if (momoPromptProvider.contains("MTN")) "MTN" else "Airtel"
+            apiRepository.walletTopup(momoPromptAmount, provider).fold(
+                onSuccess = { response ->
+                    activeTransactionReference = response.reference
+                    val transaction = WalletTransaction(
+                        amount = momoPromptAmount,
+                        type = "topup",
+                        status = "completed",
+                        phoneNumber = momoPromptPhone,
+                        timestamp = System.currentTimeMillis(),
+                        provider = provider,
+                        reference = response.reference
+                    )
+                    repository.addTransaction(transaction)
+                    walletTopupStatus = "success"
+                },
+                onFailure = { e ->
+                    errorMessage.value = "Topup failed: ${e.message}"
+                    walletTopupStatus = "failed"
+                }
             )
-            repository.addTransaction(transaction)
-            walletTopupStatus = "success"
         }
     }
 
@@ -1901,12 +1979,15 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun addSavedPlace() {
         if (newPlaceLabel.isEmpty() || newPlaceName.isEmpty()) return
         viewModelScope.launch {
+            val lat = 2.7712 + Random.nextDouble(-0.03, 0.03)
+            val lng = 32.2985 + Random.nextDouble(-0.03, 0.03)
             repository.addSavedPlace(SavedPlace(
                 label = newPlaceLabel,
                 name = newPlaceName,
-                latitude = 2.7712 + Random.nextDouble(-0.03, 0.03),
-                longitude = 32.2985 + Random.nextDouble(-0.03, 0.03)
+                latitude = lat,
+                longitude = lng
             ))
+            apiRepository.savePlace(newPlaceLabel, newPlaceName, lat, lng)
             newPlaceLabel = ""
             newPlaceName = ""
             navigateBack()
@@ -1916,6 +1997,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun removeSavedPlace(place: SavedPlace) {
         viewModelScope.launch {
             repository.removeSavedPlace(place)
+            apiRepository.deleteSavedPlaceFromBackend(place.id)
         }
     }
 
@@ -1926,6 +2008,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 name = newEmergencyName,
                 phoneNumber = newEmergencyPhone
             ))
+            apiRepository.addEmergencyContactToBackend(newEmergencyName, newEmergencyPhone)
             newEmergencyName = ""
             newEmergencyPhone = ""
             navigateBack()
@@ -1935,6 +2018,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun removeEmergencyContact(contact: EmergencyContact) {
         viewModelScope.launch {
             repository.removeEmergencyContact(contact)
+            apiRepository.deleteEmergencyContactFromBackend(contact.id)
         }
     }
 
@@ -1949,6 +2033,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                     disputeReason = reason,
                     disputeEvidence = details
                 ))
+                apiRepository.updateTripStatus(tripId, "disputed", disputeReason = reason, disputeEvidence = details)
             }
         }
     }

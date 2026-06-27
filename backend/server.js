@@ -135,6 +135,32 @@ app.post('/api/saved-places', verifyFirebaseToken, async (req, res) => {
   }
 });
 
+// Get user profile from PostgreSQL
+app.get('/api/users/me', verifyFirebaseToken, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM users WHERE uid = $1', [req.user.uid]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// List rider's trip history
+app.get('/api/trips', verifyFirebaseToken, async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT t.*, d.full_name as driver_name, d.plate_number
+       FROM trips t LEFT JOIN drivers d ON t.driver_uid = d.uid
+       WHERE t.passenger_uid = $1 ORDER BY t.created_at DESC`,
+      [req.user.uid]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Create a new ride booking
 app.post('/api/trips/book', verifyFirebaseToken, async (req, res) => {
   const {
@@ -206,6 +232,193 @@ app.get('/api/trips/:id/messages', verifyFirebaseToken, async (req, res) => {
       [req.params.id]
     );
     res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// TRIP STATUS UPDATES
+// ==========================================
+
+app.patch('/api/trips/:id/status', verifyFirebaseToken, async (req, res) => {
+  const { status, driver_uid, rating, comment, dispute_reason, dispute_evidence } = req.body;
+  try {
+    let query, params;
+    if (status === 'completed' && rating) {
+      query = `UPDATE trips SET status = $1, completed_at = NOW(), driver_uid = COALESCE($2, driver_uid), rating = $3, comment = $4 WHERE id = $5 RETURNING *`;
+      params = [status, driver_uid, rating, comment, req.params.id];
+    } else if (status === 'completed') {
+      query = `UPDATE trips SET status = $1, completed_at = NOW(), driver_uid = COALESCE($2, driver_uid) WHERE id = $3 RETURNING *`;
+      params = [status, driver_uid, req.params.id];
+    } else if (status === 'disputed') {
+      query = `UPDATE trips SET status = $1, dispute_reason = $2, dispute_evidence = $3 WHERE id = $4 RETURNING *`;
+      params = [status, dispute_reason, dispute_evidence, req.params.id];
+    } else {
+      query = `UPDATE trips SET status = $1 WHERE id = $2 RETURNING *`;
+      params = [status, req.params.id];
+    }
+    const result = await db.query(query, params);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Trip not found' });
+    io.to(`trip_${req.params.id}`).emit('trip_status_updated', { tripId: parseInt(req.params.id), status });
+    res.json({ success: true, trip: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// WALLET / TRANSACTIONS
+// ==========================================
+
+app.get('/api/wallet/transactions', verifyFirebaseToken, async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM transactions WHERE user_uid = $1 ORDER BY created_at DESC',
+      [req.user.uid]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/wallet/topup', verifyFirebaseToken, async (req, res) => {
+  const { amount, payment_provider } = req.body;
+  const uid = req.user.uid;
+  const amt = parseFloat(amount);
+  if (isNaN(amt) || amt <= 0) return res.status(400).json({ error: 'Invalid amount' });
+
+  try {
+    await db.query('BEGIN');
+    await db.query(
+      'UPDATE users SET wallet_balance = wallet_balance + $1, updated_at = NOW() WHERE uid = $2',
+      [amt, uid]
+    );
+    const txRef = `MOM-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    await db.query(
+      `INSERT INTO transactions (user_uid, transaction_ref, type, amount, payment_provider, status)
+       VALUES ($1, $2, 'deposit', $3, $4, 'completed')`,
+      [uid, txRef, amt, payment_provider || 'MTN']
+    );
+    await db.query('COMMIT');
+    res.json({ success: true, reference: txRef });
+  } catch (error) {
+    await db.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Record a ride payment (deduct from wallet or record mobile money payment)
+app.post('/api/wallet/pay', verifyFirebaseToken, async (req, res) => {
+  const { amount, payment_provider, trip_id } = req.body;
+  const uid = req.user.uid;
+  const amt = parseFloat(amount);
+  if (isNaN(amt) || amt <= 0) return res.status(400).json({ error: 'Invalid amount' });
+
+  try {
+    await db.query('BEGIN');
+    if (payment_provider === 'Wallet') {
+      const bal = await db.query('SELECT wallet_balance FROM users WHERE uid = $1', [uid]);
+      if (bal.rows.length === 0 || parseFloat(bal.rows[0].wallet_balance) < amt) {
+        await db.query('ROLLBACK');
+        return res.status(400).json({ error: 'Insufficient wallet balance' });
+      }
+      await db.query(
+        'UPDATE users SET wallet_balance = wallet_balance - $1, updated_at = NOW() WHERE uid = $2',
+        [amt, uid]
+      );
+    }
+    const txRef = `PAY-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    await db.query(
+      `INSERT INTO transactions (user_uid, transaction_ref, type, amount, payment_provider, status)
+       VALUES ($1, $2, 'payment', $3, $4, 'completed')`,
+      [uid, txRef, amt, payment_provider]
+    );
+    await db.query('COMMIT');
+    res.json({ success: true, reference: txRef });
+  } catch (error) {
+    await db.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// EMERGENCY CONTACTS
+// ==========================================
+
+app.get('/api/emergency-contacts', verifyFirebaseToken, async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM emergency_contacts WHERE user_uid = $1 ORDER BY id DESC',
+      [req.user.uid]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/emergency-contacts', verifyFirebaseToken, async (req, res) => {
+  const { name, phone_number } = req.body;
+  try {
+    const result = await db.query(
+      'INSERT INTO emergency_contacts (user_uid, name, phone_number) VALUES ($1, $2, $3) RETURNING *',
+      [req.user.uid, name, phone_number]
+    );
+    res.json({ success: true, contact: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/emergency-contacts/:id', verifyFirebaseToken, async (req, res) => {
+  try {
+    await db.query('DELETE FROM emergency_contacts WHERE id = $1 AND user_uid = $2', [req.params.id, req.user.uid]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// REFERRALS
+// ==========================================
+
+app.get('/api/referrals', verifyFirebaseToken, async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM referrals WHERE referrer_uid = $1 ORDER BY created_at DESC',
+      [req.user.uid]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/referrals', verifyFirebaseToken, async (req, res) => {
+  const { referred_name, referred_phone, referral_code } = req.body;
+  try {
+    const result = await db.query(
+      `INSERT INTO referrals (referrer_uid, referred_name, referred_phone, referral_code, status, reward_amount)
+       VALUES ($1, $2, $3, $4, 'pending', 3000.00) RETURNING *`,
+      [req.user.uid, referred_name, referred_phone, referral_code]
+    );
+    res.json({ success: true, referral: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// SAVED PLACES DELETE
+// ==========================================
+
+app.delete('/api/saved-places/:id', verifyFirebaseToken, async (req, res) => {
+  try {
+    await db.query('DELETE FROM saved_places WHERE id = $1 AND user_uid = $2', [req.params.id, req.user.uid]);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

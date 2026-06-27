@@ -19,3 +19,4 @@ debug.keystore
 *.json.bak
 app/boda-app-99092-firebase-adminsdk-fbsvc-*.json
 backend/.env
+backend/migrate*.sql

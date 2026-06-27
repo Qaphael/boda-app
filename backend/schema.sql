@@ -98,12 +98,51 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 );
 CREATE INDEX IF NOT EXISTS idx_chat_trip ON chat_messages(trip_id);
 
--- Migration: add fcm_token columns if not present
+-- 7. Emergency Contacts
+CREATE TABLE IF NOT EXISTS emergency_contacts (
+    id SERIAL PRIMARY KEY,
+    user_uid VARCHAR(128) NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_ec_user ON emergency_contacts(user_uid);
+
+-- 8. Referrals
+CREATE TABLE IF NOT EXISTS referrals (
+    id SERIAL PRIMARY KEY,
+    referrer_uid VARCHAR(128) NOT NULL REFERENCES users(uid),
+    referred_name VARCHAR(100) NOT NULL,
+    referred_phone VARCHAR(20) NOT NULL,
+    referral_code VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'pending',
+    reward_amount DECIMAL(10,2) DEFAULT 3000.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_ref_user ON referrals(referrer_uid);
+
+-- Migration: add columns if not present
 DO $$ BEGIN
   ALTER TABLE users ADD COLUMN IF NOT EXISTS fcm_token VARCHAR(512);
 EXCEPTION WHEN duplicate_column THEN NULL;
 END $$;
 DO $$ BEGIN
   ALTER TABLE drivers ADD COLUMN IF NOT EXISTS fcm_token VARCHAR(512);
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE trips ADD COLUMN IF NOT EXISTS rating INTEGER DEFAULT 0;
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE trips ADD COLUMN IF NOT EXISTS comment TEXT;
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE trips ADD COLUMN IF NOT EXISTS dispute_reason TEXT;
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE trips ADD COLUMN IF NOT EXISTS dispute_evidence TEXT;
 EXCEPTION WHEN duplicate_column THEN NULL;
 END $$;

@@ -80,6 +80,146 @@ class BodaRepository(private val dao: BodaDao? = null) {
         }
     }
 
+    suspend fun updateTripStatus(tripId: Int, status: String, rating: Int? = null, comment: String? = null, disputeReason: String? = null, disputeEvidence: String? = null): Result<Trip> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.updateTripStatus(tripId, TripStatusUpdate(status, rating, comment, dispute_reason = disputeReason, dispute_evidence = disputeEvidence))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val trip = response.body()?.trip
+                    if (trip != null) Result.success(trip) else Result.failure(Exception("Trip data is null"))
+                } else {
+                    Result.failure(Exception(response.body()?.error ?: "Failed to update trip"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun fetchTrips(): Result<List<TripDto>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getTrips()
+                if (response.isSuccessful) Result.success(response.body() ?: emptyList())
+                else Result.failure(Exception("Failed to load trips"))
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun fetchUserProfile(): Result<UserProfile> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getMe()
+                if (response.isSuccessful) {
+                    val user = response.body()
+                    if (user != null) Result.success(user) else Result.failure(Exception("User not found"))
+                } else {
+                    Result.failure(Exception("Failed to load profile"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun walletPay(amount: Double, provider: String, tripId: Int? = null): Result<TopupResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.walletPay(WalletTopupRequest(amount, provider))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Result.success(response.body()!!)
+                } else {
+                    Result.failure(Exception("Payment failed"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun fetchWalletTransactions(): Result<List<WalletTransactionDto>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getWalletTransactions()
+                if (response.isSuccessful) Result.success(response.body() ?: emptyList())
+                else Result.failure(Exception("Failed to load transactions"))
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun walletTopup(amount: Double, provider: String): Result<TopupResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.walletTopup(WalletTopupRequest(amount, provider))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Result.success(response.body()!!)
+                } else {
+                    Result.failure(Exception("Topup failed"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun fetchEmergencyContactsFromBackend(): Result<List<EmergencyContactDto>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getEmergencyContacts()
+                if (response.isSuccessful) Result.success(response.body() ?: emptyList())
+                else Result.failure(Exception("Failed to load contacts"))
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun addEmergencyContactToBackend(name: String, phone: String): Result<EmergencyContactDto> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.addEmergencyContact(EmergencyContactRequest(name, phone))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val contact = response.body()?.contact
+                    if (contact != null) Result.success(contact) else Result.failure(Exception("Contact data is null"))
+                } else {
+                    Result.failure(Exception("Failed to add contact"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun deleteEmergencyContactFromBackend(contactId: Int): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.deleteEmergencyContact(contactId)
+                if (response.isSuccessful) Result.success(true) else Result.failure(Exception("Failed to delete contact"))
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun deleteSavedPlaceFromBackend(placeId: Int): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.deleteSavedPlace(placeId)
+                if (response.isSuccessful) Result.success(true) else Result.failure(Exception("Failed to delete place"))
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun fetchReferralsFromBackend(): Result<List<ReferralDto>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.getReferrals()
+                if (response.isSuccessful) Result.success(response.body() ?: emptyList())
+                else Result.failure(Exception("Failed to load referrals"))
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun addReferralToBackend(name: String, phone: String, code: String): Result<ReferralDto> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.addReferral(ReferralRequest(name, phone, code))
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val ref = response.body()?.referral
+                    if (ref != null) Result.success(ref) else Result.failure(Exception("Referral data is null"))
+                } else {
+                    Result.failure(Exception("Failed to add referral"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
     suspend fun fetchChatHistory(tripId: Int): Result<List<ChatMessageDto>> {
         return withContext(Dispatchers.IO) {
             try {

@@ -147,6 +147,14 @@ Base URL: `https://ryd-api.ocaya.space`
 | `/api/trips/book` | POST | Firebase | Book a ride |
 | `/api/trips/:id` | GET | Firebase | Get trip status |
 | `/api/trips/:id/messages` | GET | Firebase | Chat history for trip |
+| `/api/trips/:id/status` | PATCH | Firebase | Update trip status |
+| `/api/wallet/transactions` | GET | Firebase | User transaction history |
+| `/api/wallet/topup` | POST | Firebase | Wallet deposit via MoMo |
+| `/api/wallet/pay` | POST | Firebase | Ride payment via wallet/mobile money |
+| `/api/emergency-contacts` | GET/POST | Firebase | List/add emergency contacts |
+| `/api/emergency-contacts/:id` | DELETE | Firebase | Remove emergency contact |
+| `/api/saved-places/:id` | DELETE | Firebase | Remove saved place |
+| `/api/referrals` | GET/POST | Firebase | List/add referrals |
 | `/api/drivers/register` | POST | No | Register driver |
 | `/api/drivers/status` | POST | No | Update driver GPS/online |
 | `/api/admin/stats` | GET | No | Dashboard KPIs |

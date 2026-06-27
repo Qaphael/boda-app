@@ -10,6 +10,9 @@ interface BodaApiService {
     @POST("api/users/sync")
     suspend fun syncUser(@Body user: UserSyncRequest): Response<ApiResponse<UserProfile>>
 
+    @GET("api/users/me")
+    suspend fun getMe(): Response<UserProfile>
+
     @GET("api/saved-places")
     suspend fun getSavedPlaces(): Response<List<SavedPlace>>
 
@@ -20,11 +23,48 @@ interface BodaApiService {
     @POST("api/trips/book")
     suspend fun bookTrip(@Body trip: TripBookingRequest): Response<ApiResponse<Trip>>
 
+    @GET("api/trips")
+    suspend fun getTrips(): Response<List<TripDto>>
+
     @GET("api/trips/{id}")
     suspend fun getTrip(@Path("id") tripId: Int): Response<Trip>
 
+    @PATCH("api/trips/{id}/status")
+    suspend fun updateTripStatus(@Path("id") tripId: Int, @Body body: TripStatusUpdate): Response<ApiResponse<Trip>>
+
     @GET("api/trips/{id}/messages")
     suspend fun getChatMessages(@Path("id") tripId: Int): Response<List<ChatMessageDto>>
+
+    // Wallet endpoints
+    @GET("api/wallet/transactions")
+    suspend fun getWalletTransactions(): Response<List<WalletTransactionDto>>
+
+    @POST("api/wallet/topup")
+    suspend fun walletTopup(@Body body: WalletTopupRequest): Response<TopupResponse>
+
+    @POST("api/wallet/pay")
+    suspend fun walletPay(@Body body: WalletTopupRequest): Response<TopupResponse>
+
+    // Emergency contacts endpoints
+    @GET("api/emergency-contacts")
+    suspend fun getEmergencyContacts(): Response<List<EmergencyContactDto>>
+
+    @POST("api/emergency-contacts")
+    suspend fun addEmergencyContact(@Body body: EmergencyContactRequest): Response<ApiResponse<EmergencyContactDto>>
+
+    @DELETE("api/emergency-contacts/{id}")
+    suspend fun deleteEmergencyContact(@Path("id") contactId: Int): Response<ApiResponse<Any>>
+
+    // Saved places endpoints
+    @DELETE("api/saved-places/{id}")
+    suspend fun deleteSavedPlace(@Path("id") placeId: Int): Response<ApiResponse<Any>>
+
+    // Referrals endpoints
+    @GET("api/referrals")
+    suspend fun getReferrals(): Response<List<ReferralDto>>
+
+    @POST("api/referrals")
+    suspend fun addReferral(@Body body: ReferralRequest): Response<ApiResponse<ReferralDto>>
 
     // Driver endpoints
     @POST("api/drivers/register")
@@ -144,4 +184,88 @@ data class ChatMessageDto(
     val sender_role: String = "",
     val message: String = "",
     val created_at: String = ""
+)
+
+data class TripStatusUpdate(
+    val status: String,
+    val rating: Int? = null,
+    val comment: String? = null,
+    val driver_uid: String? = null,
+    val dispute_reason: String? = null,
+    val dispute_evidence: String? = null
+)
+
+data class TripDto(
+    val id: Int = 0,
+    val trip_code: String = "",
+    val passenger_uid: String = "",
+    val driver_uid: String? = null,
+    val driver_name: String? = null,
+    val plate_number: String? = null,
+    val pickup_name: String = "",
+    val pickup_lat: Double = 0.0,
+    val pickup_lon: Double = 0.0,
+    val dropoff_name: String = "",
+    val dropoff_lat: Double = 0.0,
+    val dropoff_lon: Double = 0.0,
+    val distance_km: Double = 0.0,
+    val duration_mins: Int = 0,
+    val fare: Double = 0.0,
+    val payment_method: String = "",
+    val status: String = "",
+    val rating: Int = 0,
+    val comment: String? = null,
+    val created_at: String = "",
+    val completed_at: String? = null
+)
+
+data class WalletTransactionDto(
+    val id: Int = 0,
+    val user_uid: String = "",
+    val transaction_ref: String = "",
+    val type: String = "",
+    val amount: Double = 0.0,
+    val payment_provider: String = "",
+    val status: String = "",
+    val created_at: String = ""
+)
+
+data class WalletTopupRequest(
+    val amount: Double,
+    val payment_provider: String = "MTN"
+)
+
+data class TopupResponse(
+    val success: Boolean = false,
+    val reference: String = ""
+)
+
+data class EmergencyContactDto(
+    val id: Int = 0,
+    val user_uid: String = "",
+    val name: String = "",
+    val phone_number: String = "",
+    val created_at: String = ""
+)
+
+data class EmergencyContactRequest(
+    val name: String,
+    val phone_number: String
+)
+
+data class ReferralDto(
+    val id: Int = 0,
+    val referrer_uid: String = "",
+    val referred_name: String = "",
+    val referred_phone: String = "",
+    val referral_code: String = "",
+    val status: String = "",
+    val reward_amount: Double = 0.0,
+    val created_at: String = ""
+)
+
+data class ReferralRequest(
+    val referred_name: String,
+    val referred_phone: String,
+    val referral_code: String
 )
