@@ -344,6 +344,22 @@ app.patch('/api/trips/:id/status', verifyFirebaseToken, async (req, res) => {
     }
     const result = await db.query(query, params);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Trip not found' });
+
+    if (status === 'completed' && result.rows[0].driver_uid) {
+      await db.query(
+        `UPDATE drivers
+         SET earnings = earnings + $1,
+             completed_trips = completed_trips + 1,
+             updated_at = NOW()
+         WHERE uid = $2`,
+        [result.rows[0].fare, result.rows[0].driver_uid]
+      );
+      io.to(`driver_${result.rows[0].driver_uid}`).emit('earnings_updated', {
+        earned: result.rows[0].fare,
+        tripId: parseInt(req.params.id)
+      });
+    }
+
     io.to(`trip_${req.params.id}`).emit('trip_status_updated', { tripId: parseInt(req.params.id), status });
     res.json({ success: true, trip: result.rows[0] });
   } catch (error) {
