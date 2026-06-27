@@ -11,7 +11,7 @@ interface BodaApiService {
     suspend fun syncUser(@Body user: UserSyncRequest): Response<ApiResponse<UserProfile>>
 
     @GET("api/users/me")
-    suspend fun getMe(): Response<UserProfile>
+    suspend fun getMe(): Response<UserMeResponse>
 
     @GET("api/saved-places")
     suspend fun getSavedPlaces(): Response<List<SavedPlace>>
@@ -87,6 +87,15 @@ data class UserSyncRequest(
     val phone: String,
     val name: String,
     val email: String? = null
+)
+
+data class UserMeResponse(
+    val uid: String = "",
+    val phone: String = "",
+    val full_name: String = "",
+    val wallet_balance: Double = 0.0,
+    val language: String = "en",
+    val referral_code: String = ""
 )
 
 data class ApiResponse<T>(
