@@ -58,4 +58,22 @@ interface BodaDao {
 
     @Query("UPDATE wallet_transactions SET status = 'completed' WHERE reference = :reference AND status = 'pending'")
     suspend fun completePendingPayment(reference: String)
+
+    @Query("DELETE FROM user_profile")
+    suspend fun deleteAllUserProfiles()
+
+    @Query("DELETE FROM trips")
+    suspend fun deleteAllTrips()
+
+    @Query("DELETE FROM wallet_transactions")
+    suspend fun deleteAllTransactions()
+
+    @Query("DELETE FROM saved_places")
+    suspend fun deleteAllSavedPlaces()
+
+    @Query("DELETE FROM emergency_contacts")
+    suspend fun deleteAllEmergencyContacts()
+
+    @Query("DELETE FROM referrals")
+    suspend fun deleteAllReferrals()
 }

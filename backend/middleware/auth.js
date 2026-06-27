@@ -36,13 +36,19 @@ async function verifyFirebaseToken(req, res, next) {
   const token = authHeader.split('Bearer ')[1];
 
   if (!firebaseInitialized) {
-    // Local Dev fallback: Accept any token and treat the token itself as the simulated uid
-    console.log(`[DEV MODE] Mock-verifying token: ${token.substring(0, 10)}...`);
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(503).json({ error: 'Authentication service unavailable' });
+    }
+    const allowedTestUids = ['test_rider_uid', 'test_driver_uid'];
+    if (!allowedTestUids.includes(token)) {
+      return res.status(401).json({ error: 'Invalid test token' });
+    }
+    console.log(`[DEV MODE] Mock-verifying token: ${token}`);
     req.user = {
-      uid: token === 'test_rider_uid' ? 'test_rider_uid' : (token === 'test_driver_uid' ? 'test_driver_uid' : token),
-      email: 'dev-user@gulu.boda',
+      uid: token,
+      email: 'dev@test.com',
       phone_number: '+256770000000',
-      name: 'Gulu Dev Rider'
+      name: 'Dev User'
     };
     return next();
   }

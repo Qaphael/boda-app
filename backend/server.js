@@ -109,11 +109,11 @@ app.post('/api/users/sync', verifyFirebaseToken, syncLimiter, async (req, res) =
 });
 
 // Store FCM push token for a user
-app.post('/api/users/fcm-token', async (req, res) => {
+app.post('/api/users/fcm-token', verifyFirebaseToken, async (req, res) => {
   const { fcm_token } = req.body;
-  const uid = req.user?.uid || req.body.uid;
-  if (!fcm_token || !uid) {
-    return res.status(400).json({ error: 'Missing fcm_token or uid' });
+  const uid = req.user.uid;
+  if (!fcm_token) {
+    return res.status(400).json({ error: 'Missing fcm_token' });
   }
   try {
     await db.query('UPDATE users SET fcm_token = $1, updated_at = NOW() WHERE uid = $2', [fcm_token, uid]);
@@ -197,6 +197,21 @@ app.get('/api/users/me', verifyFirebaseToken, async (req, res) => {
     const result = await db.query('SELECT * FROM users WHERE uid = $1', [req.user.uid]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/users/me', verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    await db.query('DELETE FROM transactions WHERE user_uid = $1', [uid]);
+    await db.query('DELETE FROM trips WHERE passenger_uid = $1', [uid]);
+    await db.query('DELETE FROM emergency_contacts WHERE user_uid = $1', [uid]);
+    await db.query('DELETE FROM referrals WHERE referrer_uid = $1', [uid]);
+    await db.query('DELETE FROM saved_places WHERE user_uid = $1', [uid]);
+    await db.query('DELETE FROM users WHERE uid = $1', [uid]);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

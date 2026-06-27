@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
+class UserNotFoundException : Exception("User not found on backend")
+
 class BodaRepository(private val dao: BodaDao? = null) {
     private val api = ApiClient.api
 
@@ -26,6 +28,15 @@ class BodaRepository(private val dao: BodaDao? = null) {
 
     suspend fun saveUserProfile(profile: UserProfile) {
         dao?.insertUserProfile(profile)
+    }
+
+    suspend fun clearAllUserData() {
+        dao?.deleteAllUserProfiles()
+        dao?.deleteAllTrips()
+        dao?.deleteAllTransactions()
+        dao?.deleteAllSavedPlaces()
+        dao?.deleteAllEmergencyContacts()
+        dao?.deleteAllReferrals()
     }
 
     suspend fun addTrip(trip: Trip): Long {
@@ -140,11 +151,13 @@ class BodaRepository(private val dao: BodaDao? = null) {
         return withContext(Dispatchers.IO) {
             try {
                 val response = api.getMe()
-                if (response.isSuccessful) {
-                    val user = response.body()
-                    if (user != null) Result.success(user) else Result.failure(Exception("User not found"))
-                } else {
-                    Result.failure(Exception("Failed to load profile"))
+                when {
+                    response.isSuccessful -> {
+                        val user = response.body()
+                        if (user != null) Result.success(user) else Result.failure(Exception("User not found"))
+                    }
+                    response.code() == 404 -> Result.failure(UserNotFoundException())
+                    else -> Result.failure(Exception("Backend error: ${response.code()}"))
                 }
             } catch (e: Exception) { Result.failure(e) }
         }

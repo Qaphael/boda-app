@@ -156,13 +156,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            repository.initializeDefaultData()
-
             val currentUser = auth.currentUser
-            android.util.Log.d("BODA_INIT", "auth.currentUser=${currentUser?.uid ?: "NULL"} otp_verified=${prefs.getBoolean("otp_verified", false)}")
+            isOtpVerified = currentUser != null
             if (currentUser != null) {
-                isOtpVerified = true
-                prefs.edit().putBoolean("otp_verified", true).apply()
                 phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
                 restoreSessionFromBackend()
             } else {
@@ -193,11 +189,14 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 fetchBackendData()
             },
             onFailure = { e ->
-                addPostgresLog("Session restore failed (offline?): ${e.message}")
-                val localProfile = repository.userProfile.firstOrNull()
-                if (localProfile != null && localProfile.phoneNumber.isNotEmpty()) {
+                if (e is com.example.data.UserNotFoundException) {
                     addPostgresLog("User not found on backend. Syncing from local profile...")
-                    syncUserToBackend(localProfile)
+                    val localProfile = repository.userProfile.firstOrNull()
+                    if (localProfile != null && localProfile.phoneNumber.isNotEmpty()) {
+                        syncUserToBackend(localProfile)
+                    }
+                } else {
+                    addPostgresLog("Session restore failed (offline?): ${e.message}")
                 }
                 fetchBackendData()
             }
@@ -811,13 +810,32 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     fun signOut() {
         stopLocationTracking()
         auth.signOut()
+
         isOtpVerified = false
-        prefs.edit().putBoolean("otp_verified", false).apply()
         otpSent = false
         otpInput = ""
+        phoneInput = ""
+        signupName = ""
         verificationId = null
         resendToken = null
-        navigateTo(Screen.WelcomeOnboarding)
+        backendBalance = null
+        lastBackendFetchMs = 0L
+
+        onboardingCarouselCompleted = false
+        onboardingLanguageSelected = false
+        onboardingSlideIndex = 0
+
+        prefs.edit()
+            .putBoolean("onboarding_carousel_completed", false)
+            .putBoolean("onboarding_language_selected", false)
+            .apply()
+
+        viewModelScope.launch {
+            repository.clearAllUserData()
+        }
+
+        backStack.clear()
+        currentScreen = Screen.WelcomeOnboarding
     }
 
     // Location Services
@@ -1216,7 +1234,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit()
             .putBoolean("onboarding_carousel_completed", false)
             .putBoolean("onboarding_language_selected", false)
-            .putBoolean("otp_verified", false)
             .apply()
     }
 
@@ -1228,7 +1245,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var otpInput by mutableStateOf("")
     var otpSent by mutableStateOf(false)
     var otpResendTimer by mutableStateOf(45)
-    var isOtpVerified by mutableStateOf(prefs.getBoolean("otp_verified", false))
+    var isOtpVerified by mutableStateOf(false)
     var isSendingOtp by mutableStateOf(false)
     var isVerifyingOtp by mutableStateOf(false)
     private var otpTimerJob: Job? = null
@@ -1602,7 +1619,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Trigger OTP sending via Firebase Auth
-    fun startOtpFlow() {
+    fun startOtpFlow(activity: android.app.Activity? = null) {
         if (phoneInput.length < 9) {
             errorMessage.value = "Phone number must be at least 9 digits."
             return
@@ -1638,12 +1655,13 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 isSendingOtp = false
             }
         }
-        
-        val options = PhoneAuthOptions.newBuilder(auth)
+
+        val builder = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(phoneNumber)
             .setTimeout(60L, TimeUnit.SECONDS)
             .setCallbacks(callbacks)
-            .build()
+        activity?.let { builder.setActivity(it) }
+        val options = builder.build()
         
         PhoneAuthProvider.verifyPhoneNumber(options)
         
@@ -1676,7 +1694,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             .addOnSuccessListener {
                 isOtpVerified = true
                 isVerifyingOtp = false
-                prefs.edit().putBoolean("otp_verified", true).apply()
                 otpTimerJob?.cancel()
             }
             .addOnFailureListener { e ->

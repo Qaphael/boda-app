@@ -1218,6 +1218,7 @@ fun SplashScreen(viewModel: BodaViewModel) {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun OnboardingScreen(viewModel: BodaViewModel) {
+    val activity = LocalContext.current as? android.app.Activity
     if (!viewModel.onboardingCarouselCompleted) {
         // Step 1: 3-slide onboarding carousel introducing Boda
         val slideTitle = when (viewModel.onboardingSlideIndex) {
@@ -1560,7 +1561,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                         text = "Get Verification Code",
                         onClick = {
                             if (viewModel.phoneInput.length >= 9) {
-                                viewModel.startOtpFlow()
+                                viewModel.startOtpFlow(activity)
                             }
                         },
                         enabled = viewModel.phoneInput.length >= 9 && !viewModel.isSendingOtp,
