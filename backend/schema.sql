@@ -146,6 +146,14 @@ DO $$ BEGIN
   ALTER TABLE trips ADD COLUMN IF NOT EXISTS dispute_evidence TEXT;
 EXCEPTION WHEN duplicate_column THEN NULL;
 END $$;
+DO $$ BEGIN
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(5) DEFAULT 'en';
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
+DO $$ BEGIN
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(50);
+EXCEPTION WHEN duplicate_column THEN NULL;
+END $$;
 
 -- 9. Pricing Settings (singleton row)
 CREATE TABLE IF NOT EXISTS pricing_settings (
