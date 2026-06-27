@@ -411,6 +411,38 @@ app.post('/api/referrals', verifyFirebaseToken, async (req, res) => {
   }
 });
 
+app.post('/api/referrals/:id/complete', verifyFirebaseToken, async (req, res) => {
+  const referralId = parseInt(req.params.id);
+  try {
+    const refResult = await db.query('SELECT * FROM referrals WHERE id = $1', [referralId]);
+    if (refResult.rows.length === 0) return res.status(404).json({ error: 'Referral not found' });
+    const ref = refResult.rows[0];
+    if (ref.status === 'completed') return res.json({ success: true, message: 'Already completed' });
+
+    await db.query('BEGIN');
+    await db.query(
+      'UPDATE referrals SET status = \'completed\', updated_at = NOW() WHERE id = $1',
+      [referralId]
+    );
+    const rewardAmt = parseFloat(ref.reward_amount) || 3000.00;
+    const txRef = `REF-BONUS-${referralId}-${Date.now()}`;
+    await db.query(
+      'UPDATE users SET wallet_balance = wallet_balance + $1, updated_at = NOW() WHERE uid = $2',
+      [rewardAmt, ref.referrer_uid]
+    );
+    await db.query(
+      `INSERT INTO transactions (user_uid, transaction_ref, type, amount, payment_provider, status)
+       VALUES ($1, $2, 'bonus', $3, 'Wallet', 'completed')`,
+      [ref.referrer_uid, txRef, rewardAmt]
+    );
+    await db.query('COMMIT');
+    res.json({ success: true, reward: rewardAmt, referrer_uid: ref.referrer_uid });
+  } catch (error) {
+    await db.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==========================================
 // SAVED PLACES DELETE
 // ==========================================

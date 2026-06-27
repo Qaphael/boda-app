@@ -66,6 +66,9 @@ interface BodaApiService {
     @POST("api/referrals")
     suspend fun addReferral(@Body body: ReferralRequest): Response<ApiResponse<ReferralDto>>
 
+    @POST("api/referrals/{id}/complete")
+    suspend fun completeReferral(@Path("id") referralId: Int): Response<ApiResponse<Any>>
+
     // Driver endpoints
     @POST("api/drivers/register")
     suspend fun registerDriver(@Body driver: DriverRegistrationRequest): Response<ApiResponse<DriverProfile>>

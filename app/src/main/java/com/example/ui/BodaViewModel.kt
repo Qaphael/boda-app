@@ -2085,10 +2085,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             if (myPhone.isNotEmpty()) {
                 val pendingRef = repository.getReferralByPhone(myPhone)
                 if (pendingRef != null && pendingRef.status == "pending") {
-                    val completedRef = pendingRef.copy(status = "completed", timestamp = System.currentTimeMillis())
-                    repository.addReferral(completedRef)
-                    
-                    // Top up user's wallet with the welcome bonus
+                    // Credit the referred user's wallet with the welcome bonus
                     repository.addTransaction(WalletTransaction(
                         amount = 3000.0,
                         type = "topup",
@@ -2096,21 +2093,22 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                         phoneNumber = myPhone,
                         timestamp = System.currentTimeMillis(),
                         provider = "Wallet",
-                        reference = "REF-WELCOME-${completedRef.id}"
+                        reference = "REF-WELCOME-${pendingRef.id}"
                     ))
-                    
-                    // Top up referrer's wallet too (default admin/referrer phone as placeholder or dynamic if stored)
-                    repository.addTransaction(WalletTransaction(
-                        amount = 3000.0,
-                        type = "topup",
-                        status = "completed",
-                        phoneNumber = "+256 772 123456",
-                        timestamp = System.currentTimeMillis(),
-                        provider = "Wallet",
-                        reference = "REF-BONUS-${completedRef.id}"
-                    ))
-                    
-                    activePromoMessage = "Welcome Bonus: UGX 3,000 credited to your wallet for signing up via referral!"
+
+                    // Complete referral on backend — credits the referrer's wallet there
+                    apiRepository.completeReferralOnBackend(pendingRef.id).onSuccess {
+                        val completedRef = pendingRef.copy(status = "completed", timestamp = System.currentTimeMillis())
+                        repository.addReferral(completedRef)
+                        activePromoMessage = "Welcome Bonus: UGX 3,000 credited to your wallet!"
+                    }.onFailure {
+                        // Still mark locally so we don't retry forever
+                        val completedRef = pendingRef.copy(status = "completed", timestamp = System.currentTimeMillis())
+                        repository.addReferral(completedRef)
+                        activePromoMessage = "Welcome Bonus credited. Referrer reward pending."
+                    }
+
+                    refreshWalletBalance()
                 }
             }
         }

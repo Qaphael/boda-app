@@ -252,6 +252,19 @@ class BodaRepository(private val dao: BodaDao? = null) {
         }
     }
 
+    suspend fun completeReferralOnBackend(referralId: Int): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.completeReferral(referralId)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    Result.success(true)
+                } else {
+                    Result.failure(Exception("Failed to complete referral"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
     suspend fun fetchChatHistory(tripId: Int): Result<List<ChatMessageDto>> {
         return withContext(Dispatchers.IO) {
             try {
