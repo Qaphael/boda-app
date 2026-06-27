@@ -2945,197 +2945,45 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
 
         Spacer(modifier = Modifier.height(Sp.sm))
 
-        // FARE ESTIMATE DETAILS SUMMARY (DYNAMICAL BREAKDOWN COMPONENT)
-        BodaCard(
-            border = BorderStroke(1.dp, Color(0xFF334155)),
-            modifier = Modifier.fillMaxWidth().testTag("fare_estimation_component")
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                // Header row with title & API connectivity badge
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Fare Estimation Matrix",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                    
-                    // API Connectivity Badge
-                    when {
-                        viewModel.isFetchingDistanceMatrix -> {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(
-                                    color = Color(0xFFFDB913),
-                                    modifier = Modifier.size(10.dp),
-                                    strokeWidth = 1.5.dp
-                                )
-                                Spacer(modifier = Modifier.width(Sp.xs))
-                                Text("Matrix Querying...", color = Color(0xFFFDB913), fontSize = 11.sp)
-                            }
-                        }
-                        viewModel.googleDistanceKm != null -> {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFF10B981).copy(alpha = 0.15f))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.Default.Check, 
-                                        contentDescription = "Connected", 
-                                        tint = Color(0xFF10B981), 
-                                        modifier = Modifier.size(10.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(Sp.xs))
-                                    Text("Google Maps Matrix Active", color = Color(0xFF10B981), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                        else -> {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(Color(0xFFF59E0B).copy(alpha = 0.15f))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.Default.Warning, 
-                                        contentDescription = "Fallback", 
-                                        tint = Color(0xFFF59E0B), 
-                                        modifier = Modifier.size(10.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(Sp.xs))
-                                    Text("Local Haversine Fallback", color = Color(0xFFF59E0B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
+        // FARE ESTIMATE — Hero element with breakdown
+        BodaCard(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("TOTAL FARE", color = Color(0xFF64748B), fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Spacer(Modifier.height(4.dp))
+                val discounted = (viewModel.calculatedFare - viewModel.activePromoDiscount.value).coerceAtLeast(1000.0)
+                Text("UGX ${discounted.toInt()}",
+                    color = Color(0xFFFDB913), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("${viewModel.calculatedDistanceKm.let { "%.1f".format(it) }} km",
+                        color = Color(0xFF64748B), fontSize = 11.sp)
+                    Text("·", color = Color(0xFF334155), fontSize = 11.sp)
+                    Text("${viewModel.calculatedTimeMinutes} min",
+                        color = Color(0xFF64748B), fontSize = 11.sp)
+                    Text("·", color = Color(0xFF334155), fontSize = 11.sp)
+                    Text(viewModel.trafficCondition, color = Color(0xFFF59E0B), fontSize = 11.sp)
+                }
+                HorizontalDivider(color = Color(0xFF334155), modifier = Modifier.padding(vertical = 10.dp))
+                val baseFare = if (viewModel.serviceType == "ride") 1500.0 else 2500.0
+                val distCharge = viewModel.calculatedDistanceKm * 1000.0
+                val surge = when (viewModel.trafficCondition) {
+                    "Light" -> 0.0; "Moderate" -> 500.0; "Heavy" -> 1500.0; "Rush Hour" -> 2500.0; else -> 500.0
+                }
+                listOf("Base" to "UGX ${baseFare.toInt()}",
+                    "Distance" to "UGX ${distCharge.toInt()}",
+                    "Traffic" to "+ UGX ${surge.toInt()}").forEach { (lbl, val_) ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(lbl, color = Color(0xFF64748B), fontSize = 11.sp)
+                        Text(val_, color = Color(0xFF94A3B8), fontSize = 11.sp)
                     }
+                    Spacer(Modifier.height(3.dp))
                 }
-                
-                Spacer(modifier = Modifier.height(Sp.sm))
-                
-                // Fare breakdown details
-                val isRide = viewModel.serviceType == "ride"
-                val baseFare = if (isRide) 1500.0 else 2500.0
-                val distanceCharge = viewModel.calculatedDistanceKm * 1000.0
-                val trafficSurgeAmt = when (viewModel.trafficCondition) {
-                    "Light" -> 0.0
-                    "Moderate" -> 500.0
-                    "Heavy" -> 1500.0
-                    "Rush Hour" -> 2500.0
-                    else -> 500.0
-                }
-                
-                // Item: Base Fare
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Base Fare (${if (isRide) "Boda Ride" else "Delivery"})", color = Color(0xFF94A3B8), fontSize = 11.sp)
-                    Text("UGX ${baseFare.toInt()}", color = Color.White, fontSize = 11.sp)
-                }
-                
-                // Item: Distance Charge
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Distance Charge (${"%.2f".format(viewModel.calculatedDistanceKm)} km Ã— UGX 1,000)", 
-                        color = Color(0xFF94A3B8), 
-                        fontSize = 11.sp
-                    )
-                    Text("UGX ${distanceCharge.toInt()}", color = Color.White, fontSize = 11.sp)
-                }
-                
-                // Item: Traffic Dynamic Surge
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Dynamic Traffic Surge", color = Color(0xFF94A3B8), fontSize = 11.sp)
-                        Spacer(modifier = Modifier.width(Sp.xs))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(
-                                    when (viewModel.trafficCondition) {
-                                        "Light" -> Color(0xFF10B981).copy(alpha = 0.2f)
-                                        "Moderate" -> Color(0xFF3B82F6).copy(alpha = 0.2f)
-                                        "Heavy" -> Color(0xFFF97316).copy(alpha = 0.2f)
-                                        else -> Color(0xFFEF4444).copy(alpha = 0.2f)
-                                    }
-                                )
-                                .padding(horizontal = 4.dp, vertical = 1.dp)
-                        ) {
-                            Text(
-                                text = viewModel.trafficCondition,
-                                color = when (viewModel.trafficCondition) {
-                                    "Light" -> Color(0xFF10B981)
-                                    "Moderate" -> Color(0xFF3B82F6)
-                                    "Heavy" -> Color(0xFFF97316)
-                                    else -> Color(0xFFEF4444)
-                                },
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    Text("+ UGX ${trafficSurgeAmt.toInt()}", color = Color.White, fontSize = 11.sp)
-                }
-                
-                // Item: Active Promo Discount
-                if (viewModel.activePromoDiscount.value > 0.0) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Promo Applied (${viewModel.promoCodeInput.uppercase()})", color = Color(0xFF10B981), fontSize = 11.sp)
-                        Text("- UGX ${viewModel.activePromoDiscount.value.toInt()}", color = Color(0xFF10B981), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-                
-                HorizontalDivider(color = Color(0xFF334155), modifier = Modifier.padding(vertical = 10.dp), thickness = 1.dp)
-                
-                // Final Fare Total row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    Column {
-                        Text("Guaranteed Ride Fare", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        val discounted = (viewModel.calculatedFare - viewModel.activePromoDiscount.value).coerceAtLeast(1000.0)
-                        Text(
-                            text = "UGX ${discounted.toInt()}",
-                            color = Color(0xFFFDB913),
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 24.sp
-                        )
-                    }
-                    
-                    // Extra indicator showing calculations status
-                    if (viewModel.googleDistanceKm != null) {
-                        Text(
-                            text = "Calculated via Google Maps", 
-                            color = Color(0xFF64748B), 
-                            fontSize = 11.sp, 
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                        )
-                    } else {
-                        Text(
-                            text = "Offline Haversine Matrix", 
-                            color = Color(0xFF64748B), 
-                            fontSize = 11.sp, 
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                        )
+                if (viewModel.activePromoDiscount.value > 0) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Promo ${viewModel.activePromoCode}", color = Color(0xFF64748B), fontSize = 11.sp)
+                        Text("- UGX ${viewModel.activePromoDiscount.value.toInt()}",
+                            color = Color(0xFF10B981), fontSize = 11.sp)
                     }
                 }
             }
