@@ -96,7 +96,9 @@ interface BodaApiService {
 data class UserSyncRequest(
     val phone: String,
     val name: String,
-    val email: String? = null
+    val email: String? = null,
+    val language: String? = null,
+    val referral_code: String? = null
 )
 
 data class UserMeResponse(
