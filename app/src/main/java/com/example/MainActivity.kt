@@ -17,6 +17,12 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     val viewModel = ViewModelProvider(this)[BodaViewModel::class.java]
     viewModel.handleDeepLink(intent)
+    com.google.android.gms.maps.MapsInitializer.initialize(
+      applicationContext,
+      com.google.android.gms.maps.MapsInitializer.Renderer.LATEST
+    ) { renderer ->
+      android.util.Log.d("BODA_MAPS", "Maps renderer: $renderer")
+    }
     setContent {
       val themeSetting = viewModel.appThemeSetting
       val darkTheme = when (themeSetting) {

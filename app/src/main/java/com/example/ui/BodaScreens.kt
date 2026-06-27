@@ -51,7 +51,6 @@ import androidx.compose.material.icons.filled.HelpCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -781,6 +780,14 @@ fun BodaAppContent(viewModel: BodaViewModel) {
         }
     }
 
+    // Returning users — re-check location permission on cold start
+    val locationPermOnResume = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    LaunchedEffect(locationPermOnResume.status) {
+        if (locationPermOnResume.status.isGranted && !viewModel.locationPermissionGranted) {
+            viewModel.locationPermissionGranted = true
+        }
+    }
+
     // Edge-to-Edge System Navigation Guard
     Scaffold(
         modifier = Modifier
@@ -928,8 +935,11 @@ fun GoogleMapViewWrapper(
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             val mapView = mapViewRef ?: return@LifecycleEventObserver
             when (event) {
-                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> mapView.onPause()
-                androidx.lifecycle.Lifecycle.Event.ON_STOP -> mapView.onStop()
+                androidx.lifecycle.Lifecycle.Event.ON_CREATE  -> mapView.onCreate(null)
+                androidx.lifecycle.Lifecycle.Event.ON_START   -> mapView.onStart()
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME  -> mapView.onResume()
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE   -> mapView.onPause()
+                androidx.lifecycle.Lifecycle.Event.ON_STOP    -> mapView.onStop()
                 androidx.lifecycle.Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
                 else -> {}
             }
@@ -939,18 +949,17 @@ fun GoogleMapViewWrapper(
             lifecycleOwner.lifecycle.removeObserver(observer)
             mapViewRef?.let { mv ->
                 mv.onPause()
+                mv.onStop()
                 mv.onDestroy()
             }
         }
     }
 
     androidx.compose.ui.viewinterop.AndroidView(
-        factory = {
-            com.google.android.gms.maps.MapView(context).apply {
-                mapViewRef = this
-                onCreate(null)
-                onResume()
-                getMapAsync { googleMap ->
+        factory = { ctx ->
+            com.google.android.gms.maps.MapView(ctx).also { mapView ->
+                mapViewRef = mapView
+                mapView.getMapAsync { googleMap ->
                     googleMap.uiSettings.isZoomControlsEnabled = true
                     googleMap.uiSettings.isMapToolbarEnabled = false
                     googleMap.mapType = com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
@@ -2909,6 +2918,20 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
 // --- SCREEN 5: ROUTE PREVIEW & PRICE ESTIMATES ---
 @Composable
 fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
+    val locationPermState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    LaunchedEffect(locationPermState.status) {
+        if (locationPermState.status.isGranted) {
+            viewModel.locationPermissionGranted = true
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (!locationPermState.status.isGranted) {
+            locationPermState.launchPermissionRequest()
+        }
+    }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -3280,7 +3303,12 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             enabled = !walletBlocked,
             onClick = {
                 if (viewModel.isOnline) {
-                    viewModel.confirmBooking()
+                    if (locationPermState.status.isGranted) {
+                        viewModel.locationPermissionGranted = true
+                        viewModel.confirmBooking()
+                    } else {
+                        locationPermState.launchPermissionRequest()
+                    }
                 } else {
                     viewModel.triggerOfflineSMSBookingFlow()
                 }

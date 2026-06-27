@@ -1422,24 +1422,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     val calculatedTimeMinutes: Int
         get() {
             googleDurationMins?.let { return it }
-            val dist = calculatedDistanceKm
-            if (dist <= 0.0) return 0
-            val speedKmh = when (trafficCondition) {
-                "Light" -> 35.0
-                "Moderate" -> 25.0
-                "Heavy" -> 15.0
-                "Rush Hour" -> 8.0
-                else -> 25.0
-            }
-            val baseTimeMinutes = (dist / speedKmh) * 60.0
-            val delayMinutes = when (trafficCondition) {
-                "Light" -> 0
-                "Moderate" -> 2
-                "Heavy" -> 5
-                "Rush Hour" -> 9
-                else -> 2
-            }
-            return (baseTimeMinutes + delayMinutes).toInt().coerceAtLeast(3)
+            val distKm = calculatedDistanceKm
+            val rawMinutes = (distKm / 25.0 * 60.0).toInt()
+            return rawMinutes.coerceAtLeast(3)
         }
 
     val calculatedDistanceKm: Double
@@ -1447,26 +1432,14 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             googleDistanceKm?.let { return it }
             val pick = pickupPlace ?: return 0.0
             val drop = dropoffPlace ?: return 0.0
-            
-            val latDiff = drop.latitude - pick.latitude
-            val lngDiff = drop.longitude - pick.longitude
-            
-            val p1Lat = pick.latitude + latDiff * 0.4
-            val p1Lng = pick.longitude
-            
-            val p2Lat = pick.latitude + latDiff * 0.4
-            val p2Lng = pick.longitude + lngDiff * 0.6
-            
-            val p3Lat = drop.latitude
-            val p3Lng = pick.longitude + lngDiff * 0.6
-            
-            val d1 = calculateHaversineDistance(pick.latitude, pick.longitude, p1Lat, p1Lng)
-            val d2 = calculateHaversineDistance(p1Lat, p1Lng, p2Lat, p2Lng)
-            val d3 = calculateHaversineDistance(p2Lat, p2Lng, p3Lat, p3Lng)
-            val d4 = calculateHaversineDistance(p3Lat, p3Lng, drop.latitude, drop.longitude)
-            
-            val total = d1 + d2 + d3 + d4
-            return if (total < 0.1) 1.2 else total
+            val straightLine = calculateHaversineDistance(
+                pick.latitude, pick.longitude,
+                drop.latitude, drop.longitude
+            )
+            val roadMultiplier = 1.4
+            val estimated = straightLine * roadMultiplier
+            return estimated.coerceAtLeast(0.8)
+        }
         }
 
     // Simulation Live States
