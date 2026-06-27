@@ -316,9 +316,18 @@
         <div id="tab-content-settings" class="hidden flex-1 flex flex-col p-8 overflow-y-auto bg-slate-950 space-y-6">
             <div>
                 <h2 class="text-2xl font-extrabold text-white tracking-tight">System Configuration</h2>
-                <p class="text-xs text-slate-400">Pricing and fare settings.</p>
+                <p class="text-xs text-slate-400">Pricing, fare settings, and admin access.</p>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-bold text-amber-500 uppercase tracking-wider">Admin Secret Key</h3>
+                    <p class="text-[11px] text-slate-400">Required to access admin API endpoints. Stored in your browser only.</p>
+                    <input type="password" id="admin-key-input" placeholder="Enter admin secret key"
+                        class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-lg text-slate-200 outline-none focus:border-amber-500"
+                        onchange="localStorage.setItem('admin_secret_key', this.value); logConsole('Admin key saved', 'system')">
+                    <button onclick="const k=document.getElementById('admin-key-input').value; localStorage.setItem('admin_secret_key',k); logConsole('Admin key updated','system')"
+                        class="w-full py-2.5 bg-amber-500 text-slate-950 font-extrabold rounded-xl text-xs">Save Key</button>
+                </div>
                 <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
                     <h3 class="text-sm font-bold text-amber-500 uppercase tracking-wider">Core Pricing</h3>
                     <div class="grid grid-cols-3 gap-4">

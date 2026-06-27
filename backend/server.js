@@ -26,8 +26,17 @@ const PORT = process.env.PORT || 3000;
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date(), app: 'Boda Gulu API' });
+  res.status(200).json({ status: 'healthy', timestamp: new Date(), message: 'Boda Gulu API' });
 });
+
+// Admin authentication middleware
+const adminAuth = (req, res, next) => {
+  const key = req.headers['x-admin-key'];
+  if (!key || key !== process.env.ADMIN_SECRET_KEY) {
+    return res.status(403).json({ error: 'Forbidden: invalid or missing admin key' });
+  }
+  next();
+};
 
 // ==========================================
 // RIDER / PASSENGER API ENDPOINTS (SECURE)
@@ -501,7 +510,7 @@ app.post('/api/drivers/status', async (req, res) => {
 // ==========================================
 
 // Fetch general system statistics for admin panel
-app.get('/api/admin/stats', async (req, res) => {
+app.get('/api/admin/stats', adminAuth, async (req, res) => {
   try {
     const ridersCount = await db.query('SELECT COUNT(*) FROM users');
     const driversCount = await db.query('SELECT COUNT(*) FROM drivers');
@@ -524,7 +533,7 @@ app.get('/api/admin/stats', async (req, res) => {
 });
 
 // Fetch active live tracking logs
-app.get('/api/admin/active-trips', async (req, res) => {
+app.get('/api/admin/active-trips', adminAuth, async (req, res) => {
   try {
     const query = `
       SELECT t.*, u.full_name as passenger_name, d.full_name as driver_name, d.plate_number
@@ -557,12 +566,12 @@ let promoCodes = [];
 let activeSOSAlerts = [];
 
 // Fetch Gulu pricing & surge settings
-app.get('/api/admin/pricing', (req, res) => {
+app.get('/api/admin/pricing', adminAuth, (req, res) => {
   res.json(pricingSettings);
 });
 
 // Update surge pricing multiplier
-app.post('/api/admin/pricing', (req, res) => {
+app.post('/api/admin/pricing', adminAuth, (req, res) => {
   const { multiplier, reason } = req.body;
   if (multiplier) pricingSettings.surge_multiplier = parseFloat(multiplier);
   if (reason) pricingSettings.surge_reason = reason;
@@ -591,12 +600,12 @@ app.post('/api/trips/calculate-fare', (req, res) => {
 });
 
 // Fetch active promo codes
-app.get('/api/admin/promos', (req, res) => {
+app.get('/api/admin/promos', adminAuth, (req, res) => {
   res.json(promoCodes);
 });
 
 // Add new promo code
-app.post('/api/admin/promos', (req, res) => {
+app.post('/api/admin/promos', adminAuth, (req, res) => {
   const { code, discount_type, value } = req.body;
   if (!code || !discount_type || !value) {
     return res.status(400).json({ error: 'Missing code, discount_type, or value' });
@@ -629,12 +638,12 @@ app.post('/api/promos/validate', (req, res) => {
 });
 
 // Fetch all active SOS alerts
-app.get('/api/admin/sos', (req, res) => {
+app.get('/api/admin/sos', adminAuth, (req, res) => {
   res.json(activeSOSAlerts);
 });
 
 // Resolve SOS Alert
-app.post('/api/admin/sos/:id/resolve', (req, res) => {
+app.post('/api/admin/sos/:id/resolve', adminAuth, (req, res) => {
   const alertId = req.params.id;
   const alertIndex = activeSOSAlerts.findIndex(a => a.id === alertId);
   if (alertIndex !== -1) {
@@ -646,7 +655,7 @@ app.post('/api/admin/sos/:id/resolve', (req, res) => {
 });
 
 // Fetch all Gulu drivers for visual map plot
-app.get('/api/admin/drivers', async (req, res) => {
+app.get('/api/admin/drivers', adminAuth, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM drivers ORDER BY created_at DESC');
     res.json(result.rows);
@@ -656,7 +665,7 @@ app.get('/api/admin/drivers', async (req, res) => {
 });
 
 // Toggle driver online status in database
-app.post('/api/admin/drivers/:uid/toggle-status', async (req, res) => {
+app.post('/api/admin/drivers/:uid/toggle-status', adminAuth, async (req, res) => {
   const { uid } = req.params;
   try {
     const result = await db.query(
@@ -680,7 +689,7 @@ app.post('/api/admin/drivers/:uid/toggle-status', async (req, res) => {
 });
 
 // Settle driver wallet (zero-out earnings)
-app.post('/api/admin/drivers/:uid/settle', async (req, res) => {
+app.post('/api/admin/drivers/:uid/settle', adminAuth, async (req, res) => {
   const { uid } = req.params;
   try {
     const result = await db.query(
@@ -697,7 +706,7 @@ app.post('/api/admin/drivers/:uid/settle', async (req, res) => {
 });
 
 // Fetch all registered riders (users)
-app.get('/api/admin/riders', async (req, res) => {
+app.get('/api/admin/riders', adminAuth, async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM users ORDER BY created_at DESC');
     res.json(result.rows);
@@ -707,7 +716,7 @@ app.get('/api/admin/riders', async (req, res) => {
 });
 
 // Add credit/balance to rider's wallet
-app.post('/api/admin/riders/:uid/credit', async (req, res) => {
+app.post('/api/admin/riders/:uid/credit', adminAuth, async (req, res) => {
   const { uid } = req.params;
   const { amount } = req.body;
   const creditAmount = parseFloat(amount);
@@ -744,7 +753,7 @@ app.post('/api/admin/riders/:uid/credit', async (req, res) => {
 });
 
 // Toggle suspension / activation status of a rider
-app.post('/api/admin/riders/:uid/status', async (req, res) => {
+app.post('/api/admin/riders/:uid/status', adminAuth, async (req, res) => {
   const { uid } = req.params;
   const { status } = req.body;
   
@@ -767,7 +776,7 @@ app.post('/api/admin/riders/:uid/status', async (req, res) => {
 });
 
 // Fetch all trips (active & completed) for tabular view
-app.get('/api/admin/trips', async (req, res) => {
+app.get('/api/admin/trips', adminAuth, async (req, res) => {
   try {
     const query = `
       SELECT t.*, u.full_name as passenger_name, u.phone as passenger_phone, d.full_name as driver_name, d.plate_number

@@ -6,7 +6,15 @@ let map, driverMarkers = {};
 let driversData = [], ridersData = [], tripsData = [];
 let currentSOSAlert = null;
 
+function getAdminHeaders() {
+    const key = localStorage.getItem('admin_secret_key') || '';
+    return { 'Content-Type': 'application/json', 'x-admin-key': key };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('admin_secret_key') || '';
+    const input = document.getElementById('admin-key-input');
+    if (input && saved) input.value = saved;
     initMap();
     startClock();
     loadProductionData();
@@ -62,7 +70,7 @@ function clearLogs() { document.getElementById('system-console-logs').innerHTML 
 async function loadProductionData() {
     // Stats
     try {
-        const r = await fetch(`${API_BASE}/api/admin/stats`);
+        const r = await fetch(`${API_BASE}/api/admin/stats`, { headers: getAdminHeaders() });
         if (r.ok) {
             const s = await r.json();
             setText('dash-revenue-val', `UGX ${(s.grossRevenue || 0).toLocaleString()}`);
@@ -77,7 +85,7 @@ async function loadProductionData() {
 
     // Drivers
     try {
-        const r = await fetch(`${API_BASE}/api/admin/drivers`);
+        const r = await fetch(`${API_BASE}/api/admin/drivers`, { headers: getAdminHeaders() });
         if (r.ok) {
             driversData = await r.json();
             renderDriversTable();
@@ -87,13 +95,13 @@ async function loadProductionData() {
 
     // Riders
     try {
-        const r = await fetch(`${API_BASE}/api/admin/riders`);
+        const r = await fetch(`${API_BASE}/api/admin/riders`, { headers: getAdminHeaders() });
         if (r.ok) { ridersData = await r.json(); renderRidersTable(); }
     } catch (e) {}
 
     // Trips + Dispatch
     try {
-        const r = await fetch(`${API_BASE}/api/admin/trips`);
+        const r = await fetch(`${API_BASE}/api/admin/trips`, { headers: getAdminHeaders() });
         if (r.ok) {
             tripsData = await r.json();
             renderTripsTable();
@@ -103,7 +111,7 @@ async function loadProductionData() {
 
     // Active trips
     try {
-        const r = await fetch(`${API_BASE}/api/admin/active-trips`);
+        const r = await fetch(`${API_BASE}/api/admin/active-trips`, { headers: getAdminHeaders() });
         if (r.ok) {
             const active = await r.json();
             renderDispatchList(active);
@@ -203,7 +211,7 @@ function renderTripsTable() {
 // ---- ACTIONS ----
 async function toggleDriver(uid) {
     try {
-        await fetch(`${API_BASE}/api/admin/drivers/${uid}/toggle-status`, { method: 'POST' });
+        await fetch(`${API_BASE}/api/admin/drivers/${uid}/toggle-status`, { method: 'POST', headers: getAdminHeaders() });
         loadProductionData();
     } catch (e) { logConsole('Toggle failed', 'error'); }
 }
@@ -213,7 +221,7 @@ async function creditRider(uid) {
     if (!amt) return;
     try {
         await fetch(`${API_BASE}/api/admin/riders/${uid}/credit`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: getAdminHeaders(),
             body: JSON.stringify({ amount: parseFloat(amt) })
         });
         loadProductionData();
@@ -223,7 +231,7 @@ async function creditRider(uid) {
 // ---- PROMOS ----
 async function loadPromoCampaigns() {
     try {
-        const r = await fetch(`${API_BASE}/api/admin/promos`);
+        const r = await fetch(`${API_BASE}/api/admin/promos`, { headers: getAdminHeaders() });
         if (r.ok) renderPromoList(await r.json());
     } catch (e) {}
 }
@@ -244,7 +252,7 @@ async function createNewPromo() {
     if (!code || !value) return alert('Fill in code and value');
     try {
         await fetch(`${API_BASE}/api/admin/promos`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: getAdminHeaders(),
             body: JSON.stringify({ code, discount_type: type, value })
         });
         document.getElementById('promo-code').value = '';
@@ -262,7 +270,7 @@ async function applySurgePricing() {
     const r = document.getElementById('surge-reason').value;
     try {
         await fetch(`${API_BASE}/api/admin/pricing`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: getAdminHeaders(),
             body: JSON.stringify({ multiplier: m, reason: r })
         });
         logConsole(`Surge updated: ${m}x [${r}]`, 'system');
@@ -274,7 +282,7 @@ async function applySettingsSurge() {
     const r = document.getElementById('settings-surge-reason').value;
     try {
         await fetch(`${API_BASE}/api/admin/pricing`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: getAdminHeaders(),
             body: JSON.stringify({ multiplier: m, reason: r })
         });
         logConsole(`Settings surge: ${m}x`, 'system');
@@ -291,7 +299,7 @@ async function saveCorePricing() {
 // ---- SOS ----
 async function checkSOSAlerts() {
     try {
-        const r = await fetch(`${API_BASE}/api/admin/sos`);
+        const r = await fetch(`${API_BASE}/api/admin/sos`, { headers: getAdminHeaders() });
         if (!r.ok) return;
         const alerts = await r.json();
         const active = alerts.find(a => a.status === 'unresolved');
@@ -316,7 +324,7 @@ async function checkSOSAlerts() {
 async function resolveActiveSOS() {
     if (!currentSOSAlert) return;
     try {
-        await fetch(`${API_BASE}/api/admin/sos/${currentSOSAlert.id}/resolve`, { method: 'POST' });
+        await fetch(`${API_BASE}/api/admin/sos/${currentSOSAlert.id}/resolve`, { method: 'POST', headers: getAdminHeaders() });
         logConsole(`Resolved: ${currentSOSAlert.id}`, 'system');
         currentSOSAlert = null;
         checkSOSAlerts();
