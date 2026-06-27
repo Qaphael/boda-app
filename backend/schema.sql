@@ -146,3 +146,37 @@ DO $$ BEGIN
   ALTER TABLE trips ADD COLUMN IF NOT EXISTS dispute_evidence TEXT;
 EXCEPTION WHEN duplicate_column THEN NULL;
 END $$;
+
+-- 9. Pricing Settings (singleton row)
+CREATE TABLE IF NOT EXISTS pricing_settings (
+    id SERIAL PRIMARY KEY,
+    base_fare INTEGER NOT NULL DEFAULT 1500,
+    rate_per_km INTEGER NOT NULL DEFAULT 1000,
+    rate_per_min INTEGER NOT NULL DEFAULT 150,
+    surge_multiplier DECIMAL(4,2) NOT NULL DEFAULT 1.00,
+    surge_reason VARCHAR(50) DEFAULT 'Normal',
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+INSERT INTO pricing_settings DEFAULT VALUES ON CONFLICT DO NOTHING;
+
+-- 10. Promo Codes
+CREATE TABLE IF NOT EXISTS promo_codes (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(30) UNIQUE NOT NULL,
+    discount_type VARCHAR(10) NOT NULL,
+    value DECIMAL(10,2) NOT NULL,
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 11. SOS Alerts
+CREATE TABLE IF NOT EXISTS sos_alerts (
+    id VARCHAR(50) PRIMARY KEY,
+    user_uid VARCHAR(128) REFERENCES users(uid),
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    trip_id INTEGER REFERENCES trips(id),
+    description TEXT,
+    status VARCHAR(20) DEFAULT 'active',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

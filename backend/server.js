@@ -553,107 +553,162 @@ app.get('/api/admin/active-trips', adminAuth, async (req, res) => {
 });
 
 // Dynamic pricing configurations
-let pricingSettings = {
-  base_fare: 1500,
-  rate_per_km: 1000,
-  rate_per_min: 150,
-  surge_multiplier: 1.0,
-  surge_reason: 'Normal'
-};
-
-// In-memory active promo campaigns
-let promoCodes = [];
-
-// In-memory active emergency SOS alerts
-let activeSOSAlerts = [];
-
-// Fetch Gulu pricing & surge settings
-app.get('/api/admin/pricing', adminAuth, (req, res) => {
-  res.json(pricingSettings);
+// Fetch Gulu pricing & surge settings (from DB)
+app.get('/api/admin/pricing', adminAuth, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM pricing_settings LIMIT 1');
+    res.json(result.rows[0] || { base_fare: 1500, rate_per_km: 1000, rate_per_min: 150, surge_multiplier: 1.0, surge_reason: 'Normal' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Update surge pricing multiplier
-app.post('/api/admin/pricing', adminAuth, (req, res) => {
-  const { multiplier, reason } = req.body;
-  if (multiplier) pricingSettings.surge_multiplier = parseFloat(multiplier);
-  if (reason) pricingSettings.surge_reason = reason;
-  
-  // Broadcast update to all clients
-  io.emit('pricing_rules_updated', pricingSettings);
-  res.json({ success: true, pricingSettings });
+// Update surge pricing multiplier (persisted to DB)
+app.post('/api/admin/pricing', adminAuth, async (req, res) => {
+  const { multiplier, reason, base_fare, rate_per_km, rate_per_min } = req.body;
+  try {
+    const current = await db.query('SELECT * FROM pricing_settings LIMIT 1');
+    const row = current.rows[0] || {};
+    const newMultiplier = multiplier ? parseFloat(multiplier) : (row.surge_multiplier || 1.0);
+    const newReason = reason || row.surge_reason || 'Normal';
+    const newBase = base_fare ? parseInt(base_fare) : (row.base_fare || 1500);
+    const newRateKm = rate_per_km ? parseInt(rate_per_km) : (row.rate_per_km || 1000);
+    const newRateMin = rate_per_min ? parseInt(rate_per_min) : (row.rate_per_min || 150);
+
+    await db.query(
+      `UPDATE pricing_settings SET surge_multiplier=$1, surge_reason=$2, base_fare=$3, rate_per_km=$4, rate_per_min=$5, updated_at=NOW() WHERE id=(SELECT id FROM pricing_settings LIMIT 1)`,
+      [newMultiplier, newReason, newBase, newRateKm, newRateMin]
+    );
+
+    const updated = { base_fare: newBase, rate_per_km: newRateKm, rate_per_min: newRateMin, surge_multiplier: newMultiplier, surge_reason: newReason };
+    io.emit('pricing_rules_updated', updated);
+    res.json({ success: true, pricingSettings: updated });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Calculate Dynamic Fare route
-app.post('/api/trips/calculate-fare', (req, res) => {
+app.post('/api/trips/calculate-fare', async (req, res) => {
   const { distance_km, duration_mins } = req.body;
-  const rawFare = pricingSettings.base_fare + 
-                  (parseFloat(distance_km || 0) * pricingSettings.rate_per_km) + 
-                  (parseInt(duration_mins || 0) * pricingSettings.rate_per_min);
-  const surgeFare = Math.round(rawFare * pricingSettings.surge_multiplier);
-  res.json({
-    base_fare: pricingSettings.base_fare,
-    distance_km,
-    duration_mins,
-    surge_multiplier: pricingSettings.surge_multiplier,
-    surge_reason: pricingSettings.surge_reason,
-    original_fare: rawFare,
-    final_fare: surgeFare
-  });
+  try {
+    const result = await db.query('SELECT * FROM pricing_settings LIMIT 1');
+    const ps = result.rows[0] || { base_fare: 1500, rate_per_km: 1000, rate_per_min: 150, surge_multiplier: 1.0, surge_reason: 'Normal' };
+    const rawFare = ps.base_fare +
+                    (parseFloat(distance_km || 0) * ps.rate_per_km) +
+                    (parseInt(duration_mins || 0) * ps.rate_per_min);
+    const surgeFare = Math.round(rawFare * ps.surge_multiplier);
+    res.json({
+      base_fare: ps.base_fare,
+      distance_km,
+      duration_mins,
+      surge_multiplier: ps.surge_multiplier,
+      surge_reason: ps.surge_reason,
+      original_fare: rawFare,
+      final_fare: surgeFare
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Fetch active promo codes
-app.get('/api/admin/promos', adminAuth, (req, res) => {
-  res.json(promoCodes);
+// Fetch active promo codes (from DB)
+app.get('/api/admin/promos', adminAuth, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM promo_codes ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Add new promo code
-app.post('/api/admin/promos', adminAuth, (req, res) => {
+// Add new promo code (persisted to DB)
+app.post('/api/admin/promos', adminAuth, async (req, res) => {
   const { code, discount_type, value } = req.body;
   if (!code || !discount_type || !value) {
     return res.status(400).json({ error: 'Missing code, discount_type, or value' });
   }
-  const newPromo = { code: code.toUpperCase(), discount_type, value: parseFloat(value), active: true };
-  promoCodes.push(newPromo);
-  res.json({ success: true, promo: newPromo });
+  try {
+    const result = await db.query(
+      'INSERT INTO promo_codes (code, discount_type, value) VALUES ($1, $2, $3) RETURNING *',
+      [code.toUpperCase(), discount_type, parseFloat(value)]
+    );
+    res.json({ success: true, promo: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Validate promo code
-app.post('/api/promos/validate', (req, res) => {
+// Validate promo code (against DB)
+app.post('/api/promos/validate', async (req, res) => {
   const { code, original_fare } = req.body;
-  const promo = promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase() && p.active);
-  if (!promo) {
-    return res.status(404).json({ valid: false, message: 'Invalid or expired promo code' });
+  try {
+    const result = await db.query('SELECT * FROM promo_codes WHERE UPPER(code) = UPPER($1) AND active = true', [code]);
+    const promo = result.rows[0];
+    if (!promo) {
+      return res.status(404).json({ valid: false, message: 'Invalid or expired promo code' });
+    }
+    let discount = 0;
+    if (promo.discount_type === 'percent') {
+      discount = Math.round((parseFloat(original_fare) * parseFloat(promo.value)) / 100);
+    } else {
+      discount = parseFloat(promo.value);
+    }
+    discount = Math.min(discount, original_fare);
+    res.json({
+      valid: true,
+      code: promo.code,
+      discount_amount: discount,
+      final_fare: original_fare - discount
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  let discount = 0;
-  if (promo.discount_type === 'percent') {
-    discount = Math.round((parseFloat(original_fare) * promo.value) / 100);
-  } else {
-    discount = promo.value;
-  }
-  discount = Math.min(discount, original_fare);
-  res.json({
-    valid: true,
-    code: promo.code,
-    discount_amount: discount,
-    final_fare: original_fare - discount
-  });
 });
 
-// Fetch all active SOS alerts
-app.get('/api/admin/sos', adminAuth, (req, res) => {
-  res.json(activeSOSAlerts);
+// Fetch all active SOS alerts (from DB)
+app.get('/api/admin/sos', adminAuth, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM sos_alerts ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Resolve SOS Alert
-app.post('/api/admin/sos/:id/resolve', adminAuth, (req, res) => {
+// Create SOS alert (from Android app)
+app.post('/api/sos', verifyFirebaseToken, async (req, res) => {
+  const { latitude, longitude, trip_id, description } = req.body;
+  const alertId = `SOS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+  try {
+    const result = await db.query(
+      `INSERT INTO sos_alerts (id, user_uid, latitude, longitude, trip_id, description)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [alertId, req.user.uid, latitude || null, longitude || null, trip_id || null, description || 'SOS Emergency']
+    );
+    io.emit('sos_alert_created', result.rows[0]);
+    res.json({ success: true, alert: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Resolve SOS Alert (persisted to DB)
+app.post('/api/admin/sos/:id/resolve', adminAuth, async (req, res) => {
   const alertId = req.params.id;
-  const alertIndex = activeSOSAlerts.findIndex(a => a.id === alertId);
-  if (alertIndex !== -1) {
-    activeSOSAlerts[alertIndex].status = 'resolved';
+  try {
+    const result = await db.query(
+      "UPDATE sos_alerts SET status = 'resolved' WHERE id = $1 RETURNING *",
+      [alertId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Alert not found' });
+    }
     io.emit('sos_alert_resolved', alertId);
-    return res.json({ success: true, message: 'SOS Alert marked as fully resolved in Gulu.' });
+    res.json({ success: true, message: 'SOS Alert marked as resolved.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  res.status(404).json({ error: 'Alert not found' });
 });
 
 // Fetch all Gulu drivers for visual map plot
