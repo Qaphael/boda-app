@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.HelpCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -921,11 +922,11 @@ fun GoogleMapViewWrapper(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    val mapViewRef = remember { java.lang.ref.WeakReference<com.google.android.gms.maps.MapView>(null) }
+    var mapViewRef by remember { mutableStateOf<com.google.android.gms.maps.MapView?>(null) }
 
-    androidx.compose.DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            val mapView = mapViewRef.get() ?: return@LifecycleEventObserver
+            val mapView = mapViewRef ?: return@LifecycleEventObserver
             when (event) {
                 androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> mapView.onPause()
                 androidx.lifecycle.Lifecycle.Event.ON_STOP -> mapView.onStop()
@@ -936,7 +937,7 @@ fun GoogleMapViewWrapper(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            mapViewRef.get()?.let { mv ->
+            mapViewRef?.let { mv ->
                 mv.onPause()
                 mv.onDestroy()
             }
@@ -946,7 +947,7 @@ fun GoogleMapViewWrapper(
     androidx.compose.ui.viewinterop.AndroidView(
         factory = {
             com.google.android.gms.maps.MapView(context).apply {
-                mapViewRef.set(this)
+                mapViewRef = this
                 onCreate(null)
                 onResume()
                 getMapAsync { googleMap ->
