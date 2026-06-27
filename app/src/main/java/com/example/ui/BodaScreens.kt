@@ -4084,6 +4084,13 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
     var disputeReason by remember { mutableStateOf("") }
     var disputeDetails by remember { mutableStateOf("") }
 
+    if (viewModel.isLoadingData) {
+        Box(Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFFFDB913))
+        }
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -4265,6 +4272,13 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
 // --- SCREEN 11: WALLET balance & DEPOSITS ---
 @Composable
 fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTransaction>) {
+    if (viewModel.isLoadingData) {
+        Box(Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFFFDB913))
+        }
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -4410,6 +4424,14 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
     val referralEarnings by viewModel.referralEarnings.collectAsState()
     val myReferralCode = user?.referralCode?.ifEmpty { "GULU-BODA-256" } ?: "GULU-BODA-256"
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+    if (viewModel.isLoadingData) {
+        Box(Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color(0xFFFDB913))
+        }
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
