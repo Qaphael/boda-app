@@ -929,49 +929,22 @@ fun GoogleMapViewWrapper(
     routePoints: List<com.google.android.gms.maps.model.LatLng> = emptyList()
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-
-    val mapConfig = remember(pickupLatLng, dropoffLatLng, riderProgress, simulationState, routePoints) {
-        Triple(pickupLatLng, dropoffLatLng, riderProgress)
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            when (event) {
-                androidx.lifecycle.Lifecycle.Event.ON_STOP -> {}
-                else -> {}
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
+    val mapView = remember { com.google.android.gms.maps.MapView(context) }
 
     androidx.compose.ui.viewinterop.AndroidView(
-        factory = { ctx ->
-            android.util.Log.d("BODA_MAPS", "MapView factory creating...")
-            com.google.android.gms.maps.MapView(ctx).apply {
-                onCreate(null)
+        factory = {
+            mapView.apply {
+                onCreate(android.os.Bundle())
                 onResume()
-                android.util.Log.d("BODA_MAPS", "MapView onCreate+onResume called")
                 getMapAsync { googleMap ->
-                    android.util.Log.d("BODA_MAPS", "getMapAsync callback fired, map=$googleMap")
                     googleMap.uiSettings.isZoomControlsEnabled = true
                     googleMap.uiSettings.isMapToolbarEnabled = false
                     googleMap.mapType = com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
-                    googleMap.moveCamera(
-                        com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(
-                            pickupLatLng, 14f
-                        )
-                    )
-                    android.util.Log.d("BODA_MAPS", "Map configured, camera moved to ${pickupLatLng.latitude},${pickupLatLng.longitude}")
                 }
             }
         },
         modifier = modifier,
         update = { mapV ->
-            android.util.Log.d("BODA_MAPS", "update block running")
             mapV.getMapAsync { googleMap ->
                 googleMap.clear()
 
@@ -1070,7 +1043,6 @@ fun GuluMapView(
     } catch (e: Throwable) {
         false
     }
-    android.util.Log.d("BODA_MAPS", "hasMapsApiKey=$hasMapsApiKey key='${com.example.BuildConfig.MAPS_API_KEY}'")
 
     Box(
         modifier = modifier
