@@ -16,7 +16,7 @@ data class UserProfile(
 
 @Entity(tableName = "referrals")
 data class Referral(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: Int = 0,
     val referredName: String,
     val referredPhone: String,
     val referralCodeUsed: String,
@@ -27,7 +27,7 @@ data class Referral(
 
 @Entity(tableName = "saved_places")
 data class SavedPlace(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: Int = 0,
     val label: String, // Home, Work, Market, Church, Custom
     val name: String,
     val latitude: Double,
@@ -36,7 +36,7 @@ data class SavedPlace(
 
 @Entity(tableName = "trips")
 data class Trip(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: Int = 0,
     val type: String, // "ride" or "delivery"
     val pickupName: String,
     val dropoffName: String,
@@ -59,7 +59,7 @@ data class Trip(
 
 @Entity(tableName = "wallet_transactions")
 data class WalletTransaction(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: Int = 0,
     val amount: Double,
     val type: String, // "topup", "payment"
     val status: String, // "pending", "completed", "failed"
@@ -71,7 +71,7 @@ data class WalletTransaction(
 
 @Entity(tableName = "emergency_contacts")
 data class EmergencyContact(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: Int = 0,
     val name: String,
     val phoneNumber: String
 )

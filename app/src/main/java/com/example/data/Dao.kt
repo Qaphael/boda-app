@@ -55,4 +55,7 @@ interface BodaDao {
 
     @Query("SELECT * FROM referrals WHERE referredPhone = :phone LIMIT 1")
     suspend fun getReferralByPhone(phone: String): Referral?
+
+    @Query("UPDATE wallet_transactions SET status = 'completed' WHERE reference = :reference AND status = 'pending'")
+    suspend fun completePendingPayment(reference: String)
 }
