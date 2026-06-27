@@ -23,7 +23,8 @@ const globalLimiter = rateLimit({
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many requests, slow down.' }
+  message: { error: 'Too many requests, slow down.' },
+  skip: (req) => req.path.startsWith('/api/admin') || req.path.startsWith('/admin')
 });
 
 const bookingLimiter = rateLimit({
