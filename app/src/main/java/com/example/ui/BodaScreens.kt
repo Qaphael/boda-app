@@ -2222,6 +2222,20 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                     .joinToString("") { it.first().uppercase() }
                 Text(initials, color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
+
+            Column(horizontalAlignment = Alignment.End) {
+                val userName = viewModel.userProfile.collectAsState().value?.name?.split(" ")?.firstOrNull() ?: ""
+                val bal = viewModel.effectiveBalance.collectAsState().value
+                val hour = java.time.LocalTime.now().hour
+                val greeting = when {
+                    hour < 12 -> "Good morning"
+                    hour < 17 -> "Good afternoon"
+                    else -> "Good evening"
+                }
+                Text("$greeting, $userName", color = Color(0xFF94A3B8), fontSize = 10.sp)
+                Text("UGX ${bal.toInt().toString().reversed().chunked(3).joinToString(",").reversed()}",
+                    color = Color(0xFFFDB913), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
         // Bottom Booking Tray Card
