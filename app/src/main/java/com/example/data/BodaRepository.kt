@@ -98,6 +98,20 @@ class BodaRepository(private val dao: BodaDao? = null) {
         }
     }
 
+    suspend fun claimTrip(tripId: Int): Result<Trip> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.claimTrip(tripId)
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val trip = response.body()?.trip
+                    if (trip != null) Result.success(trip) else Result.failure(Exception("Trip data is null"))
+                } else {
+                    Result.failure(Exception(response.body()?.error ?: "Trip already claimed"))
+                }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
     suspend fun savePlaceToBackend(label: String, name: String, latitude: Double, longitude: Double): Result<SavedPlace> {
         return withContext(Dispatchers.IO) {
             try {

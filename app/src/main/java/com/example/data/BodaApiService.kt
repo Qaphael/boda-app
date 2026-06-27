@@ -32,6 +32,9 @@ interface BodaApiService {
     @PATCH("api/trips/{id}/status")
     suspend fun updateTripStatus(@Path("id") tripId: Int, @Body body: TripStatusUpdate): Response<ApiResponse<Trip>>
 
+    @PATCH("api/trips/{id}/claim")
+    suspend fun claimTrip(@Path("id") tripId: Int): Response<ApiResponse<Trip>>
+
     @GET("api/trips/{id}/messages")
     suspend fun getChatMessages(@Path("id") tripId: Int): Response<List<ChatMessageDto>>
 

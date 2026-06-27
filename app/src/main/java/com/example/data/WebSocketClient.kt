@@ -18,6 +18,8 @@ class WebSocketClient(private val serverUrl: String) {
     var onConnectionChange: ((Boolean) -> Unit)? = null
     var onChatMessage: ((ChatWsMessage) -> Unit)? = null
     var onChatTyping: ((ChatTypingEvent) -> Unit)? = null
+    var onTripClaimed: ((Int, String) -> Unit)? = null
+    var onTripUnmatched: ((Int) -> Unit)? = null
     
     fun connect() {
         try {
@@ -143,6 +145,27 @@ class WebSocketClient(private val serverUrl: String) {
                         isTyping = data.optBoolean("isTyping", false)
                     )
                     onChatTyping?.invoke(typing)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            socket?.on("trip_claimed") { args ->
+                try {
+                    val data = args[0] as JSONObject
+                    val tripId = data.optInt("tripId", 0)
+                    val driverUid = data.optString("driverUid", "")
+                    onTripClaimed?.invoke(tripId, driverUid)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            socket?.on("trip_unmatched") { args ->
+                try {
+                    val data = args[0] as JSONObject
+                    val tripId = data.optInt("tripId", 0)
+                    onTripUnmatched?.invoke(tripId)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }

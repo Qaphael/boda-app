@@ -926,6 +926,27 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
+        webSocketClient.onTripClaimed = { tripId, driverUid ->
+            viewModelScope.launch {
+                addPostgresLog("Trip #$tripId claimed by driver $driverUid")
+                if (currentSimulationTrip?.id == tripId) {
+                    simulationState = "enroute"
+                }
+            }
+        }
+
+        webSocketClient.onTripUnmatched = { tripId ->
+            viewModelScope.launch {
+                addPostgresLog("Trip #$tripId timed out — no driver claimed it")
+                if (currentSimulationTrip?.id == tripId) {
+                    errorMessage.value = "No driver available. Please try again."
+                    currentSimulationTrip = null
+                    simulationState = "idle"
+                    navigateTo(Screen.Home)
+                }
+            }
+        }
+
         webSocketClient.connect()
     }
 
@@ -1421,7 +1442,16 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         driverSimulationCountdown = 8
         driverSimulationProgress = 0f
 
-        viewModelScope.launch { apiRepository.updateTripStatus(req.id, "accepted") }
+        viewModelScope.launch {
+            apiRepository.claimTrip(req.id).fold(
+                onSuccess = { /* trip claimed successfully */ },
+                onFailure = { e ->
+                    errorMessage.value = "Could not claim trip: ${e.message}"
+                    driverActiveTrip = null
+                    driverTripState = "none"
+                }
+            )
+        }
 
         val driverLat = currentLocation?.latitude ?: 2.775
         val driverLng = currentLocation?.longitude ?: 32.295

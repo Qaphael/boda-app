@@ -220,6 +220,42 @@ app.post('/api/trips/book', verifyFirebaseToken, async (req, res) => {
   }
 });
 
+// Claim a trip atomically — only the first driver to claim gets it
+app.patch('/api/trips/:id/claim', verifyFirebaseToken, async (req, res) => {
+  const driverUid = req.user.uid;
+  const tripId = parseInt(req.params.id);
+  try {
+    await db.query('BEGIN');
+    const result = await db.query(
+      `UPDATE trips SET driver_uid = $1, status = 'en_route'
+       WHERE id = $2 AND driver_uid IS NULL AND status = 'matching'
+       RETURNING *`,
+      [driverUid, tripId]
+    );
+    if (result.rows.length === 0) {
+      await db.query('ROLLBACK');
+      return res.status(409).json({ error: 'Trip already claimed or not available' });
+    }
+    const trip = result.rows[0];
+    await db.query('COMMIT');
+
+    // Notify the passenger's socket room
+    io.to(`trip_${tripId}`).emit('trip_claimed', { driverUid, tripId });
+
+    // Push notification to the passenger
+    sendPushToUser(trip.passenger_uid, 'Driver Found!', `Your ride is on the way. Fare: UGX ${trip.fare}`, {
+      trip_id: String(tripId),
+      driver_uid: driverUid,
+      type: 'trip_claimed'
+    });
+
+    res.json({ success: true, trip });
+  } catch (error) {
+    await db.query('ROLLBACK').catch(() => {});
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Retrieve single trip status
 app.get('/api/trips/:id', verifyFirebaseToken, async (req, res) => {
   try {
@@ -906,6 +942,29 @@ io.on('connection', (socket) => {
     console.log(`🔌 Client disconnected: ${socket.id}`);
   });
 });
+
+// Periodic check: cancel trips stuck in 'matching' for over 90 seconds
+setInterval(async () => {
+  try {
+    const result = await db.query(
+      `UPDATE trips SET status = 'cancelled'
+       WHERE status = 'matching' AND driver_uid IS NULL
+       AND created_at < NOW() - INTERVAL '90 seconds'
+       RETURNING id, passenger_uid, pickup_name, dropoff_name`
+    );
+    for (const trip of result.rows) {
+      io.to(`trip_${trip.id}`).emit('trip_unmatched', { tripId: trip.id });
+      sendPushToUser(trip.passenger_uid, 'No Driver Found', `No driver accepted your ride from ${trip.pickup_name}. Please try again.`, {
+        trip_id: String(trip.id), type: 'trip_unmatched'
+      });
+    }
+    if (result.rows.length > 0) {
+      console.log(`⏱️ Auto-cancelled ${result.rows.length} unclaimed trips`);
+    }
+  } catch (err) {
+    console.error('Unclaimed trip cleanup error:', err.message);
+  }
+}, 30000);
 
 // Start listening
 server.listen(PORT, '0.0.0.0', () => {
