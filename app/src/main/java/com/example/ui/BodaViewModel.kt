@@ -1592,6 +1592,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             
             driverActiveTrip = null
             driverTripState = "none"
+            refreshWalletBalance()
         }
     }
 
