@@ -4195,6 +4195,31 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
 
         Spacer(modifier = Modifier.height(Sp.md))
 
+        // Spending Stats Row
+        val thirtyDaysMs = 30L * 24 * 60 * 60 * 1000
+        val ridesThisMonth = txns.count { it.type == "payment" &&
+            System.currentTimeMillis() - it.timestamp < thirtyDaysMs }
+        val spentThisMonth = txns.filter { it.type == "payment" &&
+            System.currentTimeMillis() - it.timestamp < thirtyDaysMs }
+            .sumOf { it.amount }
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.sm)) {
+            listOf(
+                "$ridesThisMonth" to "Trips this month",
+                "UGX ${spentThisMonth.toInt()}" to "Spent this month",
+                txns.firstOrNull()?.provider ?: "MTN" to "Last used"
+            ).forEach { (val_, lbl) ->
+                BodaCard(modifier = Modifier.weight(1f)) {
+                    Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(val_, color = Color(0xFFFDB913), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(lbl, color = Color(0xFF64748B), fontSize = 9.sp)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(Sp.md))
+
         // Quick Top-up selector
         Text("MTN / Airtel Quick Deposit", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(Sp.sm))
@@ -4284,10 +4309,16 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val txIcon = when {
+                            txn.type == "payment" -> Icons.Default.TwoWheeler
+                            txn.reference.startsWith("REF-") -> Icons.Default.CardGiftcard
+                            else -> Icons.Default.ArrowUpward
+                        }
+                        val txColor = if (txn.type == "payment") Color(0xFFF87171) else Color(0xFF10B981)
                         Icon(
-                            imageVector = if (txn.type == "topup") Icons.Default.AddCircle else Icons.Default.RemoveCircle,
+                            imageVector = txIcon,
                             contentDescription = null,
-                            tint = if (txn.type == "topup") Color(0xFF10B981) else Color(0xFFE4002B)
+                            tint = txColor
                         )
                         Spacer(modifier = Modifier.width(Sp.sm))
                         Column {
