@@ -199,55 +199,33 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     fun handleDeepLink(intent: android.content.Intent?) {
         intent ?: return
-        com.google.firebase.dynamiclinks.ktx.dynamicLinks
-            .getDynamicLink(intent)
-            .addOnSuccessListener { pendingDynamicLinkData ->
-                val deepLink = pendingDynamicLinkData?.link ?: return@addOnSuccessListener
-                val code = deepLink.getQueryParameter("code") ?: return@addOnSuccessListener
-                if (code.isNotEmpty()) {
-                    referralCodeInput = code.uppercase().trim()
-                    android.util.Log.d("BODA_DEEPLINK", "Referral code from deep link: $code")
-                }
+        try {
+            val uri = intent.data ?: return
+            val code = uri.getQueryParameter("code") ?: return
+            if (code.isNotEmpty()) {
+                referralCodeInput = code.uppercase().trim()
+                android.util.Log.d("BODA_DEEPLINK", "Referral code from deep link: $code")
             }
-            .addOnFailureListener { e ->
-                android.util.Log.e("BODA_DEEPLINK", "Deep link handling failed: ${e.message}")
-            }
+        } catch (e: Exception) {
+            android.util.Log.e("BODA_DEEPLINK", "Deep link handling failed: ${e.message}")
+        }
     }
 
     fun shareReferralLink(context: android.content.Context) {
         val myCode = userProfile.value?.referralCode ?: return
-        viewModelScope.launch {
-            try {
-                val dynamicLink = com.google.firebase.dynamiclinks.ktx.dynamicLinks
-                    .shortLinkAsync {
-                        link = android.net.Uri.parse(
-                            "https://bodagulu.page.link/ref?code=$myCode"
-                        )
-                        domainUriPrefix = "https://bodagulu.page.link"
-                        androidParameters("com.qaphael.bodaapp") {}
-                        socialMetaTagParameters {
-                            title = "Join me on Boda Gulu!"
-                            description = "Use my code $myCode and we both get UGX 3,000 on your first ride."
-                        }
-                    }
-                    .await()
-
-                val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(
-                        android.content.Intent.EXTRA_TEXT,
-                        "Join Boda Gulu — affordable boda rides in Gulu!\n" +
-                        "Use my referral code $myCode and we both get UGX 3,000 on your first ride.\n" +
-                        dynamicLink.shortLink.toString()
-                    )
-                }
-                context.startActivity(
-                    android.content.Intent.createChooser(shareIntent, "Share via")
-                )
-            } catch (e: Exception) {
-                errorMessage.value = "Could not generate share link: ${e.message}"
-            }
+        val deepLinkUrl = "https://bodagulu.page.link/ref?code=$myCode"
+        val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(
+                android.content.Intent.EXTRA_TEXT,
+                "Join Boda Gulu — affordable boda rides in Gulu!\n" +
+                "Use my referral code $myCode and we both get UGX 3,000 on your first ride.\n" +
+                deepLinkUrl
+            )
         }
+        context.startActivity(
+            android.content.Intent.createChooser(shareIntent, "Share via")
+        )
     }
 
     fun dismissWelcomeBonus() {
