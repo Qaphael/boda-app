@@ -470,8 +470,9 @@ app.delete('/api/saved-places/:id', verifyFirebaseToken, async (req, res) => {
 // ==========================================
 
 // Register driver
-app.post('/api/drivers/register', async (req, res) => {
-  const { uid, full_name, phone, plate_number, helmet_number } = req.body;
+app.post('/api/drivers/register', verifyFirebaseToken, async (req, res) => {
+  const uid = req.user.uid;
+  const { full_name, phone, plate_number, helmet_number } = req.body;
   try {
     const query = `
       INSERT INTO drivers (uid, full_name, phone, plate_number, helmet_number)
@@ -486,8 +487,9 @@ app.post('/api/drivers/register', async (req, res) => {
 });
 
 // Set online status & coords
-app.post('/api/drivers/status', async (req, res) => {
-  const { uid, is_online, latitude, longitude } = req.body;
+app.post('/api/drivers/status', verifyFirebaseToken, async (req, res) => {
+  const uid = req.user.uid;
+  const { is_online, latitude, longitude } = req.body;
   try {
     const query = `
       UPDATE drivers
