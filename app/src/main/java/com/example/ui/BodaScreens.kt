@@ -68,7 +68,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import com.google.accompanist.permissions.isGranted
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -122,7 +125,7 @@ object Color {
     val DarkGray = ComposeColor(0xFF475569)
 }
 
-// Spacing tokens â€” the only spacing values allowed
+// Spacing tokens "” the only spacing values allowed
 object Sp {
     val xs  = 4.dp
     val sm  = 8.dp
@@ -427,6 +430,7 @@ fun WelcomeBonusDialog(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun NotificationPermissionNudge() {
     val context = LocalContext.current
@@ -434,7 +438,7 @@ fun NotificationPermissionNudge() {
     val alreadyAsked = remember { prefs.getBoolean("notif_permission_asked", false) }
     if (alreadyAsked) return
 
-    val notifState = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+    val notifState: com.google.accompanist.permissions.PermissionState = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
         rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
     } else return
 
@@ -916,20 +920,35 @@ fun GoogleMapViewWrapper(
     routePoints: List<com.google.android.gms.maps.model.LatLng> = emptyList()
 ) {
     val context = LocalContext.current
-    val mapView = remember { com.google.android.gms.maps.MapView(context) }
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val mapView = remember {
+        com.google.android.gms.maps.MapView(context).apply {
+            onCreate(null)
+            onStart()
+            onResume()
+        }
+    }
+
+    androidx.compose.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            when (event) {
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                androidx.lifecycle.Lifecycle.Event.ON_STOP -> mapView.onStop()
+                androidx.lifecycle.Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            mapView.onPause()
+            mapView.onStop()
+            mapView.onDestroy()
+        }
+    }
 
     androidx.compose.ui.viewinterop.AndroidView(
-        factory = {
-            mapView.apply {
-                onCreate(android.os.Bundle())
-                onResume()
-                getMapAsync { googleMap ->
-                    googleMap.uiSettings.isZoomControlsEnabled = true
-                    googleMap.uiSettings.isMapToolbarEnabled = false
-                    googleMap.mapType = com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
-                }
-            }
-        },
+        factory = { mapView },
         modifier = modifier,
         update = { mapV ->
             mapV.getMapAsync { googleMap ->
@@ -1618,9 +1637,9 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 val languages = listOf(
-                    Triple("en", "English", "ðŸ‡¬ðŸ‡§ Standard international English interface"),
-                    Triple("ach", "Acholi / Luo", "ðŸ‡ºðŸ‡¬ Local Acholi Gulu dialect localization"),
-                    Triple("luo", "Lango / Luo", "ðŸ‡ºðŸ‡¬ Local Lango northern dialect localization")
+                    Triple("en", "English", "🇬🇧 Standard international English interface"),
+                    Triple("ach", "Acholi / Luo", "🇺🇬 Local Acholi Gulu dialect localization"),
+                    Triple("luo", "Lango / Luo", "🇺🇬 Local Lango northern dialect localization")
                 )
 
                 languages.forEach { (code, label, desc) ->
@@ -2234,7 +2253,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                             )
                             Spacer(modifier = Modifier.height(Sp.xs))
                             Text(
-                                "Client: ${active.riderName} â€¢ ${viewModel.driverSimulationCountdown}s Arrival ETA",
+                                "Client: ${active.riderName} • ${viewModel.driverSimulationCountdown}s Arrival ETA",
                                 color = Color(0xFFFDB913),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
@@ -2317,7 +2336,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                             )
                             Spacer(modifier = Modifier.height(Sp.xs))
                             Text(
-                                "Dropoff: ${active.dropoffName} â€¢ ${viewModel.driverSimulationCountdown}s remaining",
+                                "Dropoff: ${active.dropoffName} • ${viewModel.driverSimulationCountdown}s remaining",
                                 color = Color(0xFFFDB913),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
@@ -4566,7 +4585,7 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
                         Spacer(modifier = Modifier.width(Sp.sm))
                         Column {
                             Text(if (txn.type == "topup") "MoMo Topup Deposit" else "Boda Booking Payment", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text("Ref: ${txn.reference} â€¢ ${txn.provider}", color = Color(0xFF64748B), fontSize = 11.sp)
+                            Text("Ref: ${txn.reference} • ${txn.provider}", color = Color(0xFF64748B), fontSize = 11.sp)
                         }
                     }
                     Text(
@@ -4675,9 +4694,9 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val languages = listOf(
-                        Triple("en", "English", "ðŸ‡¬ðŸ‡§"),
-                        Triple("ach", "Acholi/Luo", "ðŸ‡ºðŸ‡¬"),
-                        Triple("luo", "Lango/Luo", "ðŸ‡ºðŸ‡¬")
+                        Triple("en", "English", "🇬🇧"),
+                        Triple("ach", "Acholi/Luo", "🇺🇬"),
+                        Triple("luo", "Lango/Luo", "🇺🇬")
                     )
                     languages.forEach { (code, label, flag) ->
                         val isSelected = viewModel.appLanguage == code
@@ -6020,7 +6039,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if (viewModel.momoPinInput.isEmpty()) "Enter PIN" else "â€¢ ".repeat(viewModel.momoPinInput.length),
+                            text = if (viewModel.momoPinInput.isEmpty()) "Enter PIN" else "• ".repeat(viewModel.momoPinInput.length),
                             color = if (viewModel.momoPinInput.isEmpty()) Color(0xFF475569) else brandColor,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
@@ -6214,7 +6233,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
                 "active" -> {
                     val m = viewModel.callDurationSeconds / 60
                     val s = viewModel.callDurationSeconds % 60
-                    String.format("Active â€¢ %02d:%02d", m, s)
+                    String.format("Active • %02d:%02d", m, s)
                 }
                 "disconnected" -> "Call ended"
                 else -> ""
@@ -6346,7 +6365,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                             Spacer(modifier = Modifier.width(Sp.sm))
                             Column {
                                 Text(trip.riderName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("Vetted Rider â€¢ ${trip.riderPlate}", color = ComposeColor(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                Text("Vetted Rider • ${trip.riderPlate}", color = ComposeColor(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             }
                         }
 
