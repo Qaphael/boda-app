@@ -8,7 +8,10 @@ interface BodaApiService {
 
     // User endpoints
     @POST("api/users/sync")
-    suspend fun syncUser(@Body user: UserSyncRequest): Response<ApiResponse<UserProfile>>
+    suspend fun syncUser(@Body user: UserSyncRequest): Response<SyncApiResponse>
+
+    @DELETE("api/users/me")
+    suspend fun deleteMyAccount(): Response<ApiResponse<Any>>
 
     @GET("api/users/me")
     suspend fun getMe(): Response<UserMeResponse>
@@ -119,6 +122,21 @@ data class ApiResponse<T>(
     val contact: T? = null,
     val referral: T? = null,
     val error: String? = null
+)
+
+data class SyncApiResponse(
+    val success: Boolean,
+    val user: UserSyncResponse? = null,
+    val error: String? = null
+)
+
+data class UserSyncResponse(
+    val uid: String = "",
+    val phone: String = "",
+    val full_name: String = "",
+    val wallet_balance: Double = 0.0,
+    val language: String = "en",
+    val referral_code: String = ""
 )
 
 data class SavePlaceRequest(

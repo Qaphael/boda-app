@@ -12,7 +12,6 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    // Production backend URL
     private const val BASE_URL = "https://ryd-api.ocaya.space"
 
     private val moshi = Moshi.Builder()
@@ -23,15 +22,24 @@ object ApiClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val authInterceptor = Interceptor { chain ->
-        val token = try {
-            Tasks.await(
-                FirebaseAuth.getInstance().currentUser
-                    ?.getIdToken(false)
-                    ?: Tasks.forResult(null)
-            )?.token
-        } catch (e: Exception) { null }
+    @Volatile
+    private var cachedToken: String? = null
 
+    private fun fetchFirebaseToken(forceRefresh: Boolean = false): String? {
+        return try {
+            val task = FirebaseAuth.getInstance().currentUser
+                ?.getIdToken(forceRefresh)
+                ?: Tasks.forResult(null)
+            Tasks.await(task)?.token
+        } catch (e: Exception) { null }
+    }
+
+    private val authInterceptor = Interceptor { chain ->
+        var token = cachedToken
+        if (token == null) {
+            token = fetchFirebaseToken(false)
+            cachedToken = token
+        }
         val request = if (token != null) {
             chain.request().newBuilder()
                 .addHeader("Authorization", "Bearer $token")
@@ -42,9 +50,22 @@ object ApiClient {
         chain.proceed(request)
     }
 
+    private val authenticator = okhttp3.Authenticator { _, response ->
+        if (response.code == 401 || response.code == 403) {
+            val freshToken = fetchFirebaseToken(forceRefresh = true)
+            if (freshToken != null) {
+                cachedToken = freshToken
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer $freshToken")
+                    .build()
+            } else null
+        } else null
+    }
+
     private val httpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor(authInterceptor)
+        .authenticator(authenticator)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
@@ -60,6 +81,9 @@ object ApiClient {
 
     fun getBaseUrl(): String = BASE_URL
 
-    // WebSocket URL for real-time updates
     fun getWebSocketUrl(): String = BASE_URL
+
+    fun invalidateToken() {
+        cachedToken = null
+    }
 }

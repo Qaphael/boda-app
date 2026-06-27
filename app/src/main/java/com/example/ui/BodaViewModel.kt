@@ -839,8 +839,48 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             repository.clearAllUserData()
         }
 
+        ApiClient.invalidateToken()
+
         backStack.clear()
         currentScreen = Screen.WelcomeOnboarding
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            apiRepository.deleteAccount().onSuccess {
+                addPostgresLog("Account deleted from backend")
+            }.onFailure { e ->
+                addPostgresLog("Backend delete failed: ${e.message}")
+            }
+
+            withContext(Dispatchers.IO) {
+                try {
+                    Tasks.await(auth.currentUser?.delete() ?: Tasks.forResult(null))
+                } catch (_: Exception) {}
+            }
+
+            auth.signOut()
+            ApiClient.invalidateToken()
+
+            repository.clearAllUserData()
+            prefs.edit().clear().apply()
+
+            isOtpVerified = false
+            otpSent = false
+            otpInput = ""
+            phoneInput = ""
+            signupName = ""
+            verificationId = null
+            resendToken = null
+            backendBalance = null
+            lastBackendFetchMs = 0L
+            onboardingCarouselCompleted = false
+            onboardingLanguageSelected = false
+            onboardingSlideIndex = 0
+
+            backStack.clear()
+            currentScreen = Screen.WelcomeOnboarding
+        }
     }
 
     // Location Services

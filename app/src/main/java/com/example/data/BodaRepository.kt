@@ -81,7 +81,7 @@ class BodaRepository(private val dao: BodaDao? = null) {
 
     // ===================== Backend API Operations =====================
 
-    suspend fun syncUser(phone: String, name: String, email: String? = null, language: String? = null, referralCode: String? = null): Result<UserProfile> {
+    suspend fun syncUser(phone: String, name: String, email: String? = null, language: String? = null, referralCode: String? = null): Result<UserSyncResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = api.syncUser(UserSyncRequest(phone, name, email, language, referralCode))
@@ -133,6 +133,16 @@ class BodaRepository(private val dao: BodaDao? = null) {
                 } else {
                     Result.failure(Exception(response.body()?.error ?: "Failed to save place"))
                 }
+            } catch (e: Exception) { Result.failure(e) }
+        }
+    }
+
+    suspend fun deleteAccount(): Result<Boolean> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = api.deleteMyAccount()
+                if (response.isSuccessful && response.body()?.success == true) Result.success(true)
+                else Result.failure(Exception(response.body()?.error ?: "Failed to delete account"))
             } catch (e: Exception) { Result.failure(e) }
         }
     }

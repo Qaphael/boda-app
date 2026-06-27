@@ -4847,12 +4847,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         text = "Delete",
                         onClick = {
                             showDeleteConfirmDialog = false
-                            coroutineScope.launch {
-                                val emptyProfile = UserProfile(id = 1, isSetupComplete = false)
-                                viewModel.saveUserProfile(emptyProfile)
-                                viewModel.resetOnboarding()
-                                viewModel.navigateTo(Screen.WelcomeOnboarding)
-                            }
+                            viewModel.deleteAccount()
                         },
                         containerColor = Color(0xFFE4002B),
                         contentColor = Color.White
