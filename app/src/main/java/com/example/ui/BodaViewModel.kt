@@ -152,6 +152,11 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var isLoadingData by mutableStateOf(true)
         private set
 
+    var isOtpVerified by mutableStateOf(false)
+    var phoneInput by mutableStateOf("")
+    var otpInput by mutableStateOf("")
+    var otpSent by mutableStateOf(false)
+
     private var lastBackendFetchMs = 0L
 
     init {
@@ -1241,11 +1246,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var onboardingSlideIndex by mutableStateOf(0)
 
     // Phone number input
-    var phoneInput by mutableStateOf("")
-    var otpInput by mutableStateOf("")
-    var otpSent by mutableStateOf(false)
     var otpResendTimer by mutableStateOf(45)
-    var isOtpVerified by mutableStateOf(false)
     var isSendingOtp by mutableStateOf(false)
     var isVerifyingOtp by mutableStateOf(false)
     private var otpTimerJob: Job? = null
