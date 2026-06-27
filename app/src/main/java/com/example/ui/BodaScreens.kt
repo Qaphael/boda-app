@@ -930,40 +930,38 @@ fun GoogleMapViewWrapper(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    var mapViewRef by remember { mutableStateOf<com.google.android.gms.maps.MapView?>(null) }
+
+    val mapConfig = remember(pickupLatLng, dropoffLatLng, riderProgress, simulationState, routePoints) {
+        Triple(pickupLatLng, dropoffLatLng, riderProgress)
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            val mapView = mapViewRef ?: return@LifecycleEventObserver
             when (event) {
-                androidx.lifecycle.Lifecycle.Event.ON_CREATE  -> mapView.onCreate(null)
-                androidx.lifecycle.Lifecycle.Event.ON_START   -> mapView.onStart()
-                androidx.lifecycle.Lifecycle.Event.ON_RESUME  -> mapView.onResume()
-                androidx.lifecycle.Lifecycle.Event.ON_PAUSE   -> mapView.onPause()
-                androidx.lifecycle.Lifecycle.Event.ON_STOP    -> mapView.onStop()
-                androidx.lifecycle.Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                androidx.lifecycle.Lifecycle.Event.ON_STOP -> {}
                 else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            mapViewRef?.let { mv ->
-                mv.onPause()
-                mv.onStop()
-                mv.onDestroy()
-            }
         }
     }
 
     androidx.compose.ui.viewinterop.AndroidView(
         factory = { ctx ->
-            com.google.android.gms.maps.MapView(ctx).also { mapView ->
-                mapViewRef = mapView
-                mapView.getMapAsync { googleMap ->
+            com.google.android.gms.maps.MapView(ctx).apply {
+                onCreate(null)
+                onResume()
+                getMapAsync { googleMap ->
                     googleMap.uiSettings.isZoomControlsEnabled = true
                     googleMap.uiSettings.isMapToolbarEnabled = false
                     googleMap.mapType = com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
+                    googleMap.moveCamera(
+                        com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(
+                            pickupLatLng, 14f
+                        )
+                    )
                 }
             }
         },
