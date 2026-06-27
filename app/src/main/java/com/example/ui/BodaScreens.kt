@@ -2347,49 +2347,26 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
 
                 Spacer(modifier = Modifier.height(Sp.md))
 
-                // Quick Saved places chips
-                Text("Gulu Saved Places Quick-Select:", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(Sp.sm))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                ) {
-                    savedPlaces.forEach { place ->
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 8.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF1E293B))
-                                .border(
-                                    width = 1.dp,
-                                    color = if (viewModel.pickupPlace == place || viewModel.dropoffPlace == place) Color(0xFFFDB913) else Color.Transparent,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .clickable {
-                                    if (viewModel.pickupPlace == null) {
-                                        viewModel.pickupPlace = place
-                                    } else {
+                if (savedPlaces.isNotEmpty()) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(savedPlaces.take(5)) { place ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(if (viewModel.dropoffPlace?.id == place.id) Color(0xFFFDB913) else Color(0xFF1E293B))
+                                    .border(0.5.dp, Color(0xFF334155), RoundedCornerShape(20.dp))
+                                    .clickable {
                                         viewModel.dropoffPlace = place
-                                        viewModel.navigateTo(Screen.RoutePreview)
+                                        viewModel.dropoffText = place.name
                                     }
-                                }
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = when (place.label) {
-                                        "Home" -> Icons.Default.Home
-                                        "Work" -> Icons.Default.Business
-                                        "University" -> Icons.Default.School
-                                        else -> Icons.Default.Place
-                                    },
-                                    contentDescription = null,
-                                    tint = Color(0xFFFDB913),
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(Sp.xs))
-                                Text(place.label, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(place.label, fontSize = 11.sp,
+                                    color = if (viewModel.dropoffPlace?.id == place.id) Color.Black else Color(0xFF94A3B8),
+                                    fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
