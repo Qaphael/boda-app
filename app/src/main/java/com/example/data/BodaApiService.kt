@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.squareup.moshi.Json
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -101,6 +102,7 @@ data class UserSyncRequest(
     val referral_code: String? = null
 )
 
+@Json(ignoreUnknownKeys = true)
 data class UserMeResponse(
     val uid: String = "",
     val phone: String = "",
@@ -110,6 +112,7 @@ data class UserMeResponse(
     val referral_code: String = ""
 )
 
+@Json(ignoreUnknownKeys = true)
 data class ApiResponse<T>(
     val success: Boolean,
     val user: T? = null,
@@ -157,6 +160,7 @@ data class DriverStatusUpdate(
     val longitude: Double
 )
 
+@Json(ignoreUnknownKeys = true)
 data class DriverProfile(
     val uid: String = "",
     val full_name: String = "",
@@ -176,6 +180,7 @@ data class FareCalculationRequest(
     val duration_mins: Int
 )
 
+@Json(ignoreUnknownKeys = true)
 data class FareCalculationResponse(
     val base_fare: Int,
     val distance_km: Double,
@@ -191,6 +196,7 @@ data class PromoValidationRequest(
     val original_fare: Double
 )
 
+@Json(ignoreUnknownKeys = true)
 data class PromoValidationResponse(
     val valid: Boolean,
     val code: String? = null,
@@ -199,6 +205,7 @@ data class PromoValidationResponse(
     val message: String? = null
 )
 
+@Json(ignoreUnknownKeys = true)
 data class ChatMessageDto(
     val id: Int = 0,
     val trip_id: Int = 0,
@@ -218,6 +225,7 @@ data class TripStatusUpdate(
     val dispute_evidence: String? = null
 )
 
+@Json(ignoreUnknownKeys = true)
 data class TripDto(
     val id: Int = 0,
     val trip_code: String = "",
@@ -242,6 +250,7 @@ data class TripDto(
     val completed_at: String? = null
 )
 
+@Json(ignoreUnknownKeys = true)
 data class WalletTransactionDto(
     val id: Int = 0,
     val user_uid: String = "",
@@ -258,11 +267,13 @@ data class WalletTopupRequest(
     val payment_provider: String = "MTN"
 )
 
+@Json(ignoreUnknownKeys = true)
 data class TopupResponse(
     val success: Boolean = false,
     val reference: String = ""
 )
 
+@Json(ignoreUnknownKeys = true)
 data class EmergencyContactDto(
     val id: Int = 0,
     val user_uid: String = "",
@@ -283,6 +294,7 @@ data class SosAlertRequest(
     val description: String = "SOS Emergency"
 )
 
+@Json(ignoreUnknownKeys = true)
 data class ReferralDto(
     val id: Int = 0,
     val referrer_uid: String = "",
