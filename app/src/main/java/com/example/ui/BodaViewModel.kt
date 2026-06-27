@@ -27,6 +27,7 @@ import com.example.data.WebSocketClient
 import com.example.data.DriverLocation
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -1012,8 +1013,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
             apiRepository.syncUser(phone, user.name, language = user.language, referralCode = user.referralCode).fold(
-                onSuccess = { backendUser ->
-                    android.util.Log.d("BODA_SYNC", "Sync success: uid=${backendUser.uid}")
+                onSuccess = {
                     addPostgresLog("User synced to PostgreSQL")
                 },
                 onFailure = { e ->

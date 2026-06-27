@@ -4204,15 +4204,16 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
             .sumOf { it.amount }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.sm)) {
-            listOf(
+            val stats = listOf(
                 "$ridesThisMonth" to "Trips this month",
                 "UGX ${spentThisMonth.toInt()}" to "Spent this month",
-                txns.firstOrNull()?.provider ?: "MTN" to "Last used"
-            ).forEach { (val_, lbl) ->
+                (txns.firstOrNull()?.provider ?: "MTN") to "Last used"
+            )
+            stats.forEach { pair ->
                 BodaCard(modifier = Modifier.weight(1f)) {
                     Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(val_, color = Color(0xFFFDB913), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        Text(lbl, color = Color(0xFF64748B), fontSize = 9.sp)
+                        Text(pair.first, color = Color(0xFFFDB913), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(pair.second, color = Color(0xFF64748B), fontSize = 9.sp)
                     }
                 }
             }
@@ -4863,6 +4864,15 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                 }
             )
         }
+
+        Spacer(Modifier.height(Sp.xl))
+        Text(
+            "Delete account",
+            color = Color(0xFF475569),
+            fontSize = 11.sp,
+            modifier = Modifier.clickable { showDeleteConfirmDialog = true }
+        )
+        Spacer(Modifier.height(Sp.md))
     }
 }
 
@@ -5841,17 +5851,6 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                                             fontSize = 14.sp
             )
         }
-
-        Spacer(Modifier.height(Sp.xl))
-        Text(
-            "Delete account",
-            color = Color(0xFF475569),
-            fontSize = 11.sp,
-            modifier = Modifier
-                .clickable { showDeleteConfirmDialog = true }
-                .align(Alignment.CenterHorizontally)
-        )
-        Spacer(Modifier.height(Sp.md))
     }
 }
                         }
