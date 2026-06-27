@@ -70,10 +70,10 @@ class BodaRepository(private val dao: BodaDao? = null) {
 
     // ===================== Backend API Operations =====================
 
-    suspend fun syncUser(phone: String, name: String, email: String? = null): Result<UserProfile> {
+    suspend fun syncUser(phone: String, name: String, email: String? = null, language: String? = null, referralCode: String? = null): Result<UserProfile> {
         return withContext(Dispatchers.IO) {
             try {
-                val response = api.syncUser(UserSyncRequest(phone, name, email))
+                val response = api.syncUser(UserSyncRequest(phone, name, email, language, referralCode))
                 if (response.isSuccessful && response.body()?.success == true) {
                     val user = response.body()?.user
                     if (user != null) Result.success(user) else Result.failure(Exception("User data is null"))
