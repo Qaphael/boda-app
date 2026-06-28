@@ -581,19 +581,70 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 
             var searchSuccess = false
             
-            // 1. Try Google Geocoding API if key is present
+            // 1. Try Google Places Text Search API if key is present (returns POIs with coordinates)
             if (hasGoogleMapsKey && isOnline) {
                 try {
-                    // Append Gulu Uganda to bias search locally
-                    val addressQuery = if (query.lowercase().contains("gulu")) query else "$query, Gulu, Uganda"
-                    val encodedQuery = java.net.URLEncoder.encode(addressQuery, "UTF-8")
-                    val url = "https://maps.googleapis.com/maps/api/geocode/json?address=$encodedQuery&key=$googleApiKey"
-                    
+                    val searchQuery = if (query.lowercase().contains("gulu")) query else "$query, Gulu, Uganda"
+                    val encodedQuery = java.net.URLEncoder.encode(searchQuery, "UTF-8")
+                    val url = "https://maps.googleapis.com/maps/api/place/textsearch/json" +
+                            "?query=$encodedQuery" +
+                            "&location=2.7750,32.2950" +
+                            "&radius=50000" +
+                            "&key=$googleApiKey"
+
                     val request = okhttp3.Request.Builder()
                         .url(url)
                         .header("User-Agent", "BodaGuluApp/1.0")
                         .build()
-                        
+
+                    client.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
+                            val bodyString = response.body?.string() ?: ""
+                            val json = org.json.JSONObject(bodyString)
+                            val status = json.optString("status")
+                            if (status == "OK") {
+                                val jsonResults = json.getJSONArray("results")
+                                for (i in 0 until minOf(jsonResults.length(), 8)) {
+                                    val item = jsonResults.getJSONObject(i)
+                                    val name = item.optString("name", "")
+                                    val formattedAddress = item.optString("formatted_address", "")
+                                    val geometry = item.getJSONObject("geometry")
+                                    val location = geometry.getJSONObject("location")
+                                    val lat = location.getDouble("lat")
+                                    val lng = location.getDouble("lng")
+                                    val label = name.ifEmpty { formattedAddress.substringBefore(",") }
+
+                                    results.add(SavedPlace(
+                                        label = label,
+                                        name = if (formattedAddress.isNotEmpty()) "$name, $formattedAddress" else name,
+                                        latitude = lat,
+                                        longitude = lng
+                                    ))
+                                }
+                                searchSuccess = true
+                                addPostgresLog("Places Text Search returned ${results.size} results for '$query'")
+                            } else {
+                                addPostgresLog("Places Text Search status: $status")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    addPostgresLog("Google Places search failed: ${e.message}")
+                }
+            }
+
+            // 1b. Try Google Geocoding API as secondary if Places returned nothing
+            if (!searchSuccess && hasGoogleMapsKey && isOnline) {
+                try {
+                    val addressQuery = if (query.lowercase().contains("gulu")) query else "$query, Gulu, Uganda"
+                    val encodedQuery = java.net.URLEncoder.encode(addressQuery, "UTF-8")
+                    val url = "https://maps.googleapis.com/maps/api/geocode/json?address=$encodedQuery&key=$googleApiKey"
+
+                    val request = okhttp3.Request.Builder()
+                        .url(url)
+                        .header("User-Agent", "BodaGuluApp/1.0")
+                        .build()
+
                     client.newCall(request).execute().use { response ->
                         if (response.isSuccessful) {
                             val bodyString = response.body?.string() ?: ""
@@ -608,15 +659,14 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                                     val location = geometry.getJSONObject("location")
                                     val lat = location.getDouble("lat")
                                     val lng = location.getDouble("lng")
-                                    
-                                    // Extract shorter label if possible
+
                                     val addressComponents = item.getJSONArray("address_components")
                                     val label = if (addressComponents.length() > 0) {
                                         addressComponents.getJSONObject(0).getString("long_name")
                                     } else {
                                         formattedAddress.substringBefore(",")
                                     }
-                                    
+
                                     results.add(SavedPlace(
                                         label = label,
                                         name = formattedAddress,
@@ -629,8 +679,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
                 } catch (e: Exception) {
-                    addPostgresLog("Google search failed: ${e.message}")
-                    errorMessage.value = "Location search failed. Retrying with alternative provider."
+                    addPostgresLog("Google Geocoding fallback failed: ${e.message}")
                 }
             }
             
@@ -716,7 +765,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         if (pickup == null || dropoff == null) {
             googleDistanceKm = null
             googleDurationMins = null
-            googleTrafficCondition = null
             return
         }
         
@@ -742,8 +790,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                     val url = "https://maps.googleapis.com/maps/api/distancematrix/json" +
                             "?origins=${pickup.latitude},${pickup.longitude}" +
                             "&destinations=${dropoff.latitude},${dropoff.longitude}" +
-                            "&departure_time=now" +
-                            "&traffic_model=best_guess" +
                             "&key=$googleApiKey"
                             
                     val client = okhttp3.OkHttpClient.Builder()
@@ -779,32 +825,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                                             val km = meters / 1000.0
                                             val mins = (seconds / 60.0).toInt().coerceAtLeast(1)
                                             
-                                            var traffic = "Moderate"
-                                            if (element.has("duration_in_traffic")) {
-                                                val durationInTrafficSec = element.getJSONObject("duration_in_traffic").getDouble("value")
-                                                val ratio = durationInTrafficSec / seconds
-                                                traffic = when {
-                                                    ratio <= 1.1 -> "Light"
-                                                    ratio <= 1.3 -> "Moderate"
-                                                    ratio <= 1.6 -> "Heavy"
-                                                    else -> "Rush Hour"
-                                                }
-                                                addPostgresLog("✓ Distance Matrix parsed traffic multiplier: ${"%.2f".format(ratio)} ($traffic)")
-                                            } else {
-                                                val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-                                                traffic = when (hour) {
-                                                    in 8..9, in 17..18 -> "Rush Hour"
-                                                    in 7..19 -> "Moderate"
-                                                    else -> "Light"
-                                                }
-                                            }
-                                            
                                             withContext(kotlinx.coroutines.Dispatchers.Main) {
                                                 googleDistanceKm = km
                                                 googleDurationMins = mins
-                                                googleTrafficCondition = traffic
-                                                trafficCondition = traffic
-                                                addPostgresLog("✓ Successfully loaded metrics from Distance Matrix API: ${"%.2f".format(km)} km, $mins mins.")
+                                                addPostgresLog("✓ Distance Matrix: ${"%.2f".format(km)} km, $mins mins.")
                                             }
                                         } else {
                                             throw Exception("Distance Matrix element status: $elementStatus")
@@ -825,8 +849,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
                 } catch (e: Exception) {
                     withContext(kotlinx.coroutines.Dispatchers.Main) {
                         distanceMatrixError = e.message
-                        errorMessage.value = "Distance calculation failed. Using estimated distance."
-                        addPostgresLog("Distance Matrix API query failed (${e.message}). Using Haversine fallback.")
+                        addPostgresLog("Distance Matrix API failed (${e.message}). Using Haversine fallback.")
                     }
                 } finally {
                     withContext(kotlinx.coroutines.Dispatchers.Main) {
@@ -1064,7 +1087,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
         webSocketClient.onPricingUpdate = { pricing ->
             viewModelScope.launch {
-                trafficCondition = pricing.surgeReason
+                // Pricing updates available but not using traffic-based surge
             }
         }
 
@@ -1381,7 +1404,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     // Google Maps Distance Matrix API states
     var googleDistanceKm by mutableStateOf<Double?>(null)
     var googleDurationMins by mutableStateOf<Int?>(null)
-    var googleTrafficCondition by mutableStateOf<String?>(null)
     var isFetchingDistanceMatrix by mutableStateOf(false)
     var distanceMatrixError by mutableStateOf<String?>(null)
 
@@ -1390,7 +1412,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var recipientName by mutableStateOf("")
     var recipientPhone by mutableStateOf("")
     var scheduledBookingDateTime by mutableStateOf<String?>(null)
-    var trafficCondition by mutableStateOf("Moderate") // "Light", "Moderate", "Heavy", "Rush Hour"
 
     private fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val r = 6371.0 // Radius of the earth in km
@@ -1409,14 +1430,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             val dist = calculatedDistanceKm
             val base = if (serviceType == "ride") 1500.0 else 2500.0
             val distanceCharge = dist * 1000.0
-            val trafficSurge = when (trafficCondition) {
-                "Light" -> 0.0
-                "Moderate" -> 500.0
-                "Heavy" -> 1500.0
-                "Rush Hour" -> 2500.0
-                else -> 500.0
-            }
-            val rawFare = base + distanceCharge + trafficSurge
+            val rawFare = base + distanceCharge
             return (Math.round(rawFare / 500.0) * 500.0).toDouble().coerceAtLeast(1000.0)
         }
 
@@ -2113,7 +2127,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             activePromoCode = null
             googleDistanceKm = null
             googleDurationMins = null
-            googleTrafficCondition = null
             distanceMatrixError = null
             currentSimulationTrip = null
             simulationState = "idle"

@@ -2366,7 +2366,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.Speed, contentDescription = null, tint = Color(0xFF10B981), modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(Sp.sm))
-                                    Text("Cockpit Speed: ${getSimulatedSpeed(viewModel.driverSimulationProgress, viewModel.trafficCondition)} km/h", color = Color.White, fontSize = 11.sp)
+                                    Text("Cockpit Speed: ${getSimulatedSpeed(viewModel.driverSimulationProgress)} km/h", color = Color.White, fontSize = 11.sp)
                                 }
                                 Box(
                                     modifier = Modifier
@@ -2918,7 +2918,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = { viewModel.navigateBack() }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
             }
@@ -3067,13 +3067,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
 
         // Promo Code Row
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            BodaButton(
-                text = "Apply",
-                onClick = { viewModel.validatePromoViaBackend(viewModel.promoCodeInput) },
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(Sp.sm))
-            Box(modifier = Modifier.weight(2f)) {
+            Box(modifier = Modifier.weight(1f)) {
                 BodaTextField(
                     value = viewModel.promoCodeInput,
                     onValueChange = { viewModel.promoCodeInput = it },
@@ -3082,64 +3076,18 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            Spacer(modifier = Modifier.width(Sp.sm))
+            BodaButton(
+                text = "Apply",
+                onClick = { viewModel.validatePromoViaBackend(viewModel.promoCodeInput) },
+                modifier = Modifier.weight(0.5f)
+            )
         }
         if (viewModel.activePromoMessage.isNotEmpty()) {
             Text(viewModel.activePromoMessage, color = Color(0xFF10B981), fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
         }
 
         Spacer(modifier = Modifier.height(Sp.md))
-
-        // INTERACTIVE TRAFFIC CONDITIONS SELECTOR
-        BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Text(
-                    text = "Simulate Traffic Conditions",
-                    color = Color(0xFFFDB913),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
-                )
-                Spacer(modifier = Modifier.height(Sp.sm))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    val trafficLevels = listOf(
-                        "Light" to "35 km/h",
-                        "Moderate" to "25 km/h",
-                        "Heavy" to "15 km/h",
-                        "Rush Hour" to "8 km/h"
-                    )
-                    trafficLevels.forEach { (level, speed) ->
-                        val isSelected = viewModel.trafficCondition == level
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSelected) Color(0xFFFDB913) else Color(0xFF0F172A))
-                                .clickable { viewModel.trafficCondition = level }
-                                .padding(vertical = 8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = level,
-                                color = if (isSelected) Color.Black else Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 11.sp
-                            )
-                            Spacer(modifier = Modifier.height(Sp.xs))
-                            Text(
-                                text = speed,
-                                color = if (isSelected) Color.Black.copy(alpha = 0.7f) else Color(0xFF94A3B8),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(Sp.sm))
 
         // DETAILED ETA & METRICS DASHBOARD
         val arrivalTimeStr = remember(viewModel.calculatedTimeMinutes) {
@@ -3182,7 +3130,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Street Distance", color = Color(0xFF64748B), fontSize = 11.sp)
+                        Text("Distance", color = Color(0xFF64748B), fontSize = 11.sp)
                         Text(
                             text = "${"%.2f".format(viewModel.calculatedDistanceKm)} km",
                             color = Color.White,
@@ -3191,29 +3139,9 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                         )
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Traffic Condition", color = Color(0xFF64748B), fontSize = 11.sp)
+                        Text("Duration", color = Color(0xFF64748B), fontSize = 11.sp)
                         Text(
-                            text = viewModel.trafficCondition,
-                            color = when (viewModel.trafficCondition) {
-                                "Light" -> Color(0xFF10B981)
-                                "Moderate" -> Color(0xFF3B82F6)
-                                "Heavy" -> Color(0xFFF97316)
-                                else -> Color(0xFFEF4444)
-                            },
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text("Delay Factor", color = Color(0xFF64748B), fontSize = 11.sp)
-                        val delayVal = when (viewModel.trafficCondition) {
-                            "Light" -> "None"
-                            "Moderate" -> "+2 mins"
-                            "Heavy" -> "+5 mins"
-                            else -> "+9 mins"
-                        }
-                        Text(
-                            text = delayVal,
+                            text = "${viewModel.calculatedTimeMinutes} mins",
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
@@ -3241,18 +3169,12 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                     Text("·", color = Color(0xFF334155), fontSize = 11.sp)
                     Text("${viewModel.calculatedTimeMinutes} min",
                         color = Color(0xFF64748B), fontSize = 11.sp)
-                    Text("·", color = Color(0xFF334155), fontSize = 11.sp)
-                    Text(viewModel.trafficCondition, color = Color(0xFFF59E0B), fontSize = 11.sp)
                 }
                 HorizontalDivider(color = Color(0xFF334155), modifier = Modifier.padding(vertical = 10.dp))
                 val baseFare = if (viewModel.serviceType == "ride") 1500.0 else 2500.0
                 val distCharge = viewModel.calculatedDistanceKm * 1000.0
-                val surge = when (viewModel.trafficCondition) {
-                    "Light" -> 0.0; "Moderate" -> 500.0; "Heavy" -> 1500.0; "Rush Hour" -> 2500.0; else -> 500.0
-                }
                 listOf("Base" to "UGX ${baseFare.toInt()}",
-                    "Distance" to "UGX ${distCharge.toInt()}",
-                    "Traffic" to "+ UGX ${surge.toInt()}").forEach { (lbl, val_) ->
+                    "Distance" to "UGX ${distCharge.toInt()}").forEach { (lbl, val_) ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(lbl, color = Color(0xFF64748B), fontSize = 11.sp)
                         Text(val_, color = Color(0xFF94A3B8), fontSize = 11.sp)
@@ -3529,14 +3451,8 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
 }
 
 // --- SCREEN 8: ACTIVE TRIP TRACKING MAP ---
-fun getSimulatedSpeed(progress: Float, traffic: String): Int {
-    val baseSpeed = when (traffic) {
-        "Light" -> 38
-        "Moderate" -> 28
-        "Heavy" -> 16
-        "Rush Hour" -> 9
-        else -> 26
-    }
+fun getSimulatedSpeed(progress: Float): Int {
+    val baseSpeed = 28
     val phase = (progress * 50).toInt() % 5
     val offset = when (phase) {
         0 -> -2
@@ -3726,7 +3642,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                     Spacer(modifier = Modifier.width(Sp.sm))
                     Column {
                         Text("SIMULATED SPEED", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        val speed = getSimulatedSpeed(viewModel.simulationRouteProgress, viewModel.trafficCondition)
+                        val speed = getSimulatedSpeed(viewModel.simulationRouteProgress)
                         Text(
                             text = "$speed km/h",
                             color = Color.White,
