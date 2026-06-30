@@ -1,0 +1,191 @@
+package com.example.ui.components
+
+import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.unit.dp
+
+// --- CLEAN MINIMALISM SYSTEM COLOR DELEGATOR ---
+object Color {
+    operator fun invoke(value: Long): ComposeColor {
+        return if (com.example.ui.theme.isAppInDarkMode) {
+            ComposeColor(value)
+        } else {
+            when (value) {
+                0xFF0F172A -> ComposeColor(0xFFF1F5F9)
+                0xFF131A2A -> ComposeColor(0xFFF1F5F9)
+                0xFF1E293B -> ComposeColor(0xFFFFFFFF)
+                0xFFFDB913 -> ComposeColor(0xFF0061A4)
+                0xFF334155 -> ComposeColor(0xFFCBD5E1)
+                0xFF475569 -> ComposeColor(0xFF0061A4)
+                0xFF64748B -> ComposeColor(0xFF475569)
+                0xFF94A3B8 -> ComposeColor(0xFF64748B)
+                0xFFEF4444 -> ComposeColor(0xFFF97316)
+                0xFFE4002B -> ComposeColor(0xFFF97316)
+                else -> ComposeColor(value)
+            }
+        }
+    }
+
+    val White: ComposeColor
+        get() = if (com.example.ui.theme.isAppInDarkMode) ComposeColor.White else ComposeColor(0xFF0F172A)
+
+    val Black: ComposeColor
+        get() = if (com.example.ui.theme.isAppInDarkMode) ComposeColor(0xFF0F172A) else ComposeColor.White
+
+    val Transparent = ComposeColor.Transparent
+    val Unspecified = ComposeColor.Unspecified
+    val Red = ComposeColor(0xFFF97316)
+    val Green = ComposeColor(0xFF10B981)
+    val Blue = ComposeColor(0xFF0061A4)
+    val Gray = ComposeColor(0xFF64748B)
+    val LightGray = ComposeColor(0xFFE2E8F0)
+    val DarkGray = ComposeColor(0xFF475569)
+}
+
+// Spacing tokens — the only spacing values allowed
+object Sp {
+    val xs  = 4.dp
+    val sm  = 8.dp
+    val md  = 16.dp
+    val lg  = 24.dp
+    val xl  = 32.dp
+    val xxl = 48.dp
+}
+
+// --- TRANSLATIONS FOR GULU LOCALIZATION ---
+object BodaLang {
+    private val strings = mapOf(
+        "en" to mapOf(
+            "splash_tagline" to "Pe Yot Gulu! Safe & Quick",
+            "btn_continue" to "Continue",
+            "btn_back" to "Back",
+            "welcome_title_1" to "Gulu's Choice",
+            "welcome_desc_1" to "Secure and quick rides or parcel delivery around Gulu City.",
+            "welcome_title_2" to "Mobile Money First",
+            "welcome_desc_2" to "Pay safely with MTN MoMo or Airtel Money via Boda Escrow.",
+            "welcome_title_3" to "Community Verified",
+            "welcome_desc_3" to "All Gulu riders are vetted. Share your OTP and track live.",
+            "phone_title" to "Enter Phone Number",
+            "phone_sub" to "We will send a 6-digit OTP to verify.",
+            "otp_title" to "Verify Number",
+            "otp_sub" to "Enter 6-digit code sent. Simulation code is 123456.",
+            "otp_resend" to "Resend code in",
+            "profile_title" to "Profile Setup",
+            "profile_desc" to "Enter your name to register as a new Gulu customer.",
+            "perm_location" to "Location Permission Required",
+            "perm_location_desc" to "Needed to pinpoint your pickup in Gulu Main Market, Layibi, etc.",
+            "perm_notify" to "Notification Permission",
+            "perm_notify_desc" to "Needed to alert you when your Boda rider arrives.",
+            "home_title" to "Boda Gulu",
+            "ride" to "Ride",
+            "delivery" to "Delivery",
+            "where_to" to "Where are you going?",
+            "pickup" to "Pickup Location",
+            "dropoff" to "Drop-off Location",
+            "confirm_booking" to "Confirm Booking",
+            "searching_rider" to "Searching for rider...",
+            "cancel" to "Cancel",
+            "rider_enroute" to "Rider En Route",
+            "rider_arrived" to "Rider Arrived!",
+            "active_trip" to "Active Trip",
+            "share_location" to "Share Location",
+            "sos" to "SOS EMERGENCY",
+            "trip_completed" to "Trip Completed!",
+            "rate_rider" to "Rate your Rider",
+            "comment_hint" to "Write feedback (optional)",
+            "wallet" to "Wallet",
+            "history" to "History",
+            "support" to "Support",
+            "profile" to "Profile"
+        ),
+        "ach" to mapOf(
+            "splash_tagline" to "Pe Yot Gulu! Ber ki Yot",
+            "btn_continue" to "Deyo",
+            "btn_back" to "Cen",
+            "welcome_title_1" to "Yer me Gulu",
+            "welcome_desc_1" to "Kwo ma ber, kwano ma ror dong i Gulu.",
+            "welcome_title_2" to "Mony me Cing",
+            "welcome_desc_2" to "Cul me MTN MoMo ki Airtel ma nongo tye mukene.",
+            "welcome_title_3" to "Ngat ma oketo nyinge",
+            "welcome_desc_3" to "Lu boda duto ki Gulu kitye ma olony. Nyut OTP ni.",
+            "phone_title" to "Ket Namba Telepon",
+            "phone_sub" to "Wabi oro OTP me dwan namba ni.",
+            "otp_title" to "Lony Namba Telepon",
+            "otp_sub" to "Ket code namba 6. Code me sim tye 123456.",
+            "otp_resend" to "Resend code i",
+            "profile_title" to "Yub Profile",
+            "profile_desc" to "Ket nyingi me lony i app me Boda Gulu.",
+            "perm_location" to "Yero me Location",
+            "perm_location_desc" to "Mito me lony kama itye iye i Gulu.",
+            "perm_notify" to "Yero me Obot",
+            "perm_notify_desc" to "Mito me oro lok i namba ni ka rider oo.",
+            "home_title" to "Boda Gulu",
+            "ride" to "Bor",
+            "delivery" to "Tero",
+            "where_to" to "Itye maito kwene?",
+            "pickup" to "Kama gonyo iye",
+            "dropoff" to "Kama iter iye",
+            "confirm_booking" to "Moko Tero",
+            "searching_rider" to "Kitye me kwayo rider...",
+            "cancel" to "Juko",
+            "rider_enroute" to "Rider Tye i Yo",
+            "rider_arrived" to "Rider Oo Dong!",
+            "active_trip" to "Loko i Yo",
+            "share_location" to "Mi Location",
+            "sos" to "SOS EMERGENCY",
+            "trip_completed" to "Tero otum dong!",
+            "rate_rider" to "Ngolo Nying Rider",
+            "comment_hint" to "Ket lok me tito (poto pin)",
+            "wallet" to "Wallet",
+            "history" to "Orek",
+            "support" to "Kony",
+            "profile" to "Lok me Name"
+        ),
+        "luo" to mapOf(
+            "splash_tagline" to "Pe Yot Gulu! Yot yo Gulu",
+            "btn_continue" to "Kadi",
+            "btn_back" to "Doki",
+            "welcome_title_1" to "Yero me Gulu",
+            "welcome_desc_1" to "Boda ride kede parcel delivery duto i Gulu.",
+            "welcome_title_2" to "Sim MoMo",
+            "welcome_desc_2" to "Culu kede MTN MoMo kede Airtel Money maber.",
+            "welcome_title_3" to "Community Olony",
+            "welcome_desc_3" to "Olu boda wa duto i Gulu kitye maber.",
+            "phone_title" to "Ket Namba Telepon",
+            "phone_sub" to "Wabioro OTP me lony.",
+            "otp_title" to "Lony Namba",
+            "otp_sub" to "Ket code 123456 me sim.",
+            "otp_resend" to "Resend code i",
+            "profile_title" to "Profile Setup",
+            "profile_desc" to "Ket nyingi maber me tyeko profile ni.",
+            "perm_location" to "Location Permission Required",
+            "perm_location_desc" to "Pinpoint pickup point.",
+            "perm_notify" to "Notification Permission",
+            "perm_notify_desc" to "Alert you when rider arrives.",
+            "home_title" to "Boda Gulu",
+            "ride" to "Rider",
+            "delivery" to "Parcel",
+            "where_to" to "Okene itye maito?",
+            "pickup" to "Kama gonyo iye",
+            "dropoff" to "Kama itero iye",
+            "confirm_booking" to "Confirm Booking",
+            "searching_rider" to "Searching Boda...",
+            "cancel" to "Cancel",
+            "rider_enroute" to "Rider Tye i Yo",
+            "rider_arrived" to "Rider Odu dong!",
+            "active_trip" to "Active Trip",
+            "share_location" to "Share Location",
+            "sos" to "SOS EMERGENCY",
+            "trip_completed" to "Trip completed!",
+            "rate_rider" to "Rate Rider",
+            "comment_hint" to "Enter comment",
+            "wallet" to "Wallet",
+            "history" to "History",
+            "support" to "Support",
+            "profile" to "Profile"
+        )
+    )
+
+    fun get(lang: String, key: String): String {
+        return strings[lang]?.get(key) ?: strings["en"]?.get(key) ?: key
+    }
+}
