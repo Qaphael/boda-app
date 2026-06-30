@@ -29,6 +29,7 @@ import com.example.ui.profile.SupportScreen
 import com.example.ui.referrals.ReferralsScreen
 import com.example.ui.offline.OfflineSMSBookingOverlay
 import com.example.ui.chat.RiderChatOverlay
+import com.example.ui.trips.TripsHistoryScreen
 import com.example.ui.theme.NunitoFamily
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted

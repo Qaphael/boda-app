@@ -36,8 +36,6 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
-// MOVED TO: ui/navigation/Screen.kt
-
 class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     val errorMessage = MutableStateFlow<String?>(null)
@@ -124,14 +122,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         backendBalance ?: local
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun refreshWalletBalance() {
-        viewModelScope.launch {
-            apiRepository.fetchWalletBalance().onSuccess { balance ->
-                backendBalance = balance
-            }
-        }
-    }
 
     var isLoadingData by mutableStateOf(true)
         private set
@@ -192,38 +182,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         registerFcmToken()
     }
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun handleDeepLink(intent: android.content.Intent?) {
-        intent ?: return
-        try {
-            val uri = intent.data ?: return
-            val code = uri.getQueryParameter("code") ?: return
-            if (code.isNotEmpty()) {
-                referralCodeInput = code.uppercase().trim()
-                android.util.Log.d("BODA_DEEPLINK", "Referral code from deep link: $code")
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("BODA_DEEPLINK", "Deep link handling failed: ${e.message}")
-        }
-    }
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun shareReferralLink(context: android.content.Context) {
-        val myCode = userProfile.value?.referralCode ?: return
-        val deepLinkUrl = "https://bodagulu.page.link/ref?code=$myCode"
-        val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(
-                android.content.Intent.EXTRA_TEXT,
-                "Join Boda Gulu — affordable boda rides in Gulu!\n" +
-                "Use my referral code $myCode and we both get UGX 3,000 on your first ride.\n" +
-                deepLinkUrl
-            )
-        }
-        context.startActivity(
-            android.content.Intent.createChooser(shareIntent, "Share via")
-        )
-    }
 
     fun dismissWelcomeBonus() {
         showWelcomeBonus = false
@@ -376,7 +335,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         return poly
     }
 
-    fun fetchRouteForPoints(startLatLng: com.google.android.gms.maps.model.LatLng, endLatLng: com.google.android.gms.maps.model.LatLng) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             isLoadingRoute = true
             routeError = null
@@ -546,7 +504,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun searchLocations(query: String) { // MOVED TO: ui/ride/RideViewModel.kt
         searchJob?.cancel()
         if (query.trim().length < 2) {
             searchResults = emptyList()
@@ -756,7 +713,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun fetchDistanceMatrix() { // MOVED TO: ui/ride/RideViewModel.kt
         val pickup = pickupPlace
         val dropoff = dropoffPlace
         if (pickup == null || dropoff == null) {
@@ -862,7 +818,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun triggerOSRMRouteFetch() { // MOVED TO: ui/ride/RideViewModel.kt
         val pickup = pickupPlace ?: return
         val dropoff = dropoffPlace ?: return
 
@@ -879,120 +834,12 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     // Navigation Stack (Manual simple backstack for reliability)
     private val backStack = mutableListOf<Screen>()
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun navigateTo(screen: Screen) {
-        if (currentScreen != screen) {
-            backStack.add(currentScreen)
-            currentScreen = screen
-            if (screen == Screen.RoutePreview) {
-                triggerOSRMRouteFetch()
-            }
-        }
-    }
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun navigateBack() {
-        if (backStack.isNotEmpty()) {
-            currentScreen = backStack.removeAt(backStack.size - 1)
-        } else {
-            currentScreen = Screen.Home
-        }
-    }
 
-    // MOVED TO: ui/auth/AuthViewModel.kt
-    fun signOut() {
-        stopLocationTracking()
-        auth.signOut()
 
-        isOtpVerified = false
-        otpSent = false
-        otpInput = ""
-        phoneInput = ""
-        signupName = ""
-        verificationId = null
-        resendToken = null
-        backendBalance = null
-        lastBackendFetchMs = 0L
-
-        // Keep carousel + language completed so returning users skip straight to sign-in
-        // onboardingCarouselCompleted and onboardingLanguageSelected are intentionally NOT reset
-
-        prefs.edit()
-            .apply()
-
-        viewModelScope.launch {
-            repository.clearAllUserData()
-        }
-
-        ApiClient.invalidateToken()
-
-        backStack.clear()
-        currentScreen = Screen.WelcomeOnboarding
-    }
-
-    // MOVED TO: ui/auth/AuthViewModel.kt
-    fun deleteAccount() {
-        viewModelScope.launch {
-            apiRepository.deleteAccount().onSuccess {
-                addPostgresLog("Account deleted from backend")
-            }.onFailure { e ->
-                addPostgresLog("Backend delete failed: ${e.message}")
-            }
-
-            withContext(Dispatchers.IO) {
-                try {
-                    Tasks.await(auth.currentUser?.delete() ?: Tasks.forResult(null))
-                } catch (_: Exception) {}
-            }
-
-            auth.signOut()
-            ApiClient.invalidateToken()
-
-            repository.clearAllUserData()
-            prefs.edit().clear().apply()
-
-            isOtpVerified = false
-            otpSent = false
-            otpInput = ""
-            phoneInput = ""
-            signupName = ""
-            verificationId = null
-            resendToken = null
-            backendBalance = null
-            lastBackendFetchMs = 0L
-            onboardingCarouselCompleted = false
-            onboardingLanguageSelected = false
-            onboardingSlideIndex = 0
-
-            backStack.clear()
-            currentScreen = Screen.WelcomeOnboarding
-        }
-    }
 
     // Location Services
     @Suppress("MissingPermission")
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun startLocationTracking() {
-        if (isLocationTracking) return
-        
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
-            .setMinUpdateIntervalMillis(2000L)
-            .build()
-        
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { location ->
-                    currentLocation = location
-                }
-            }
-        }
-        
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback!!, null)
-        isLocationTracking = true
-        
-        // Also get last known location immediately
-        getLastKnownLocation()
-    }
 
     @Suppress("MissingPermission")
     private fun getLastKnownLocation() {
@@ -1004,197 +851,24 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun stopLocationTracking() {
-        locationCallback?.let {
-            fusedLocationClient.removeLocationUpdates(it)
-        }
-        locationCallback = null
-        isLocationTracking = false
-    }
 
     // Ride Request Functions — all ride data flows through PostgreSQL backend + Socket.IO
-    fun createRideRequest() { // MOVED TO: ui/ride/RideViewModel.kt
         bookTripViaBackend()
     }
 
-    fun cancelRideRequest() { // MOVED TO: ui/ride/RideViewModel.kt
         currentRideRequest = null
         isSearchingForDriver = false
     }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun updateDriverLocation() {
-        updateDriverStatusViaBackend(isDriverOnline)
-    }
 
     // Language selector state ("en", "ach", "luo")
     var appLanguage by mutableStateOf("en")
         private set
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun updateLanguage(lang: String) {
-        appLanguage = lang
-        viewModelScope.launch {
-            val current = userProfile.value ?: UserProfile()
-            val updated = current.copy(language = lang)
-            repository.saveUserProfile(updated)
-            syncUserToBackend(updated)
-        }
-    }
 
     // Backend API Functions
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun connectToBackend() {
-        webSocketClient.onNewTripRequest = { trip ->
-            viewModelScope.launch {
-                if (isDriverMode && isDriverOnline && driverTripState == "none") {
-                    driverIncomingRequest = trip
-                    driverTripState = "requested"
-                    val driverLat = currentLocation?.latitude ?: 2.775
-                    val driverLng = currentLocation?.longitude ?: 32.295
-                    fetchRouteForPoints(
-                        com.google.android.gms.maps.model.LatLng(driverLat, driverLng),
-                        getLatLngForPlace(trip.pickupName)
-                    )
-                }
-            }
-        }
 
-        webSocketClient.onDriverLocationUpdate = { location ->
-            viewModelScope.launch {
-                val updated = nearbyDrivers.toMutableList()
-                val existing = updated.indexOfFirst { it.driverId == location.driverId }
-                if (location.isOnline) {
-                    val entry = com.example.data.DriverLocation(
-                        driverId = location.driverId,
-                        latitude = location.latitude,
-                        longitude = location.longitude,
-                        isOnline = location.isOnline
-                    )
-                    if (existing >= 0) updated[existing] = entry else updated.add(entry)
-                } else {
-                    if (existing >= 0) updated.removeAt(existing)
-                }
-                nearbyDrivers = updated
-            }
-        }
 
-        webSocketClient.onLiveGpsBroadcast = { update ->
-            viewModelScope.launch {
-                if (update.tripId == currentRideRequest?.id) {
-                    currentRideRequest = currentRideRequest?.copy(
-                        driverLat = update.latitude,
-                        driverLng = update.longitude
-                    )
-                }
-            }
-        }
-
-        webSocketClient.onPricingUpdate = { pricing ->
-            viewModelScope.launch {
-                // Pricing updates available but not using traffic-based surge
-            }
-        }
-
-        webSocketClient.onConnectionChange = { connected ->
-            isOnline = connected
-        }
-
-        webSocketClient.onChatMessage = { msg ->
-            viewModelScope.launch {
-                if (msg.tripId == currentChatTripId) {
-                    val uid = auth.currentUser?.uid ?: ""
-                    val senderType = if (msg.senderUid == uid) "user" else "agent"
-                    // Avoid duplicates if the message was already added locally
-                    val lastMsg = riderChatMessages.lastOrNull()
-                    if (lastMsg == null || lastMsg.message != msg.message || lastMsg.sender != senderType) {
-                        riderChatMessages.add(ChatMessage(
-                            sender = senderType,
-                            message = msg.message,
-                            timestamp = System.currentTimeMillis()
-                        ))
-                    }
-                    riderIsTyping = false
-                }
-            }
-        }
-
-        webSocketClient.onChatTyping = { typing ->
-            viewModelScope.launch {
-                if (typing.tripId == currentChatTripId) {
-                    val uid = auth.currentUser?.uid ?: ""
-                    riderIsTyping = typing.isTyping && typing.senderUid != uid
-                }
-            }
-        }
-
-        webSocketClient.onTripClaimed = { tripId, driverUid ->
-            viewModelScope.launch {
-                addPostgresLog("Trip #$tripId claimed by driver $driverUid")
-                if (currentSimulationTrip?.id == tripId) {
-                    simulationState = "enroute"
-                }
-            }
-        }
-
-        webSocketClient.onTripUnmatched = { tripId ->
-            viewModelScope.launch {
-                addPostgresLog("Trip #$tripId timed out — no driver claimed it")
-                if (currentSimulationTrip?.id == tripId) {
-                    errorMessage.value = "No driver available. Please try again."
-                    currentSimulationTrip = null
-                    simulationState = "idle"
-                    navigateTo(Screen.Home)
-                }
-            }
-        }
-
-        webSocketClient.connect()
-    }
-
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun syncUserToBackend(profile: UserProfile? = null) {
-        val user = profile ?: userProfile.value ?: return
-        var phone = user.phoneNumber.replace("+256", "").trim()
-        android.util.Log.d("BODA_SYNC", "Syncing user: phone=$phone name=${user.name}")
-
-        viewModelScope.launch {
-            // If phone is empty after OTP, wait 1 second and retry once for Firebase to populate it
-            if (phone.isEmpty()) {
-                delay(1000)
-                val firebasePhone = auth.currentUser?.phoneNumber
-                if (!firebasePhone.isNullOrEmpty()) {
-                    phone = firebasePhone.replace("+256", "").trim()
-                    android.util.Log.d("BODA_SYNC", "Phone populated after retry: phone=$phone")
-                }
-            }
-
-            val tokenRefreshed = withContext(Dispatchers.IO) {
-                try {
-                    Tasks.await(
-                        auth.currentUser?.getIdToken(true)
-                            ?: Tasks.forResult(null)
-                    )?.token != null
-                } catch (e: Exception) { false }
-            }
-            if (!tokenRefreshed) {
-                addPostgresLog("Sync skipped: could not refresh Firebase token")
-                return@launch
-            }
-            apiRepository.syncUser(phone, user.name, language = user.language, referralCode = user.referralCode).fold(
-                onSuccess = {
-                    addPostgresLog("User synced to PostgreSQL")
-                },
-                onFailure = { e ->
-                    android.util.Log.e("BODA_SYNC", "Sync failed: ${e.message}", e)
-                    addPostgresLog("Sync failed: ${e.message}")
-                }
-            )
-        }
-    }
-
-    fun bookTripViaBackend() { // MOVED TO: ui/ride/RideViewModel.kt
         val pickup = pickupPlace ?: return
         val dropoff = dropoffPlace ?: return
         val user = userProfile.value ?: return
@@ -1240,7 +914,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun calculateFareViaBackend(distanceKm: Double, durationMins: Int) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             apiRepository.calculateFare(distanceKm, durationMins).fold(
                 onSuccess = { fareResponse ->
@@ -1253,7 +926,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun validatePromoViaBackend(code: String) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val fare = calculatedFare
             apiRepository.validatePromo(code, fare).fold(
@@ -1301,56 +973,12 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun registerDriverViaBackend() {
-        val user = userProfile.value ?: return
-        
-        viewModelScope.launch {
-            val uid = auth.currentUser?.uid ?: return@launch
-            apiRepository.registerDriver(
-                uid = uid,
-                fullName = user.name,
-                phone = user.phoneNumber,
-                plateNumber = driverRegPlate,
-                helmetNumber = driverRegHelmetColor
-            ).fold(
-                onSuccess = { driver ->
-                    addPostgresLog("✓ Driver registered in PostgreSQL: ${driver.uid}")
-                },
-                onFailure = { e ->
-                    addPostgresLog("✗ Driver registration failed: ${e.message}")
-                }
-            )
-        }
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun updateDriverStatusViaBackend(isOnline: Boolean) {
-        val location = currentLocation ?: return
-        val user = userProfile.value ?: return
-        
-        viewModelScope.launch {
-            val uid = auth.currentUser?.uid ?: return@launch
-            apiRepository.updateDriverStatus(uid, isOnline, location.latitude, location.longitude).fold(
-                onSuccess = { driver ->
-                    addPostgresLog("✓ Driver status updated: online=$isOnline")
-                },
-                onFailure = { e ->
-                    addPostgresLog("✗ Driver status update failed: ${e.message}")
-                }
-            )
-        }
-    }
 
     // Persistent theme settings: "system", "dark", "light"
     var appThemeSetting by mutableStateOf(prefs.getString("app_theme_setting", "system") ?: "system")
         private set
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun updateAppThemeSetting(setting: String) {
-        appThemeSetting = setting
-        prefs.edit().putString("app_theme_setting", setting).apply()
-    }
 
     // Persistent onboarding state flags
     var onboardingCarouselCompleted by mutableStateOf(prefs.getBoolean("onboarding_carousel_completed", false))
@@ -1580,169 +1208,15 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var driverQuizAnswer1 by mutableStateOf("")
     var driverQuizAnswer2 by mutableStateOf("")
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun startDriverOnboarding() {
-        driverOnboardingStep = 1
-        driverUploadProgress = 0f
-        driverDocsUploaded = emptySet()
-        driverTermsAccepted = false
-        driverQuizAnswer1 = ""
-        driverQuizAnswer2 = ""
-        // Prepopulate from passenger profile if exists
-        userProfile.value?.let {
-            if (driverRegName.isEmpty()) driverRegName = it.name
-            if (driverRegPhone.isEmpty()) driverRegPhone = it.phoneNumber
-        }
-        navigateTo(Screen.DriverOnboarding)
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun simulateDocUpload(docType: String) {
-        viewModelScope.launch {
-            driverDocumentType = docType
-            driverUploadProgress = 0f
-            while (driverUploadProgress < 1.0f) {
-                delay(100)
-                driverUploadProgress += 0.1f
-            }
-            driverDocsUploaded = driverDocsUploaded + docType
-            driverUploadProgress = 1.0f
-        }
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun completeDriverOnboarding() {
-        isDriverRegistered = true
-        isDriverMode = true
-        isDriverOnline = true
-        driverTripState = "none"
-        navigateTo(Screen.Home)
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun toggleDriverOnline() {
-        isDriverOnline = !isDriverOnline
-        if (isDriverOnline) {
-            driverSimulationJob?.cancel()
-            updateDriverStatusViaBackend(true)
-            startLocationTracking()
-        } else {
-            updateDriverStatusViaBackend(false)
-            stopLocationTracking()
-            driverIncomingRequest = null
-            driverActiveTrip = null
-            driverTripState = "none"
-            driverSimulationJob?.cancel()
-        }
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun driverAcceptTrip() {
-        val req = driverIncomingRequest ?: return
-        driverActiveTrip = req.copy(status = "matched")
-        driverIncomingRequest = null
-        driverTripState = "accepted"
-        driverSimulationCountdown = 8
-        driverSimulationProgress = 0f
 
-        viewModelScope.launch {
-            apiRepository.claimTrip(req.id).fold(
-                onSuccess = { /* trip claimed successfully */ },
-                onFailure = { e ->
-                    errorMessage.value = "Could not claim trip: ${e.message}"
-                    driverActiveTrip = null
-                    driverTripState = "none"
-                }
-            )
-        }
 
-        val driverLat = currentLocation?.latitude ?: 2.775
-        val driverLng = currentLocation?.longitude ?: 32.295
-        fetchRouteForPoints(
-            com.google.android.gms.maps.model.LatLng(driverLat, driverLng),
-            getLatLngForPlace(req.pickupName)
-        )
-        
-        driverSimulationJob?.cancel()
-        driverSimulationJob = viewModelScope.launch {
-            // Animate driver moving towards the pickup Gulu node
-            while (driverSimulationCountdown > 0) {
-                delay(1000)
-                driverSimulationCountdown--
-                driverSimulationProgress = (8 - driverSimulationCountdown) / 8f
-            }
-            driverTripState = "pickup_arrived"
-        }
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun driverRejectTrip() {
-        driverIncomingRequest = null
-        driverTripState = "none"
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun driverArrivePickup() {
-        driverTripState = "pickup_arrived"
-    }
 
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun driverStartTrip() {
-        val trip = driverActiveTrip ?: return
-        driverActiveTrip = trip.copy(status = "active")
-        driverTripState = "active"
-        driverSimulationCountdown = 10
-        driverSimulationProgress = 0f
-
-        viewModelScope.launch { apiRepository.updateTripStatus(trip.id, "active") }
-        
-        fetchRouteForPoints(
-            getLatLngForPlace(trip.pickupName),
-            getLatLngForPlace(trip.dropoffName)
-        )
-        
-        driverSimulationJob?.cancel()
-        driverSimulationJob = viewModelScope.launch {
-            // Animate transit along Gulu grid streets
-            while (driverSimulationCountdown > 0) {
-                delay(1000)
-                driverSimulationCountdown--
-                driverSimulationProgress = (10 - driverSimulationCountdown) / 10f
-            }
-            driverTripState = "completed"
-            driverCompleteTrip()
-        }
-    }
-
-    // MOVED TO: ui/driver/DriverViewModel.kt
-    fun driverCompleteTrip() {
-        val trip = driverActiveTrip ?: return
-        viewModelScope.launch {
-            driverEarnings += trip.fare
-            driverCompletedTrips += 1
-            apiRepository.updateTripStatus(trip.id, "completed")
-            
-            // Log completed trip in Room DB histories
-            repository.addTrip(trip.copy(id = 0, status = "completed"))
-            
-            // Pay earnings into the virtual driver's wallet
-            repository.addTransaction(WalletTransaction(
-                amount = trip.fare,
-                type = "topup", // Credit
-                status = "completed",
-                phoneNumber = userProfile.value?.phoneNumber ?: "+256 772 123456",
-                timestamp = System.currentTimeMillis(),
-                provider = trip.paymentMethod,
-                reference = "BODA-DRV-PAY-" + (1000 + Random.nextInt(9000))
-            ))
-            
-            driverActiveTrip = null
-            driverTripState = "none"
-            refreshWalletBalance()
-        }
-    }
-
-    // MOVED TO: ui/auth/AuthViewModel.kt
     // Trigger OTP sending via Firebase Auth
     fun startOtpFlow(activity: android.app.Activity? = null) {
         if (phoneInput.length < 9) {
@@ -1800,72 +1274,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // MOVED TO: ui/auth/AuthViewModel.kt
-    fun verifyOtp() {
-        val vid = verificationId
-        if (vid == null) {
-            errorMessage.value = "Verification not started. Please request a new code."
-            return
-        }
 
-        if (otpInput.length != 6) {
-            errorMessage.value = "Please enter the 6-digit code."
-            return
-        }
-
-        isVerifyingOtp = true
-        val credential = PhoneAuthProvider.getCredential(vid, otpInput)
-
-        auth.signInWithCredential(credential)
-            .addOnSuccessListener {
-                isVerifyingOtp = false
-                otpTimerJob?.cancel()
-                ApiClient.invalidateToken()
-
-                // Check if this is a returning user or a new one
-                viewModelScope.launch {
-                    val backendResult = apiRepository.fetchUserProfile()
-                    backendResult.fold(
-                        onSuccess = { backendUser ->
-                            val cleanPhone = backendUser.phone
-                                ?.takeIf { it.isNotEmpty() && it != "+256770000000" && it != "256770000000" }
-                                ?: ""
-                            val profile = UserProfile(
-                                id = 1,
-                                name = backendUser.full_name,
-                                phoneNumber = cleanPhone.ifEmpty {
-                                    "+256 " + phoneInput.removePrefix("+256").trim()
-                                },
-                                language = backendUser.language.ifEmpty { appLanguage },
-                                isSetupComplete = backendUser.full_name.isNotEmpty(),
-                                referralCode = backendUser.referral_code ?: ""
-                            )
-                            repository.saveUserProfile(profile)
-                            backendBalance = backendUser.wallet_balance
-
-                            if (profile.isSetupComplete) {
-                                // Returning user — skip profile setup, go straight to Home
-                                fetchBackendData(force = true)
-                                navigateTo(Screen.Home)
-                            } else {
-                                // Account exists but profile setup was never finished
-                                isOtpVerified = true
-                            }
-                        },
-                        onFailure = {
-                            // New user — show profile setup step
-                            isOtpVerified = true
-                        }
-                    )
-                }
-            }
-            .addOnFailureListener { e ->
-                errorMessage.value = "Invalid code: ${e.message}"
-                isVerifyingOtp = false
-            }
-    }
-
-    // MOVED TO: ui/auth/AuthViewModel.kt
     // Profile Creation / Completion
     fun completeProfileSetup() {
         viewModelScope.launch {
@@ -1917,7 +1326,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Confirm Booking & Start Simulation
-    fun confirmBooking() { // MOVED TO: ui/ride/RideViewModel.kt
         if (pickupPlace == null || dropoffPlace == null) {
             errorMessage.value = "Please select both pickup and dropoff locations."
             return
@@ -2051,7 +1459,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun startActiveTrip() { // MOVED TO: ui/ride/RideViewModel.kt
         if (currentSimulationTrip == null) return
         
         simulationState = "active"
@@ -2086,7 +1493,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun cancelActiveTrip(reason: String) { // MOVED TO: ui/ride/RideViewModel.kt
         simulationJob?.cancel()
         viewModelScope.launch {
             val ongoing = currentSimulationTrip
@@ -2116,7 +1522,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun submitPostTripRating(stars: Int, comment: String) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val ongoing = currentSimulationTrip
             if (ongoing != null) {
@@ -2169,58 +1574,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Wallet actions
-    // MOVED TO: ui/wallet/WalletViewModel.kt (comments only - functions remain here)
-    fun startWalletTopup() {
-        val amount = walletTopupAmountInput.toDoubleOrNull() ?: 0.0
-        if (amount < 500.0) {
-            walletTopupStatus = "error_too_low"
-            errorMessage.value = "Amount too low. Minimum wallet deposit is 500 UGX."
-            return
-        }
-        
-        momoPromptAmount = amount
-        momoPromptPhone = if (walletTopupPhoneInput.isNotEmpty()) walletTopupPhoneInput else (userProfile.value?.phoneNumber ?: "0772 123456")
-        momoPromptProvider = if (momoPromptPhone.contains("078") || momoPromptPhone.contains("077") || momoPromptPhone.contains("076")) "MTN MoMo" else "Airtel Money"
-        momoPinInput = ""
-        momoPinError = false
-        showMoMoPinDialog = true
-    }
 
-    // MOVED TO: ui/wallet/WalletViewModel.kt (comments only - functions remain here)
-    fun confirmWalletTopupWithPin() {
-        if (momoPinInput.length < 4) {
-            momoPinError = true
-            errorMessage.value = "PIN too short. Mobile Money PIN must be 4 or more digits."
-            return
-        }
-        showMoMoPinDialog = false
-        walletTopupStatus = "pending"
-
-        viewModelScope.launch {
-            val provider = if (momoPromptProvider.contains("MTN")) "MTN" else "Airtel"
-            apiRepository.walletTopup(momoPromptAmount, provider).fold(
-                onSuccess = { response ->
-                    activeTransactionReference = response.reference
-                    val transaction = WalletTransaction(
-                        amount = momoPromptAmount,
-                        type = "topup",
-                        status = "completed",
-                        phoneNumber = momoPromptPhone,
-                        timestamp = System.currentTimeMillis(),
-                        provider = provider,
-                        reference = response.reference
-                    )
-                    repository.addTransaction(transaction)
-                    walletTopupStatus = "success"
-                    refreshWalletBalance()
-                },
-                onFailure = { e ->
-                    errorMessage.value = "Topup failed: ${e.message}"
-                    walletTopupStatus = "failed"
-                }
-            )
-        }
-    }
 
     // Call Simulator actions
     fun initiateCall(name: String, phone: String) {
@@ -2369,7 +1723,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Dispute trip
-    fun disputeTrip(tripId: Int, reason: String, details: String) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val list = trips.first()
             val match = list.find { it.id == tripId }
@@ -2386,7 +1739,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     // Promo Code
 
-    fun onPassengerTripCompleted() { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val myPhone = userProfile.value?.phoneNumber ?: ""
             if (myPhone.isNotEmpty()) {
@@ -2520,52 +1872,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     // --- POSTGRESQL WEBSOCKET REPLICATION SYNC PIPELINE & SMS OFFLINE FLOWS ---
     private var postgresWebSocketJob: Job? = null
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun connectPostgresWebSocket() {
-        postgresWebSocketState = "Connecting..."
-        addPostgresLog("Initiating Secure CDC WebSocket connection to PostgreSQL replication group (gulu-postgres-db)...")
-        
-        postgresWebSocketJob?.cancel()
-        postgresWebSocketJob = viewModelScope.launch {
-            delay(1500)
-            postgresWebSocketState = "Connected"
-            addPostgresLog("SUCCESS: Bi-directional WebSocket stream active. Protocol: PostgreSQL Realtime CDC (Logical Replication).")
-            addPostgresLog("Connected to database: boda_gulu_production at port 5432.")
-            
-            // Check for offline pending items to synchronize
-            val pendingList = trips.value.filter { it.status == "offline_pending" }
-            if (pendingList.isNotEmpty()) {
-                addPostgresLog("Found ${pendingList.size} unsynced local SQLite transactions cached offline in Room.")
-                delay(1000)
-                pendingList.forEach { trip ->
-                    addPostgresLog("Synchronizing trip transaction to PostgreSQL [ID: ${trip.id} -> ${trip.pickupName} to ${trip.dropoffName}] via WebSocket channel...")
-                    delay(800)
-                    val updatedTrip = trip.copy(status = "completed") // synchronize it to completed state once online!
-                    repository.updateTrip(updatedTrip)
-                    addPostgresLog("✓ Transaction [ID: ${trip.id}] committed successfully to remote PostgreSQL 'trips' table.")
-                }
-                addPostgresLog("PostgreSQL synchronization complete. Local Room cache and remote Postgres are in perfect sync! 🚀")
-            } else {
-                addPostgresLog("No offline pending trips found. Local Room cache is up-to-date.")
-            }
-            
-            // Periodically log coordinate streaming messages
-            while (isOnline) {
-                delay(10000)
-                val lat = 2.7712 + Random.nextDouble(-0.02, 0.02)
-                val lon = 32.2985 + Random.nextDouble(-0.02, 0.02)
-                addPostgresLog("Live location sync broadcast via WebSocket payload: { \"boda_id\": \"BODA-SAFE-78\", \"geom\": \"POINT($lon $lat)\" }")
-            }
-        }
-    }
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun disconnectPostgresWebSocket() {
-        postgresWebSocketState = "Disconnected"
-        postgresWebSocketJob?.cancel()
-        addPostgresLog("WebSocket connection closed. PostgreSQL replication paused.")
-        addPostgresLog("Warning: Entering Offline Mode. All booking requests and saved place transactions will be cached locally in SQLite via Room.")
-    }
 
     private fun addPostgresLog(message: String) {
         val timeStr = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
@@ -2575,15 +1882,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // MOVED TO: ui/home/HomeViewModel.kt
-    fun toggleNetworkConnection() {
-        isOnline = !isOnline
-        if (isOnline) {
-            connectPostgresWebSocket()
-        } else {
-            disconnectPostgresWebSocket()
-        }
-    }
 
     fun triggerOfflineSMSBookingFlow() {
         if (pickupPlace == null || dropoffPlace == null) return
@@ -2694,140 +1992,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
      *
      * @param context  Pass LocalContext.current from the composable.
      */
-    // MOVED TO: ui/auth/AuthViewModel.kt
-    fun signInWithGoogle(context: android.content.Context) {
-        isSigningInWithGoogle = true
-        googleSignInError = null
-
-        viewModelScope.launch {
-            try {
-                android.util.Log.d("BODA_GOOGLE", "Starting Google Sign-In flow...")
-                
-                // 1. Build the Google ID token request
-                val googleIdOption = com.google.android.libraries.identity.googleid
-                    .GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(GOOGLE_WEB_CLIENT_ID)
-                    .setAutoSelectEnabled(false)
-                    .build()
-
-                val request = androidx.credentials.GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build()
-
-                android.util.Log.d("BODA_GOOGLE", "Launching credential picker...")
-                
-                // 2. Launch the system account picker (bottom sheet)
-                val credentialManager = androidx.credentials.CredentialManager.create(context)
-                val result = credentialManager.getCredential(context, request)
-                
-                android.util.Log.d("BODA_GOOGLE", "Got credential result")
-
-                // 3. Extract the Google ID token from the result
-                val credential = result.credential
-                if (credential !is androidx.credentials.CustomCredential ||
-                    credential.type != com.google.android.libraries.identity.googleid
-                        .GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-                ) {
-                    throw Exception("Unexpected credential type: ${credential.type}")
-                }
-
-                val googleIdTokenCredential = com.google.android.libraries.identity.googleid
-                    .GoogleIdTokenCredential.createFrom(credential.data)
-                val idToken = googleIdTokenCredential.idToken
-                
-                android.util.Log.d("BODA_GOOGLE", "Got ID token, exchanging for Firebase credential...")
-
-                // 4. Exchange Google ID token for a Firebase credential and sign in
-                val firebaseCredential = com.google.firebase.auth.GoogleAuthProvider
-                    .getCredential(idToken, null)
-                    
-                android.util.Log.d("BODA_GOOGLE", "Signing in to Firebase...")
-                
-                val authResult = withContext(Dispatchers.IO) {
-                    Tasks.await(auth.signInWithCredential(firebaseCredential))
-                }
-
-                val firebaseUser = authResult.user
-                    ?: throw Exception("Firebase sign-in succeeded but user is null")
-
-                android.util.Log.d("BODA_GOOGLE", "Signed in: ${firebaseUser.uid} ${firebaseUser.email}")
-
-                // Invalidate any stale OkHttp token cache so the next API call
-                // fetches a fresh token for this new Google Firebase session
-                ApiClient.invalidateToken()
-                
-                android.util.Log.d("BODA_GOOGLE", "Fetching user profile from backend...")
-
-                // 6. Try to restore profile from backend first (returning user path)
-                val backendResult = apiRepository.fetchUserProfile()
-
-                backendResult.fold(
-                    onSuccess = { backendUser ->
-                        android.util.Log.d("BODA_GOOGLE", "Backend profile found: ${backendUser.full_name}")
-                        // Treat the old fake fallback number as empty
-                        val cleanPhone = backendUser.phone
-                            ?.takeIf { it.isNotEmpty() && it != "+256770000000" && it != "256770000000" }
-                            ?: ""
-                        // Returning user — profile already exists on backend
-                        val profile = UserProfile(
-                            id = 1,
-                            name = backendUser.full_name.ifEmpty {
-                                firebaseUser.displayName ?: ""
-                            },
-                            phoneNumber = cleanPhone.ifEmpty {
-                                firebaseUser.phoneNumber ?: ""
-                            },
-                            language = backendUser.language.ifEmpty { appLanguage },
-                            isSetupComplete = backendUser.full_name.isNotEmpty(),
-                            referralCode = backendUser.referral_code ?: ""
-                        )
-                        repository.saveUserProfile(profile)
-                        backendBalance = backendUser.wallet_balance
-
-                        if (profile.isSetupComplete) {
-                            android.util.Log.d("BODA_GOOGLE", "Profile complete, navigating to Home")
-                            // Returning user — go straight to Home, no profile setup flash
-                            fetchBackendData(force = true)
-                            navigateTo(Screen.Home)
-                        } else {
-                            android.util.Log.d("BODA_GOOGLE", "Profile incomplete, showing profile setup")
-                            // Account exists but setup was never finished — show Step 3
-                            signupName = firebaseUser.displayName ?: ""
-                            phoneInput = firebaseUser.phoneNumber?.removePrefix("+256") ?: ""
-                            otpSent = true
-                            isOtpVerified = true
-                        }
-                    },
-                    onFailure = { error ->
-                        android.util.Log.d("BODA_GOOGLE", "Backend profile not found (new user): ${error.message}")
-                        
-                        // New user — show profile setup step
-                        signupName = firebaseUser.displayName ?: ""
-                        phoneInput = firebaseUser.phoneNumber?.removePrefix("+256") ?: ""
-                        otpSent = true
-                        isOtpVerified = true
-                        android.util.Log.d("BODA_GOOGLE", "New user flow - signupName='$signupName', showing profile setup")
-                    }
-                )
-
-            } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
-                android.util.Log.d("BODA_GOOGLE", "Google sign-in cancelled by user")
-            } catch (e: androidx.credentials.exceptions.NoCredentialException) {
-                android.util.Log.e("BODA_GOOGLE", "No Google account found", e)
-                googleSignInError = "No Google account found on this device. Please add a Google account in Settings."
-                errorMessage.value = googleSignInError
-            } catch (e: Exception) {
-                android.util.Log.e("BODA_GOOGLE", "Google sign-in failed: ${e.message}", e)
-                e.printStackTrace()
-                googleSignInError = "Google sign-in failed: ${e.message}"
-                errorMessage.value = googleSignInError
-            } finally {
-                android.util.Log.d("BODA_GOOGLE", "Finally block - isSigningInWithGoogle = false")
-                isSigningInWithGoogle = false
-            }
-        }
-    }
 }
 
 data class SupportTicket(
