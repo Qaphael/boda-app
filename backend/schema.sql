@@ -7,7 +7,7 @@
 -- 1. Users (Riders/Passengers)
 CREATE TABLE IF NOT EXISTS users (
     uid VARCHAR(128) PRIMARY KEY, -- Matches Firebase Auth UID
-    phone VARCHAR(20) UNIQUE NOT NULL,
+    phone VARCHAR(20) UNIQUE,
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE,
     wallet_balance DECIMAL(12,2) DEFAULT 0.00,

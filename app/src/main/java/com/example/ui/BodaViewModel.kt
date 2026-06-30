@@ -36,25 +36,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
-sealed class Screen {
-    object Splash : Screen()
-    object WelcomeOnboarding : Screen()
-    object Home : Screen()
-    object SearchPlaces : Screen()
-    object RoutePreview : Screen()
-    object Matching : Screen()
-    object RiderEnRoute : Screen()
-    object ActiveTrip : Screen()
-    object PostTrip : Screen()
-    object TripsHistory : Screen()
-    object Wallet : Screen()
-    object ProfileSettings : Screen()
-    object Support : Screen()
-    object EmergencyContacts : Screen()
-    object SavedPlacesManage : Screen()
-    object DriverOnboarding : Screen()
-    object Referrals : Screen()
-}
+// MOVED TO: ui/navigation/Screen.kt
 
 class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -70,6 +52,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     private var verificationId: String? = null
     private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
     private var authStateListener: FirebaseAuth.AuthStateListener? = null
+    private var hasRestoredSession = false
     
 
     
@@ -141,6 +124,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         backendBalance ?: local
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun refreshWalletBalance() {
         viewModelScope.launch {
             apiRepository.fetchWalletBalance().onSuccess { balance ->
@@ -182,21 +166,33 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     private var lastBackendFetchMs = 0L
 
     init {
-        viewModelScope.launch {
-            val currentUser = auth.currentUser
-            isOtpVerified = currentUser != null
-            if (currentUser != null) {
-                phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
-                restoreSessionFromBackend()
-            } else {
-                isLoadingData = false
+        // Use AuthStateListener to wait for Firebase to resolve auth state before navigating
+        authStateListener = object : FirebaseAuth.AuthStateListener {
+            override fun onAuthStateChanged(firebaseAuth: FirebaseAuth) {
+                val currentUser = firebaseAuth.currentUser
+                isOtpVerified = currentUser != null
+                if (currentUser != null) {
+                    phoneInput = currentUser.phoneNumber?.removePrefix("+256") ?: ""
+                    if (!hasRestoredSession) {
+                        hasRestoredSession = true
+                        viewModelScope.launch {
+                            restoreSessionFromBackend()
+                        }
+                    }
+                } else {
+                    isLoadingData = false
+                }
+                // Remove listener after first resolution
+                firebaseAuth.removeAuthStateListener(this)
             }
         }
+        auth.addAuthStateListener(authStateListener!!)
         connectPostgresWebSocket()
         connectToBackend()
         registerFcmToken()
     }
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun handleDeepLink(intent: android.content.Intent?) {
         intent ?: return
         try {
@@ -211,6 +207,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun shareReferralLink(context: android.content.Context) {
         val myCode = userProfile.value?.referralCode ?: return
         val deepLinkUrl = "https://bodagulu.page.link/ref?code=$myCode"
@@ -379,7 +376,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         return poly
     }
 
-    fun fetchRouteForPoints(startLatLng: com.google.android.gms.maps.model.LatLng, endLatLng: com.google.android.gms.maps.model.LatLng) {
+    fun fetchRouteForPoints(startLatLng: com.google.android.gms.maps.model.LatLng, endLatLng: com.google.android.gms.maps.model.LatLng) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             isLoadingRoute = true
             routeError = null
@@ -549,7 +546,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun searchLocations(query: String) {
+    fun searchLocations(query: String) { // MOVED TO: ui/ride/RideViewModel.kt
         searchJob?.cancel()
         if (query.trim().length < 2) {
             searchResults = emptyList()
@@ -759,7 +756,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun fetchDistanceMatrix() {
+    fun fetchDistanceMatrix() { // MOVED TO: ui/ride/RideViewModel.kt
         val pickup = pickupPlace
         val dropoff = dropoffPlace
         if (pickup == null || dropoff == null) {
@@ -865,7 +862,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun triggerOSRMRouteFetch() {
+    fun triggerOSRMRouteFetch() { // MOVED TO: ui/ride/RideViewModel.kt
         val pickup = pickupPlace ?: return
         val dropoff = dropoffPlace ?: return
 
@@ -882,6 +879,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     // Navigation Stack (Manual simple backstack for reliability)
     private val backStack = mutableListOf<Screen>()
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun navigateTo(screen: Screen) {
         if (currentScreen != screen) {
             backStack.add(currentScreen)
@@ -892,6 +890,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun navigateBack() {
         if (backStack.isNotEmpty()) {
             currentScreen = backStack.removeAt(backStack.size - 1)
@@ -900,6 +899,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/auth/AuthViewModel.kt
     fun signOut() {
         stopLocationTracking()
         auth.signOut()
@@ -930,6 +930,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         currentScreen = Screen.WelcomeOnboarding
     }
 
+    // MOVED TO: ui/auth/AuthViewModel.kt
     fun deleteAccount() {
         viewModelScope.launch {
             apiRepository.deleteAccount().onSuccess {
@@ -970,6 +971,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     // Location Services
     @Suppress("MissingPermission")
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun startLocationTracking() {
         if (isLocationTracking) return
         
@@ -1002,6 +1004,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun stopLocationTracking() {
         locationCallback?.let {
             fusedLocationClient.removeLocationUpdates(it)
@@ -1011,15 +1014,16 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Ride Request Functions — all ride data flows through PostgreSQL backend + Socket.IO
-    fun createRideRequest() {
+    fun createRideRequest() { // MOVED TO: ui/ride/RideViewModel.kt
         bookTripViaBackend()
     }
 
-    fun cancelRideRequest() {
+    fun cancelRideRequest() { // MOVED TO: ui/ride/RideViewModel.kt
         currentRideRequest = null
         isSearchingForDriver = false
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun updateDriverLocation() {
         updateDriverStatusViaBackend(isDriverOnline)
     }
@@ -1028,6 +1032,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var appLanguage by mutableStateOf("en")
         private set
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun updateLanguage(lang: String) {
         appLanguage = lang
         viewModelScope.launch {
@@ -1039,6 +1044,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Backend API Functions
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun connectToBackend() {
         webSocketClient.onNewTripRequest = { trip ->
             viewModelScope.launch {
@@ -1147,12 +1153,23 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         webSocketClient.connect()
     }
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun syncUserToBackend(profile: UserProfile? = null) {
         val user = profile ?: userProfile.value ?: return
-        val phone = user.phoneNumber.replace("+256", "").trim()
+        var phone = user.phoneNumber.replace("+256", "").trim()
         android.util.Log.d("BODA_SYNC", "Syncing user: phone=$phone name=${user.name}")
 
         viewModelScope.launch {
+            // If phone is empty after OTP, wait 1 second and retry once for Firebase to populate it
+            if (phone.isEmpty()) {
+                delay(1000)
+                val firebasePhone = auth.currentUser?.phoneNumber
+                if (!firebasePhone.isNullOrEmpty()) {
+                    phone = firebasePhone.replace("+256", "").trim()
+                    android.util.Log.d("BODA_SYNC", "Phone populated after retry: phone=$phone")
+                }
+            }
+
             val tokenRefreshed = withContext(Dispatchers.IO) {
                 try {
                     Tasks.await(
@@ -1177,7 +1194,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun bookTripViaBackend() {
+    fun bookTripViaBackend() { // MOVED TO: ui/ride/RideViewModel.kt
         val pickup = pickupPlace ?: return
         val dropoff = dropoffPlace ?: return
         val user = userProfile.value ?: return
@@ -1223,7 +1240,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun calculateFareViaBackend(distanceKm: Double, durationMins: Int) {
+    fun calculateFareViaBackend(distanceKm: Double, durationMins: Int) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             apiRepository.calculateFare(distanceKm, durationMins).fold(
                 onSuccess = { fareResponse ->
@@ -1236,7 +1253,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun validatePromoViaBackend(code: String) {
+    fun validatePromoViaBackend(code: String) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val fare = calculatedFare
             apiRepository.validatePromo(code, fare).fold(
@@ -1284,6 +1301,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun registerDriverViaBackend() {
         val user = userProfile.value ?: return
         
@@ -1306,6 +1324,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun updateDriverStatusViaBackend(isOnline: Boolean) {
         val location = currentLocation ?: return
         val user = userProfile.value ?: return
@@ -1327,6 +1346,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var appThemeSetting by mutableStateOf(prefs.getString("app_theme_setting", "system") ?: "system")
         private set
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun updateAppThemeSetting(setting: String) {
         appThemeSetting = setting
         prefs.edit().putString("app_theme_setting", setting).apply()
@@ -1560,6 +1580,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var driverQuizAnswer1 by mutableStateOf("")
     var driverQuizAnswer2 by mutableStateOf("")
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun startDriverOnboarding() {
         driverOnboardingStep = 1
         driverUploadProgress = 0f
@@ -1575,6 +1596,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         navigateTo(Screen.DriverOnboarding)
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun simulateDocUpload(docType: String) {
         viewModelScope.launch {
             driverDocumentType = docType
@@ -1588,6 +1610,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun completeDriverOnboarding() {
         isDriverRegistered = true
         isDriverMode = true
@@ -1596,6 +1619,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         navigateTo(Screen.Home)
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun toggleDriverOnline() {
         isDriverOnline = !isDriverOnline
         if (isDriverOnline) {
@@ -1612,6 +1636,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun driverAcceptTrip() {
         val req = driverIncomingRequest ?: return
         driverActiveTrip = req.copy(status = "matched")
@@ -1650,15 +1675,18 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun driverRejectTrip() {
         driverIncomingRequest = null
         driverTripState = "none"
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun driverArrivePickup() {
         driverTripState = "pickup_arrived"
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun driverStartTrip() {
         val trip = driverActiveTrip ?: return
         driverActiveTrip = trip.copy(status = "active")
@@ -1686,6 +1714,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/driver/DriverViewModel.kt
     fun driverCompleteTrip() {
         val trip = driverActiveTrip ?: return
         viewModelScope.launch {
@@ -1713,6 +1742,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/auth/AuthViewModel.kt
     // Trigger OTP sending via Firebase Auth
     fun startOtpFlow(activity: android.app.Activity? = null) {
         if (phoneInput.length < 9) {
@@ -1770,6 +1800,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/auth/AuthViewModel.kt
     fun verifyOtp() {
         val vid = verificationId
         if (vid == null) {
@@ -1834,6 +1865,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+    // MOVED TO: ui/auth/AuthViewModel.kt
     // Profile Creation / Completion
     fun completeProfileSetup() {
         viewModelScope.launch {
@@ -1885,7 +1917,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Confirm Booking & Start Simulation
-    fun confirmBooking() {
+    fun confirmBooking() { // MOVED TO: ui/ride/RideViewModel.kt
         if (pickupPlace == null || dropoffPlace == null) {
             errorMessage.value = "Please select both pickup and dropoff locations."
             return
@@ -2019,7 +2051,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun startActiveTrip() {
+    fun startActiveTrip() { // MOVED TO: ui/ride/RideViewModel.kt
         if (currentSimulationTrip == null) return
         
         simulationState = "active"
@@ -2054,7 +2086,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun cancelActiveTrip(reason: String) {
+    fun cancelActiveTrip(reason: String) { // MOVED TO: ui/ride/RideViewModel.kt
         simulationJob?.cancel()
         viewModelScope.launch {
             val ongoing = currentSimulationTrip
@@ -2084,7 +2116,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun submitPostTripRating(stars: Int, comment: String) {
+    fun submitPostTripRating(stars: Int, comment: String) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val ongoing = currentSimulationTrip
             if (ongoing != null) {
@@ -2137,6 +2169,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Wallet actions
+    // MOVED TO: ui/wallet/WalletViewModel.kt (comments only - functions remain here)
     fun startWalletTopup() {
         val amount = walletTopupAmountInput.toDoubleOrNull() ?: 0.0
         if (amount < 500.0) {
@@ -2153,6 +2186,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         showMoMoPinDialog = true
     }
 
+    // MOVED TO: ui/wallet/WalletViewModel.kt (comments only - functions remain here)
     fun confirmWalletTopupWithPin() {
         if (momoPinInput.length < 4) {
             momoPinError = true
@@ -2335,7 +2369,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Dispute trip
-    fun disputeTrip(tripId: Int, reason: String, details: String) {
+    fun disputeTrip(tripId: Int, reason: String, details: String) { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val list = trips.first()
             val match = list.find { it.id == tripId }
@@ -2352,7 +2386,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     // Promo Code
 
-    fun onPassengerTripCompleted() {
+    fun onPassengerTripCompleted() { // MOVED TO: ui/ride/RideViewModel.kt
         viewModelScope.launch {
             val myPhone = userProfile.value?.phoneNumber ?: ""
             if (myPhone.isNotEmpty()) {
@@ -2486,6 +2520,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     // --- POSTGRESQL WEBSOCKET REPLICATION SYNC PIPELINE & SMS OFFLINE FLOWS ---
     private var postgresWebSocketJob: Job? = null
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun connectPostgresWebSocket() {
         postgresWebSocketState = "Connecting..."
         addPostgresLog("Initiating Secure CDC WebSocket connection to PostgreSQL replication group (gulu-postgres-db)...")
@@ -2524,6 +2559,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun disconnectPostgresWebSocket() {
         postgresWebSocketState = "Disconnected"
         postgresWebSocketJob?.cancel()
@@ -2539,6 +2575,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // MOVED TO: ui/home/HomeViewModel.kt
     fun toggleNetworkConnection() {
         isOnline = !isOnline
         if (isOnline) {
@@ -2657,6 +2694,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
      *
      * @param context  Pass LocalContext.current from the composable.
      */
+    // MOVED TO: ui/auth/AuthViewModel.kt
     fun signInWithGoogle(context: android.content.Context) {
         isSigningInWithGoogle = true
         googleSignInError = null

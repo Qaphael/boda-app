@@ -14,6 +14,9 @@ router.post('/sync', verifyFirebaseToken, syncLimiter, async (req, res) => {
   const { phone, name, language, referral_code } = parsed.data;
   const fullName = name || req.user.name || 'Gulu Passenger';
   const phoneNum = phone || req.user.phone_number || null;
+  if (!phoneNum) {
+    console.log(`[SYNC] uid=${uid} — phone is null on first sync, will update on next call`);
+  }
   console.log(`[SYNC] uid=${uid} phone=${phoneNum} name=${fullName}`);
   try {
     const query = `

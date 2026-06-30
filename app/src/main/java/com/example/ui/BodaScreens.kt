@@ -14,6 +14,43 @@ import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaSecondaryButton
 import com.example.ui.components.BodaOutlinedButton
 import com.example.ui.components.BodaTextButton
+import com.example.ui.components.BodaTextField
+import com.example.ui.components.BodaCard
+import com.example.ui.components.WelcomeBonusDialog
+import com.example.ui.components.NotificationPermissionNudge
+import com.example.ui.components.SystemOverlayDialog
+import com.example.ui.components.MoMoPinDialog
+import com.example.ui.components.OfflineBanner
+import com.example.ui.components.CallOverlay
+import com.example.ui.components.getLatLngForPlace
+import com.example.ui.components.generateDetailedRoute
+import com.example.ui.components.getLatLngOnPath
+import com.example.ui.components.GoogleMapViewWrapper
+import com.example.ui.components.GuluMapView
+import com.example.ui.components.GuluCanvasMapView
+import com.example.ui.auth.SplashScreen
+import com.example.ui.auth.OnboardingScreen
+import com.example.ui.auth.GoogleSignInButton
+import com.example.ui.auth.OnboardingProgressBar
+import com.example.ui.home.HomeScreen
+import com.example.ui.home.PassengerHomeScreen
+import com.example.ui.home.DriverHomeScreen
+import com.example.ui.driver.DriverOnboardingScreen as DriverOnboardingScreenNew
+import com.example.ui.home.BodaBottomNavigation
+import com.example.ui.ride.ActiveTripScreen
+import com.example.ui.ride.PostTripScreen
+import com.example.ui.ride.SearchPlacesScreen
+import com.example.ui.ride.RoutePreviewScreen
+import com.example.ui.ride.MatchingScreen
+import com.example.ui.ride.RiderEnRouteScreen
+import com.example.ui.wallet.WalletScreen as WalletScreenNew
+import com.example.ui.profile.ProfileSettingsScreen as ProfileSettingsScreenNew
+import com.example.ui.profile.EmergencyContactsScreen as EmergencyContactsScreenNew
+import com.example.ui.profile.SavedPlacesManageScreen as SavedPlacesManageScreenNew
+import com.example.ui.profile.SupportScreen as SupportScreenNew
+import com.example.ui.referrals.ReferralsScreen as ReferralsScreenNew
+import com.example.ui.offline.OfflineSMSBookingOverlay as OfflineSMSBookingOverlayNew
+import com.example.ui.chat.RiderChatOverlay as RiderChatOverlayNew
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.firebase.auth.FirebaseAuth
@@ -101,6 +138,7 @@ import kotlin.math.sin
 // --- TRANSLATIONS FOR GULU LOCALIZATION ---
 // MOVED TO: ui/components/DesignSystem.kt
 
+// MOVED TO: ui/auth/OnboardingScreen.kt
 @Composable
 fun GoogleSignInButton(
     onClick: () -> Unit,
@@ -155,6 +193,7 @@ fun GoogleSignInButton(
     }
 }
 
+// MOVED TO: ui/auth/OnboardingScreen.kt
 @Composable
 fun OnboardingProgressBar(
     currentStep: Int,
@@ -193,6 +232,7 @@ fun OnboardingProgressBar(
     }
 }
 
+// MOVED TO: ui/components/Dialogs.kt
 @Composable
 fun WelcomeBonusDialog(
     userName: String,
@@ -257,6 +297,7 @@ fun WelcomeBonusDialog(
     }
 }
 
+// MOVED TO: ui/components/Dialogs.kt
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun NotificationPermissionNudge() {
@@ -485,6 +526,7 @@ fun BodaTextButton(
     }
 }
 
+// MOVED TO: ui/components/BodaTextField.kt
 @Composable
 fun BodaTextField(
     value: String,
@@ -535,6 +577,7 @@ fun BodaTextField(
     }
 }
 
+// MOVED TO: ui/components/BodaCard.kt
 @Composable
 fun BodaCard(
     modifier: Modifier = Modifier,
@@ -559,6 +602,7 @@ fun BodaCard(
 }
 
 // --- MAIN ENTRANCE APP VIEW ---
+// MOVED TO: ui/navigation/AppNavigation.kt
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BodaAppContent(viewModel: BodaViewModel) {
@@ -701,6 +745,7 @@ fun BodaAppContent(viewModel: BodaViewModel) {
 }
 
 // --- GOOGLE MAPS LATLNG UTILS ---
+// MOVED TO: ui/components/MapViews.kt
 fun getLatLngForPlace(name: String): com.google.android.gms.maps.model.LatLng {
     val s = name.lowercase()
     return when {
@@ -712,6 +757,7 @@ fun getLatLngForPlace(name: String): com.google.android.gms.maps.model.LatLng {
     }
 }
 
+// MOVED TO: ui/components/MapViews.kt
 fun generateDetailedRoute(start: com.google.android.gms.maps.model.LatLng, end: com.google.android.gms.maps.model.LatLng): List<com.google.android.gms.maps.model.LatLng> {
     val path = mutableListOf<com.google.android.gms.maps.model.LatLng>()
     path.add(start)
@@ -730,6 +776,7 @@ fun generateDetailedRoute(start: com.google.android.gms.maps.model.LatLng, end: 
     return path
 }
 
+// MOVED TO: ui/components/MapViews.kt
 fun getLatLngOnPath(path: List<com.google.android.gms.maps.model.LatLng>, progress: Float): com.google.android.gms.maps.model.LatLng {
     if (path.isEmpty()) return com.google.android.gms.maps.model.LatLng(2.775, 32.295)
     if (path.size == 1) return path[0]
@@ -750,6 +797,7 @@ fun getLatLngOnPath(path: List<com.google.android.gms.maps.model.LatLng>, progre
     )
 }
 
+// MOVED TO: ui/components/MapViews.kt
 @Composable
 fun GoogleMapViewWrapper(
     modifier: Modifier = Modifier,
@@ -853,6 +901,7 @@ fun GoogleMapViewWrapper(
 }
 
 // --- DUAL MAP SYSTEM DISPATCHER ---
+// MOVED TO: ui/components/MapViews.kt
 @Composable
 fun GuluMapView(
     modifier: Modifier = Modifier,
@@ -953,6 +1002,7 @@ fun GuluMapView(
 }
 
 // --- INTERACTIVE GULU VECTOR MAP ---
+// MOVED TO: ui/components/MapViews.kt
 @Composable
 fun GuluCanvasMapView(
     modifier: Modifier = Modifier,
@@ -1172,6 +1222,7 @@ fun GuluCanvasMapView(
 }
 
 // --- WIDGET: OFFLINE RESILIENCY BANNER ---
+// MOVED TO: ui/components/Overlays.kt
 @Composable
 fun OfflineBanner(onClose: () -> Unit) {
     Row(
@@ -1192,6 +1243,7 @@ fun OfflineBanner(onClose: () -> Unit) {
 }
 
 // --- WIDGET: OVERLAY INFO SYSTEM DIALOG ---
+// MOVED TO: ui/components/Dialogs.kt
 @Composable
 fun SystemOverlayDialog(title: String, desc: String, cta: String, onDismiss: () -> Unit) {
     Box(
@@ -1225,6 +1277,7 @@ fun SystemOverlayDialog(title: String, desc: String, cta: String, onDismiss: () 
 }
 
 // --- SCREEN 1: SPLASH SCREEN ---
+// MOVED TO: ui/auth/SplashScreen.kt
 @Composable
 fun SplashScreen(viewModel: BodaViewModel) {
     Box(
@@ -1271,6 +1324,7 @@ fun SplashScreen(viewModel: BodaViewModel) {
 }
 
 // --- SCREEN 2: ONBOARDING ENGINE ---
+// MOVED TO: ui/auth/OnboardingScreen.kt
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun OnboardingScreen(viewModel: BodaViewModel) {
@@ -2249,6 +2303,7 @@ fun DriverMiniStat(title: String, value: String, icon: androidx.compose.ui.graph
 }
 
 // --- SCREEN 3: HOME & BOOKING MAP SCREEN ---
+// MOVED TO: ui/home/HomeScreen.kt
 @Composable
 fun HomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) {
     NotificationPermissionNudge()
@@ -2273,6 +2328,7 @@ fun HomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) {
     }
 }
 
+// MOVED TO: ui/home/HomeScreen.kt
 @Composable
 fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -2473,9 +2529,9 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
     }
 }
 
-// --- SCREEN 4: SEARCH PLACES ---
+// --- SCREEN 4: SEARCH PLACES --- // MOVED TO: ui/ride/SearchPlacesScreen.kt
 @Composable
-fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) {
+fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) { // MOVED TO: ui/ride/SearchPlacesScreen.kt
     val defaultSuggestions = listOf(
         SavedPlace(label = "Home", name = "Gulu Main Market, Gulu", latitude = 2.7712, longitude = 32.2985),
         SavedPlace(label = "Work", name = "Lacor Hospital, Gulu", latitude = 2.7933, longitude = 32.2571),
@@ -2723,10 +2779,10 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
     }
 }
 
-// --- SCREEN 5: ROUTE PREVIEW & PRICE ESTIMATES ---
+// --- SCREEN 5: ROUTE PREVIEW & PRICE ESTIMATES --- // MOVED TO: ui/ride/RoutePreviewScreen.kt
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
+fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) { // MOVED TO: ui/ride/RoutePreviewScreen.kt
     val locationPermState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
 
     LaunchedEffect(locationPermState.status) {
@@ -3050,9 +3106,9 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
     }
 }
 
-// --- SCREEN 6: MATCHING & WAITING ONBOARD SPINNER ---
+// --- SCREEN 6: MATCHING & WAITING ONBOARD SPINNER --- // MOVED TO: ui/ride/MatchingScreen.kt
 @Composable
-fun MatchingScreen(viewModel: BodaViewModel) {
+fun MatchingScreen(viewModel: BodaViewModel) { // MOVED TO: ui/ride/MatchingScreen.kt
     var showCancelReason by remember { mutableStateOf(false) }
     var cancelReasonText by remember { mutableStateOf("") }
 
@@ -3151,9 +3207,9 @@ fun MatchingScreen(viewModel: BodaViewModel) {
     }
 }
 
-// --- SCREEN 7: RIDER EN ROUTE ---
+// --- SCREEN 7: RIDER EN ROUTE --- // MOVED TO: ui/ride/RiderEnRouteScreen.kt
 @Composable
-fun RiderEnRouteScreen(viewModel: BodaViewModel) {
+fun RiderEnRouteScreen(viewModel: BodaViewModel) { // MOVED TO: ui/ride/RiderEnRouteScreen.kt
     val trip = viewModel.currentSimulationTrip ?: return
     var displaySafetySheet by remember { mutableStateOf(false) }
 
@@ -3281,8 +3337,8 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
     }
 }
 
-// --- SCREEN 8: ACTIVE TRIP TRACKING MAP ---
-fun getSimulatedSpeed(progress: Float): Int {
+// --- SCREEN 8: ACTIVE TRIP TRACKING MAP --- // MOVED TO: ui/ride/ActiveTripScreen.kt
+fun getSimulatedSpeed(progress: Float): Int { // MOVED TO: ui/ride/ActiveTripScreen.kt
     val baseSpeed = 28
     val phase = (progress * 50).toInt() % 5
     val offset = when (phase) {
@@ -3296,7 +3352,7 @@ fun getSimulatedSpeed(progress: Float): Int {
     return (baseSpeed + offset).coerceAtLeast(4)
 }
 
-fun getActiveNavigationStep(pickupName: String, dropoffName: String, progress: Float, realSteps: List<BodaViewModel.NavStep> = emptyList()): String {
+fun getActiveNavigationStep(pickupName: String, dropoffName: String, progress: Float, realSteps: List<BodaViewModel.NavStep> = emptyList()): String { // MOVED TO: ui/ride/ActiveTripScreen.kt
     if (realSteps.isNotEmpty()) {
         val index = (progress * realSteps.size).toInt().coerceIn(0, realSteps.size - 1)
         return realSteps[index].instruction
@@ -3313,7 +3369,7 @@ fun getActiveNavigationStep(pickupName: String, dropoffName: String, progress: F
 }
 
 @Composable
-fun ActiveTripScreen(viewModel: BodaViewModel) {
+fun ActiveTripScreen(viewModel: BodaViewModel) { // MOVED TO: ui/ride/ActiveTripScreen.kt
     val trip = viewModel.currentSimulationTrip ?: return
     var displaySafetySheet by remember { mutableStateOf(false) }
     var showAllSteps by remember { mutableStateOf(false) }
@@ -3584,7 +3640,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
 
 // --- WIDGET: SAFETY SOS EMERGENCY PANEL ---
 @Composable
-fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
+fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) { // MOVED TO: ui/ride/ActiveTripScreen.kt
     var activeCallContact by remember { mutableStateOf<String?>(null) }
     var activeCallNumber by remember { mutableStateOf<String?>(null) }
     var showShareSuccess by remember { mutableStateOf(false) }
@@ -3832,7 +3888,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
 
 // --- SCREEN 9: POST-TRIP RATING & RECEIPT SUMMARY ---
 @Composable
-fun PostTripScreen(viewModel: BodaViewModel) {
+fun PostTripScreen(viewModel: BodaViewModel) { // MOVED TO: ui/ride/PostTripScreen.kt
     val trip = viewModel.currentSimulationTrip ?: return
     var starRating by remember { mutableStateOf(5) }
     var feedbackComment by remember { mutableStateOf("") }
@@ -4183,6 +4239,7 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
 }
 
 // --- SCREEN 11: WALLET balance & DEPOSITS ---
+// MOVED TO: ui/wallet/WalletScreen.kt
 @Composable
 fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTransaction>) {
     if (viewModel.isLoadingData) {
@@ -4363,6 +4420,7 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
 }
 
 // --- SCREEN 12: PROFILE SETTINGS ENGINE ---
+// MOVED TO: ui/profile/ProfileSettingsScreen.kt
 @Composable
 fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts: List<EmergencyContact>) {
     val coroutineScope = rememberCoroutineScope()
@@ -4894,6 +4952,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
 }
 
 // --- SCREEN 13: EMERGENCY CONTACTS (SAFETY PATHS) ---
+// MOVED TO: ui/profile/EmergencyContactsScreen.kt
 @Composable
 fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyContact>) {
     Column(
@@ -4973,6 +5032,7 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
 }
 
 // --- SCREEN 14: SAVED PLACES MANAGEMENT ---
+// MOVED TO: ui/profile/SavedPlacesManageScreen.kt
 @Composable
 fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) {
     Column(
@@ -5049,6 +5109,7 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
 }
 
 // --- SCREEN 15: SUPPORT CHAT & FAQ ENGINE ---
+// MOVED TO: ui/profile/SupportScreen.kt
 @Composable
 fun SupportScreen(viewModel: BodaViewModel) {
     var inChatMode by remember { mutableStateOf(false) }
@@ -5186,6 +5247,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
 }
 
 // --- APP BOTTOM COMPOSABLE NAVIGATION BAR ---
+// MOVED TO: ui/home/HomeScreen.kt
 @Composable
 fun BodaBottomNavigation(viewModel: BodaViewModel) {
     NavigationBar(
@@ -5248,6 +5310,7 @@ fun BodaBottomNavigation(viewModel: BodaViewModel) {
     }
 }
 
+// MOVED TO: ui/driver/DriverOnboardingScreen.kt
 @Composable
 fun DriverOnboardingScreen(viewModel: BodaViewModel) {
     val step = viewModel.driverOnboardingStep
@@ -5719,6 +5782,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
 
 // --- SECURE INTERACTIVE OVERLAYS ---
 
+// MOVED TO: ui/components/Dialogs.kt
 @Composable
 fun MoMoPinDialog(viewModel: BodaViewModel) {
     val isMtn = viewModel.momoPromptProvider.contains("MTN", ignoreCase = true)
@@ -5900,6 +5964,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
     }
 }
 
+// MOVED TO: ui/components/Overlays.kt
 @Composable
 fun CallOverlay(viewModel: BodaViewModel) {
     var isMuted by remember { mutableStateOf(false) }
@@ -6081,6 +6146,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
     }
 }
 
+// MOVED TO: ui/chat/RiderChatOverlay.kt
 @Composable
 fun RiderChatOverlay(viewModel: BodaViewModel) {
     val trip = viewModel.currentSimulationTrip ?: return
@@ -6272,6 +6338,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
     }
 }
 
+// MOVED TO: ui/offline/OfflineSMSBookingOverlay.kt
 @Composable
 fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
     Box(
@@ -6371,6 +6438,7 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
     }
 }
 
+// MOVED TO: ui/referrals/ReferralsScreen.kt
 @Composable
 fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
     val user by viewModel.userProfile.collectAsState()
