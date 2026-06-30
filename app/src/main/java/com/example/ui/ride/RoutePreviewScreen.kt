@@ -1,6 +1,7 @@
 package com.example.ui.ride
 
 import com.example.ui.BodaViewModel
+import com.example.ui.offline.triggerOfflineSMSBookingFlow
 import com.example.ui.components.Color
 import com.example.ui.components.Sp
 import com.example.ui.components.BodaButton

@@ -4,6 +4,9 @@ import com.example.data.ApiClient
 import com.example.data.UserProfile
 import com.example.ui.BodaViewModel
 import com.example.ui.Screen
+import com.example.ui.home.navigateTo
+import com.example.ui.home.stopLocationTracking
+import com.example.ui.home.syncUserToBackend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

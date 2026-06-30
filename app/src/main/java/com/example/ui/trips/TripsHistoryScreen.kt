@@ -2,6 +2,7 @@ package com.example.ui.trips
 
 import com.example.data.*
 import com.example.ui.BodaViewModel
+import com.example.ui.ride.disputeTrip
 import com.example.ui.Screen
 import com.example.ui.components.Color
 import com.example.ui.components.Sp

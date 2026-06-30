@@ -34,21 +34,29 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
+import com.example.ui.ride.*
+import com.example.ui.home.connectPostgresWebSocket
+import com.example.ui.home.connectToBackend
+import com.example.ui.home.stopLocationTracking
+import com.example.ui.home.navigateTo
+import com.example.ui.home.syncUserToBackend
 import kotlin.random.Random
+
+// MOVED TO: ui/navigation/Screen.kt
 
 class BodaViewModel(application: Application) : AndroidViewModel(application) {
 
     val errorMessage = MutableStateFlow<String?>(null)
 
-    private val repository: BodaRepository = BodaRepository(AppDatabase.getDatabase(application).bodaDao())
-    private val apiRepository = BodaRepository()
-    private val webSocketClient = WebSocketClient(ApiClient.getWebSocketUrl())
-    private val prefs = application.getSharedPreferences("boda_gulu_prefs", Context.MODE_PRIVATE)
-    
+    internal val repository: BodaRepository = BodaRepository(AppDatabase.getDatabase(application).bodaDao())
+    internal val apiRepository = BodaRepository()
+    internal val webSocketClient = WebSocketClient(ApiClient.getWebSocketUrl())
+    internal val prefs = application.getSharedPreferences("boda_gulu_prefs", Context.MODE_PRIVATE)
+
     // Firebase Auth
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private var verificationId: String? = null
-    private var resendToken: PhoneAuthProvider.ForceResendingToken? = null
+    internal val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    internal var verificationId: String? = null
+    internal var resendToken: PhoneAuthProvider.ForceResendingToken? = null
     private var authStateListener: FirebaseAuth.AuthStateListener? = null
     private var hasRestoredSession = false
     
@@ -63,8 +71,8 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         private set
     
     // Location Services
-    private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(application)
-    private var locationCallback: LocationCallback? = null
+    internal val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(application)
+    internal var locationCallback: LocationCallback? = null
     var currentLocation by mutableStateOf<Location?>(null)
         private set
     var isLocationTracking by mutableStateOf(false)
@@ -122,7 +130,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         backendBalance ?: local
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-
     var isLoadingData by mutableStateOf(true)
         private set
 
@@ -153,7 +160,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             else -> ""
         }
 
-    private var lastBackendFetchMs = 0L
+    internal var lastBackendFetchMs = 0L
 
     init {
         // Use AuthStateListener to wait for Firebase to resolve auth state before navigating
@@ -182,15 +189,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         registerFcmToken()
     }
 
-
-
-    fun dismissWelcomeBonus() {
-        showWelcomeBonus = false
-        isNewUserSession = false
-        prefs.edit().putBoolean("welcome_bonus_shown", true).apply()
-    }
-
-    private suspend fun restoreSessionFromBackend() {
+    internal suspend fun restoreSessionFromBackend() {
         addPostgresLog("Restoring session from backend...")
         apiRepository.fetchUserProfile().fold(
             onSuccess = { backendUser ->
@@ -229,7 +228,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         isLoadingData = false
     }
 
-    private suspend fun fetchBackendData(force: Boolean = false) {
+    internal suspend fun fetchBackendData(force: Boolean = false) {
         val now = System.currentTimeMillis()
         if (!force && now - lastBackendFetchMs < 5 * 60 * 1000L) {
             addPostgresLog("Data cache is fresh. Skipping backend fetch.")
@@ -300,7 +299,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var totalRouteDistanceMeters by mutableStateOf(0)
     var totalRouteDurationSeconds by mutableStateOf(0)
 
-    private fun decodePolyline(encoded: String): List<com.google.android.gms.maps.model.LatLng> {
+    internal fun decodePolyline(encoded: String): List<com.google.android.gms.maps.model.LatLng> {
         val poly = ArrayList<com.google.android.gms.maps.model.LatLng>()
         var index = 0
         val len = encoded.length
@@ -335,617 +334,24 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         return poly
     }
 
-        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            isLoadingRoute = true
-            routeError = null
-            
-            val googleApiKey = try {
-                com.example.BuildConfig.MAPS_API_KEY
-            } catch (e: Throwable) {
-                ""
-            }
-            
-            val hasGoogleMapsKey = googleApiKey.isNotEmpty() && 
-                    googleApiKey != "MY_MAPS_API_KEY" && 
-                    googleApiKey != "MAPS_API_KEY_DEFAULT_VALUE"
-            
-            var pointsLoaded = false
-            
-            val client = okhttp3.OkHttpClient.Builder()
-                .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                .build()
+    // Screen State
 
-            // --- OPTION A: GOOGLE DIRECTIONS API ---
-            if (hasGoogleMapsKey && isOnline) {
-                try {
-                    addPostgresLog("Requesting premium road routing from Google Directions API...")
-                    val googleUrl = "https://maps.googleapis.com/maps/api/directions/json" +
-                            "?origin=${startLatLng.latitude},${startLatLng.longitude}" +
-                            "&destination=${endLatLng.latitude},${endLatLng.longitude}" +
-                            "&key=$googleApiKey"
 
-                    val request = okhttp3.Request.Builder()
-                        .url(googleUrl)
-                        .header("User-Agent", "BodaGuluApp/1.0")
-                        .build()
 
-                    client.newCall(request).execute().use { response ->
-                        if (response.isSuccessful) {
-                            val bodyString = response.body?.string() ?: ""
-                            val json = org.json.JSONObject(bodyString)
-                            val status = json.optString("status")
-                            if (status == "OK") {
-                                val routes = json.getJSONArray("routes")
-                                if (routes.length() > 0) {
-                                    val route = routes.getJSONObject(0)
-                                    val overviewPolyline = route.getJSONObject("overview_polyline")
-                                    val pointsStr = overviewPolyline.getString("points")
-                                    val points = decodePolyline(pointsStr)
-
-                                    // Parse turn-by-turn navigation steps
-                                    val steps = mutableListOf<NavStep>()
-                                    var totalDist = 0
-                                    var totalDur = 0
-                                    if (route.has("legs")) {
-                                        val legs = route.getJSONArray("legs")
-                                        if (legs.length() > 0) {
-                                            val leg = legs.getJSONObject(0)
-                                            totalDist = leg.optJSONObject("distance")?.optInt("value", 0) ?: 0
-                                            totalDur = leg.optJSONObject("duration")?.optInt("value", 0) ?: 0
-                                            if (leg.has("steps")) {
-                                                val stepsArr = leg.getJSONArray("steps")
-                                                for (s in 0 until stepsArr.length()) {
-                                                    val step = stepsArr.getJSONObject(s)
-                                                    val htmlInstr = step.optString("html_instructions", "")
-                                                    val instr = htmlInstr.replace(Regex("<[^>]*>"), "")
-                                                    val dist = step.optJSONObject("distance")?.optInt("value", 0) ?: 0
-                                                    val dur = step.optJSONObject("duration")?.optInt("value", 0) ?: 0
-                                                    val startLoc = step.optJSONObject("start_location")
-                                                    steps.add(NavStep(
-                                                        instruction = instr,
-                                                        distanceMeters = dist,
-                                                        durationSeconds = dur,
-                                                        startLat = startLoc?.optDouble("lat", 0.0) ?: 0.0,
-                                                        startLng = startLoc?.optDouble("lng", 0.0) ?: 0.0
-                                                    ))
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    if (points.isNotEmpty()) {
-                                        withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                            osrmRoutePoints = points
-                                            navigationSteps = steps
-                                            totalRouteDistanceMeters = totalDist
-                                            totalRouteDurationSeconds = totalDur
-                                            isLoadingRoute = false
-                                            addPostgresLog("✓ Successfully loaded premium polyline from Google Directions API (${points.size} points, ${steps.size} nav steps).")
-                                        }
-                                        pointsLoaded = true
-                                    }
-                                }
-                            } else {
-                                addPostgresLog("Google Directions error status: $status. Falling back to OSRM.")
-                            }
-                        } else {
-                            addPostgresLog("Google Directions HTTP error: ${response.code}. Falling back to OSRM.")
-                        }
-                    }
-                } catch (e: Exception) {
-                    addPostgresLog("Google Directions fetch failed (${e.message}). Falling back to OSRM.")
-                }
-            }
-
-            // --- OPTION B: OSRM API (FALLBACK / NO-KEY DEFAULT) ---
-            if (!pointsLoaded) {
-                try {
-                    if (!isOnline) {
-                        throw java.io.IOException("Device is offline. OSRM lookup skipped.")
-                    }
-                    
-                    // OSRM expects coordinates in lng,lat format!
-                    val url = "https://router.project-osrm.org/route/v1/driving/" +
-                            "${startLatLng.longitude},${startLatLng.latitude};" +
-                            "${endLatLng.longitude},${endLatLng.latitude}" +
-                            "?overview=full&geometries=geojson"
-                    
-                    addPostgresLog("Requesting real-world road routing coordinates from OSRM public API...")
-                        
-                    val request = okhttp3.Request.Builder()
-                        .url(url)
-                        .header("User-Agent", "BodaGuluApp/1.0")
-                        .build()
-                    
-                    client.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) {
-                            throw java.io.IOException("OSRM API response unsuccessful: ${response.code}")
-                        }
-                        val bodyString = response.body?.string() ?: throw java.io.IOException("Empty response body")
-                        val json = org.json.JSONObject(bodyString)
-                        val code = json.optString("code")
-                        if (code != "Ok") {
-                            throw java.io.IOException("OSRM error code: $code")
-                        }
-                        
-                        val routes = json.getJSONArray("routes")
-                        if (routes.length() > 0) {
-                            val firstRoute = routes.getJSONObject(0)
-                            val geometry = firstRoute.getJSONObject("geometry")
-                            val coordinates = geometry.getJSONArray("coordinates")
-                            
-                            val points = mutableListOf<com.google.android.gms.maps.model.LatLng>()
-                            for (i in 0 until coordinates.length()) {
-                                val coord = coordinates.getJSONArray(i)
-                                val lng = coord.getDouble(0)
-                                val lat = coord.getDouble(1)
-                                points.add(com.google.android.gms.maps.model.LatLng(lat, lng))
-                            }
-                            
-                            withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                osrmRoutePoints = points
-                                isLoadingRoute = false
-                                addPostgresLog("✓ Successfully loaded real road routing polyline from OSRM (${points.size} points).")
-                            }
-                        } else {
-                            throw java.io.IOException("No routes found in OSRM response")
-                        }
-                    }
-                } catch (e: Exception) {
-                    withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        routeError = e.message
-                        isLoadingRoute = false
-                        errorMessage.value = "Routing failed. Showing estimated route."
-                        addPostgresLog("Warning: OSRM Routing API unavailable (${e.message}). Falling back to simulated/grid street route.")
-                    }
-                }
-            }
-        }
-    }
-
-        searchJob?.cancel()
-        if (query.trim().length < 2) {
-            searchResults = emptyList()
-            return
-        }
-        
-        searchJob = viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            // Debounce for 400ms
-            kotlinx.coroutines.delay(400)
-            
-            isSearchingPlaces = true
-            searchError = null
-            
-            val googleApiKey = try {
-                com.example.BuildConfig.MAPS_API_KEY
-            } catch (e: Throwable) {
-                ""
-            }
-            
-            val hasGoogleMapsKey = googleApiKey.isNotEmpty() && 
-                    googleApiKey != "MY_MAPS_API_KEY" && 
-                    googleApiKey != "MAPS_API_KEY_DEFAULT_VALUE"
-                    
-            val results = mutableListOf<SavedPlace>()
-            val client = okhttp3.OkHttpClient.Builder()
-                .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                .build()
-                
-            var searchSuccess = false
-            
-            // 1. Try Google Places Text Search API if key is present (returns POIs with coordinates)
-            if (hasGoogleMapsKey && isOnline) {
-                try {
-                    val searchQuery = if (query.lowercase().contains("gulu")) query else "$query, Gulu, Uganda"
-                    val encodedQuery = java.net.URLEncoder.encode(searchQuery, "UTF-8")
-                    val url = "https://maps.googleapis.com/maps/api/place/textsearch/json" +
-                            "?query=$encodedQuery" +
-                            "&location=2.7750,32.2950" +
-                            "&radius=50000" +
-                            "&key=$googleApiKey"
-
-                    val request = okhttp3.Request.Builder()
-                        .url(url)
-                        .header("User-Agent", "BodaGuluApp/1.0")
-                        .build()
-
-                    client.newCall(request).execute().use { response ->
-                        if (response.isSuccessful) {
-                            val bodyString = response.body?.string() ?: ""
-                            val json = org.json.JSONObject(bodyString)
-                            val status = json.optString("status")
-                            if (status == "OK") {
-                                val jsonResults = json.getJSONArray("results")
-                                for (i in 0 until minOf(jsonResults.length(), 8)) {
-                                    val item = jsonResults.getJSONObject(i)
-                                    val name = item.optString("name", "")
-                                    val formattedAddress = item.optString("formatted_address", "")
-                                    val geometry = item.getJSONObject("geometry")
-                                    val location = geometry.getJSONObject("location")
-                                    val lat = location.getDouble("lat")
-                                    val lng = location.getDouble("lng")
-                                    val label = name.ifEmpty { formattedAddress.substringBefore(",") }
-
-                                    results.add(SavedPlace(
-                                        label = label,
-                                        name = if (formattedAddress.isNotEmpty()) "$name, $formattedAddress" else name,
-                                        latitude = lat,
-                                        longitude = lng
-                                    ))
-                                }
-                                searchSuccess = true
-                                addPostgresLog("Places Text Search returned ${results.size} results for '$query'")
-                            } else {
-                                addPostgresLog("Places Text Search status: $status")
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    addPostgresLog("Google Places search failed: ${e.message}")
-                }
-            }
-
-            // 1b. Try Google Geocoding API as secondary if Places returned nothing
-            if (!searchSuccess && hasGoogleMapsKey && isOnline) {
-                try {
-                    val addressQuery = if (query.lowercase().contains("gulu")) query else "$query, Gulu, Uganda"
-                    val encodedQuery = java.net.URLEncoder.encode(addressQuery, "UTF-8")
-                    val url = "https://maps.googleapis.com/maps/api/geocode/json?address=$encodedQuery&key=$googleApiKey"
-
-                    val request = okhttp3.Request.Builder()
-                        .url(url)
-                        .header("User-Agent", "BodaGuluApp/1.0")
-                        .build()
-
-                    client.newCall(request).execute().use { response ->
-                        if (response.isSuccessful) {
-                            val bodyString = response.body?.string() ?: ""
-                            val json = org.json.JSONObject(bodyString)
-                            val status = json.optString("status")
-                            if (status == "OK") {
-                                val jsonResults = json.getJSONArray("results")
-                                for (i in 0 until minOf(jsonResults.length(), 6)) {
-                                    val item = jsonResults.getJSONObject(i)
-                                    val formattedAddress = item.getString("formatted_address")
-                                    val geometry = item.getJSONObject("geometry")
-                                    val location = geometry.getJSONObject("location")
-                                    val lat = location.getDouble("lat")
-                                    val lng = location.getDouble("lng")
-
-                                    val addressComponents = item.getJSONArray("address_components")
-                                    val label = if (addressComponents.length() > 0) {
-                                        addressComponents.getJSONObject(0).getString("long_name")
-                                    } else {
-                                        formattedAddress.substringBefore(",")
-                                    }
-
-                                    results.add(SavedPlace(
-                                        label = label,
-                                        name = formattedAddress,
-                                        latitude = lat,
-                                        longitude = lng
-                                    ))
-                                }
-                                searchSuccess = true
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    addPostgresLog("Google Geocoding fallback failed: ${e.message}")
-                }
-            }
-            
-            // 2. Fallback or direct to Nominatim (OpenStreetMap) if Google fails or key is missing
-            if (!searchSuccess && isOnline) {
-                try {
-                    // Append Gulu, Uganda if not present
-                    val searchQuery = if (query.lowercase().contains("gulu")) query else "$query, Gulu, Uganda"
-                    val encodedQuery = java.net.URLEncoder.encode(searchQuery, "UTF-8")
-                    val url = "https://nominatim.openstreetmap.org/search?q=$encodedQuery&format=json&limit=6&addressdetails=1"
-                    
-                    val request = okhttp3.Request.Builder()
-                        .url(url)
-                        .header("User-Agent", "BodaGuluApp/1.0")
-                        .build()
-                        
-                    client.newCall(request).execute().use { response ->
-                        if (response.isSuccessful) {
-                            val bodyString = response.body?.string() ?: ""
-                            val jsonArray = org.json.JSONArray(bodyString)
-                            for (i in 0 until jsonArray.length()) {
-                                val obj = jsonArray.getJSONObject(i)
-                                val displayName = obj.getString("display_name")
-                                val lat = obj.getDouble("lat")
-                                val lon = obj.getDouble("lon")
-                                
-                                val addressObj = obj.optJSONObject("address")
-                                val label = when {
-                                    addressObj != null -> {
-                                        addressObj.optString("amenity")
-                                            .ifEmpty { addressObj.optString("building") }
-                                            .ifEmpty { addressObj.optString("shop") }
-                                            .ifEmpty { addressObj.optString("road") }
-                                            .ifEmpty { addressObj.optString("suburb") }
-                                            .ifEmpty { displayName.substringBefore(",") }
-                                    }
-                                    else -> displayName.substringBefore(",")
-                                }
-                                
-                                results.add(SavedPlace(
-                                    label = label,
-                                    name = displayName,
-                                    latitude = lat,
-                                    longitude = lon
-                                ))
-                            }
-                            searchSuccess = true
-                        }
-                    }
-                } catch (e: Exception) {
-                    addPostgresLog("OSM search failed: ${e.message}")
-                    errorMessage.value = "Location search unavailable. Showing default suggestions."
-                }
-            }
-            
-            // If both failed or device is offline, search local default suggestions as fallback
-            if (results.isEmpty()) {
-                val defaultSuggestions = listOf(
-                    SavedPlace(label = "Home", name = "Gulu Main Market, Gulu", latitude = 2.7712, longitude = 32.2985),
-                    SavedPlace(label = "Work", name = "Lacor Hospital, Gulu", latitude = 2.7933, longitude = 32.2571),
-                    SavedPlace(label = "University", name = "Gulu University, Laroo", latitude = 2.7842, longitude = 32.3214),
-                    SavedPlace(label = "Stadium", name = "Pece Stadium, Gulu", latitude = 2.7745, longitude = 32.3112),
-                    SavedPlace(label = "Town Hall", name = "Gulu Town Hall, Gulu", latitude = 2.7720, longitude = 32.3005),
-                    SavedPlace(label = "Airfield", name = "Gulu Airfield, Gulu", latitude = 2.7961, longitude = 32.2801)
-                )
-                val filteredLocal = defaultSuggestions.filter {
-                    it.label.contains(query, ignoreCase = true) ||
-                    it.name.contains(query, ignoreCase = true)
-                }
-                results.addAll(filteredLocal)
-            }
-            
-            withContext(kotlinx.coroutines.Dispatchers.Main) {
-                searchResults = results
-                isSearchingPlaces = false
-            }
-        }
-    }
-
-        val pickup = pickupPlace
-        val dropoff = dropoffPlace
-        if (pickup == null || dropoff == null) {
-            googleDistanceKm = null
-            googleDurationMins = null
-            return
-        }
-        
-        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            withContext(kotlinx.coroutines.Dispatchers.Main) {
-                isFetchingDistanceMatrix = true
-                distanceMatrixError = null
-            }
-            
-            val googleApiKey = try {
-                com.example.BuildConfig.MAPS_API_KEY
-            } catch (e: Throwable) {
-                ""
-            }
-            
-            val hasGoogleMapsKey = googleApiKey.isNotEmpty() && 
-                    googleApiKey != "MY_MAPS_API_KEY" && 
-                    googleApiKey != "MAPS_API_KEY_DEFAULT_VALUE"
-                    
-            if (hasGoogleMapsKey && isOnline) {
-                try {
-                    addPostgresLog("Querying Google Maps Distance Matrix API for dynamic fare & traffic surge: FROM [${pickup.label}] TO [${dropoff.label}]")
-                    val url = "https://maps.googleapis.com/maps/api/distancematrix/json" +
-                            "?origins=${pickup.latitude},${pickup.longitude}" +
-                            "&destinations=${dropoff.latitude},${dropoff.longitude}" +
-                            "&key=$googleApiKey"
-                            
-                    val client = okhttp3.OkHttpClient.Builder()
-                        .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                        .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                        .build()
-                        
-                    val request = okhttp3.Request.Builder()
-                        .url(url)
-                        .header("User-Agent", "BodaGuluApp/1.0")
-                        .build()
-                        
-                    client.newCall(request).execute().use { response ->
-                        val bodyString = response.body?.string() ?: ""
-                        addPostgresLog("Distance Matrix HTTP ${response.code}: ${bodyString.take(300)}")
-                        if (response.isSuccessful) {
-                            val json = org.json.JSONObject(bodyString)
-                            val status = json.optString("status")
-                            if (status == "OK") {
-                                val rows = json.getJSONArray("rows")
-                                if (rows.length() > 0) {
-                                    val elements = rows.getJSONObject(0).getJSONArray("elements")
-                                    if (elements.length() > 0) {
-                                        val element = elements.getJSONObject(0)
-                                        val elementStatus = element.optString("status")
-                                        if (elementStatus == "OK") {
-                                            val distanceObj = element.getJSONObject("distance")
-                                            val durationObj = element.getJSONObject("duration")
-                                            
-                                            val meters = distanceObj.getDouble("value")
-                                            val seconds = durationObj.getDouble("value")
-                                            
-                                            val km = meters / 1000.0
-                                            val mins = (seconds / 60.0).toInt().coerceAtLeast(1)
-                                            
-                                            withContext(kotlinx.coroutines.Dispatchers.Main) {
-                                                googleDistanceKm = km
-                                                googleDurationMins = mins
-                                                addPostgresLog("✓ Distance Matrix: ${"%.2f".format(km)} km, $mins mins.")
-                                            }
-                                        } else {
-                                            throw Exception("Distance Matrix element status: $elementStatus")
-                                        }
-                                    } else {
-                                        throw Exception("No elements returned")
-                                    }
-                                } else {
-                                    throw Exception("No rows returned")
-                                }
-                            } else {
-                                throw Exception("Distance Matrix status: $status")
-                            }
-                        } else {
-                            throw Exception("HTTP Error: ${response.code}")
-                        }
-                    }
-                } catch (e: Exception) {
-                    withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        distanceMatrixError = e.message
-                        addPostgresLog("Distance Matrix API failed (${e.message}). Using Haversine fallback.")
-                    }
-                } finally {
-                    withContext(kotlinx.coroutines.Dispatchers.Main) {
-                        isFetchingDistanceMatrix = false
-                    }
-                }
-            } else {
-                withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    isFetchingDistanceMatrix = false
-                    addPostgresLog("Google Maps key missing/invalid. Distance Matrix bypassed, using Gulu Local Haversine Engine.")
-                }
-            }
-        }
-    }
-
-        val pickup = pickupPlace ?: return
-        val dropoff = dropoffPlace ?: return
-
-        val startLatLng = com.google.android.gms.maps.model.LatLng(pickup.latitude, pickup.longitude)
-        val endLatLng = com.google.android.gms.maps.model.LatLng(dropoff.latitude, dropoff.longitude)
-        fetchRouteForPoints(startLatLng, endLatLng)
-        fetchDistanceMatrix()
-    }
 
     // Screen State
     var currentScreen by mutableStateOf<Screen>(Screen.Splash)
         private set
 
     // Navigation Stack (Manual simple backstack for reliability)
-    private val backStack = mutableListOf<Screen>()
-
-
-
-
-
-    // Location Services
-    @Suppress("MissingPermission")
-
-    @Suppress("MissingPermission")
-    private fun getLastKnownLocation() {
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location ->
-                if (location != null) {
-                    currentLocation = location
-                }
-            }
-    }
-
-
-    // Ride Request Functions — all ride data flows through PostgreSQL backend + Socket.IO
-        bookTripViaBackend()
-    }
-
-        currentRideRequest = null
-        isSearchingForDriver = false
-    }
-
+    internal val backStack = mutableListOf<Screen>()
 
     // Language selector state ("en", "ach", "luo")
     var appLanguage by mutableStateOf("en")
         private set
 
-
     // Backend API Functions
-
-
-        val pickup = pickupPlace ?: return
-        val dropoff = dropoffPlace ?: return
-        val user = userProfile.value ?: return
-        
-        viewModelScope.launch {
-            val fare = calculatedFare
-            apiRepository.bookTrip(
-                pickupName = pickup.name,
-                pickupLat = pickup.latitude,
-                pickupLon = pickup.longitude,
-                dropoffName = dropoff.name,
-                dropoffLat = dropoff.latitude,
-                dropoffLon = dropoff.longitude,
-                distanceKm = googleDistanceKm ?: 0.0,
-                durationMins = googleDurationMins ?: 0,
-                fare = fare,
-                paymentMethod = selectedPaymentMethod
-            ).fold(
-                onSuccess = { trip ->
-                    addPostgresLog("✓ Trip booked via PostgreSQL: ${trip.id}")
-                    currentRideRequest = com.example.data.RideRequest(
-                        id = trip.id.toString(),
-                        riderId = auth.currentUser?.uid ?: "",
-                        riderName = user.name,
-                        riderPhone = user.phoneNumber,
-                        pickupName = pickup.name,
-                        pickupLat = pickup.latitude,
-                        pickupLng = pickup.longitude,
-                        dropoffName = dropoff.name,
-                        dropoffLat = dropoff.latitude,
-                        dropoffLng = dropoff.longitude,
-                        fare = fare,
-                        paymentMethod = selectedPaymentMethod,
-                        status = trip.status
-                    )
-                    isSearchingForDriver = true
-                },
-                onFailure = { e ->
-                    errorMessage.value = "Failed to book trip: ${e.message}"
-                    addPostgresLog("✗ Trip booking failed: ${e.message}")
-                }
-            )
-        }
-    }
-
-        viewModelScope.launch {
-            apiRepository.calculateFare(distanceKm, durationMins).fold(
-                onSuccess = { fareResponse ->
-                    addPostgresLog("✓ Fare calculated: UGX ${fareResponse.final_fare} (surge: ${fareResponse.surge_multiplier}x)")
-                },
-                onFailure = { e ->
-                    addPostgresLog("✗ Fare calculation failed: ${e.message}")
-                }
-            )
-        }
-    }
-
-        viewModelScope.launch {
-            val fare = calculatedFare
-            apiRepository.validatePromo(code, fare).fold(
-                onSuccess = { promoResponse ->
-                    if (promoResponse.valid) {
-                        activePromoDiscount.value = promoResponse.discount_amount.toDouble()
-                        activePromoCode = code
-                        addPostgresLog("✓ Promo applied: -UGX ${promoResponse.discount_amount}")
-                    } else {
-                        errorMessage.value = promoResponse.message ?: "Invalid promo code"
-                    }
-                },
-                onFailure = { e ->
-                    errorMessage.value = "Failed to validate promo: ${e.message}"
-                }
-            )
-        }
-    }
-
-    private fun registerFcmToken() {
+    internal fun registerFcmToken() {
         val prefs = getApplication<Application>().getSharedPreferences("boda_gulu_prefs", Context.MODE_PRIVATE)
         val token = prefs.getString("fcm_token", null) ?: return
         val uid = auth.currentUser?.uid ?: return
@@ -973,12 +379,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
-
+    // Persistent theme settings: "system", "dark", "light"
     // Persistent theme settings: "system", "dark", "light"
     var appThemeSetting by mutableStateOf(prefs.getString("app_theme_setting", "system") ?: "system")
         private set
-
 
     // Persistent onboarding state flags
     var onboardingCarouselCompleted by mutableStateOf(prefs.getBoolean("onboarding_carousel_completed", false))
@@ -987,34 +391,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var onboardingLanguageSelected by mutableStateOf(prefs.getBoolean("onboarding_language_selected", false))
         private set
 
-    fun completeOnboardingCarousel() {
-        onboardingCarouselCompleted = true
-        prefs.edit().putBoolean("onboarding_carousel_completed", true).apply()
-    }
-
-    fun completeOnboardingLanguage(lang: String) {
-        updateLanguage(lang)
-        onboardingLanguageSelected = true
-        prefs.edit().putBoolean("onboarding_language_selected", true).apply()
-    }
-
-    fun resetOnboarding() {
-        onboardingCarouselCompleted = false
-        onboardingLanguageSelected = false
-        onboardingSlideIndex = 0
-        phoneInput = ""
-        otpInput = ""
-        otpSent = false
-        isOtpVerified = false
-        signupName = ""
-        locationPermissionGranted = false
-        notificationPermissionGranted = false
-        prefs.edit()
-            .putBoolean("onboarding_carousel_completed", false)
-            .putBoolean("onboarding_language_selected", false)
-            .apply()
-    }
-
     // Onboarding slide index
     var onboardingSlideIndex by mutableStateOf(0)
 
@@ -1022,7 +398,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var otpResendTimer by mutableStateOf(45)
     var isSendingOtp by mutableStateOf(false)
     var isVerifyingOtp by mutableStateOf(false)
-    private var otpTimerJob: Job? = null
+    internal var otpTimerJob: Job? = null
 
     // Location & notification permission simulation
     var locationPermissionGranted by mutableStateOf(false)
@@ -1047,7 +423,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var searchResults by mutableStateOf<List<SavedPlace>>(emptyList())
     var isSearchingPlaces by mutableStateOf(false)
     var searchError by mutableStateOf<String?>(null)
-    private var searchJob: kotlinx.coroutines.Job? = null
+    internal var searchJob: kotlinx.coroutines.Job? = null
     
     // Google Maps Distance Matrix API states
     var googleDistanceKm by mutableStateOf<Double?>(null)
@@ -1061,7 +437,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var recipientPhone by mutableStateOf("")
     var scheduledBookingDateTime by mutableStateOf<String?>(null)
 
-    private fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    internal fun calculateHaversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val r = 6371.0 // Radius of the earth in km
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
@@ -1112,7 +488,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var simulationState by mutableStateOf("idle") // "searching", "enroute", "arrived", "active", "completed"
     var simulationCountdown by mutableStateOf(10)
     var simulationRouteProgress by mutableStateOf(0f)
-    private var simulationJob: Job? = null
+    internal var simulationJob: Job? = null
 
     // Wallet transaction state
     var walletTopupAmountInput by mutableStateOf("5000")
@@ -1134,14 +510,14 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var callOverlayNumber by mutableStateOf("")
     var callOverlayState by mutableStateOf("dialing") // "dialing", "active", "disconnected"
     var callDurationSeconds by mutableStateOf(0)
-    private var callTimerJob: Job? = null
+    internal var callTimerJob: Job? = null
 
     // Interactive Rider Chat Overlay state
     var showRiderChatOverlay by mutableStateOf(false)
     val riderChatMessages = androidx.compose.runtime.mutableStateListOf<ChatMessage>()
     var riderChatInputText by mutableStateOf("")
     var riderIsTyping by mutableStateOf(false)
-    private var currentChatTripId = 0
+    internal var currentChatTripId = 0
 
     // Settings
     var promoCodeInput by mutableStateOf("")
@@ -1190,7 +566,7 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var driverTripState by mutableStateOf("none") // "none", "requested", "accepted", "pickup_arrived", "active", "completed"
     var driverSimulationProgress by mutableStateOf(0f)
     var driverSimulationCountdown by mutableStateOf(0)
-    private var driverSimulationJob: Job? = null
+    internal var driverSimulationJob: Job? = null
 
     // --- Driver Onboarding Wizard State ---
     var isDriverRegistered by mutableStateOf(false)
@@ -1208,673 +584,10 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
     var driverQuizAnswer1 by mutableStateOf("")
     var driverQuizAnswer2 by mutableStateOf("")
 
-
-
-
-
-
-
-
-
-
-    // Trigger OTP sending via Firebase Auth
-    fun startOtpFlow(activity: android.app.Activity? = null) {
-        if (phoneInput.length < 9) {
-            errorMessage.value = "Phone number must be at least 9 digits."
-            return
-        }
-
-        val phoneNumber = "+256" + phoneInput.removePrefix("+256").trim()
-
-        isSendingOtp = true
-        otpSent = true
-        otpInput = ""
-        otpResendTimer = 45
-        isOtpVerified = false
-
-        val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
-            override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                val code = credential.smsCode
-                if (code != null) {
-                    otpInput = code
-                    isSendingOtp = false
-                    verifyOtp()
-                }
-            }
-
-            override fun onVerificationFailed(e: com.google.firebase.FirebaseException) {
-                errorMessage.value = "Verification failed: ${e.message}"
-                otpSent = false
-                isSendingOtp = false
-            }
-
-            override fun onCodeSent(id: String, token: PhoneAuthProvider.ForceResendingToken) {
-                verificationId = id
-                resendToken = token
-                isSendingOtp = false
-            }
-        }
-
-        val builder = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(phoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setCallbacks(callbacks)
-        activity?.let { builder.setActivity(it) }
-        val options = builder.build()
-        
-        PhoneAuthProvider.verifyPhoneNumber(options)
-        
-        // Start OTP countdown timer
-        otpTimerJob?.cancel()
-        otpTimerJob = viewModelScope.launch {
-            while (otpResendTimer > 0) {
-                delay(1000)
-                otpResendTimer--
-            }
-        }
-    }
-
-
-    // Profile Creation / Completion
-    fun completeProfileSetup() {
-        viewModelScope.launch {
-            val genCode = "GULU-${signupName.filter { it.isLetter() }.take(4).uppercase().ifEmpty { "BODA" }}-${Random.nextInt(100, 999)}"
-            val profile = UserProfile(
-                name = signupName,
-                phoneNumber = if (phoneInput.isNotEmpty()) {
-                    "+256 " + phoneInput.removePrefix("+256").trim()
-                } else {
-                    auth.currentUser?.phoneNumber ?: ""
-                },
-                language = appLanguage,
-                isSetupComplete = true,
-                profileImageResId = selectedAvatarRes,
-                referralCode = genCode
-            )
-            repository.saveUserProfile(profile)
-            syncUserToBackend(profile)
-
-            if (referralCodeInput.isNotEmpty()) {
-                repository.addReferral(Referral(
-                    referredName = signupName,
-                    referredPhone = profile.phoneNumber,
-                    referralCodeUsed = referralCodeInput.uppercase().trim(),
-                    status = "pending",
-                    timestamp = System.currentTimeMillis(),
-                    rewardAmount = 3000.0
-                ))
-                apiRepository.addReferralToBackend(
-                    signupName, profile.phoneNumber, referralCodeInput.uppercase().trim()
-                )
-            }
-
-            val welcomeBonusShown = prefs.getBoolean("welcome_bonus_shown", false)
-            if (!welcomeBonusShown) {
-                isNewUserSession = true
-                showWelcomeBonus = true
-            }
-
-            navigateTo(Screen.Home)
-        }
-    }
-
-    fun saveUserProfile(profile: UserProfile) {
-        viewModelScope.launch {
-            repository.saveUserProfile(profile)
-            syncUserToBackend(profile)
-        }
-    }
-
-    // Confirm Booking & Start Simulation
-        if (pickupPlace == null || dropoffPlace == null) {
-            errorMessage.value = "Please select both pickup and dropoff locations."
-            return
-        }
-        
-        simulationState = "searching"
-        navigateTo(Screen.Matching)
-        
-        simulationJob?.cancel()
-        simulationJob = viewModelScope.launch {
-            // Simulate matching for 4 seconds
-            for (i in 1..40) {
-                delay(100)
-                matchProgress = i / 40f
-            }
-            
-            // Randomly select one of Gulu's top riders
-            val riderNames = listOf("Okeny Patrick", "Adong Scovia", "Akena Christopher", "Kidega Moses")
-            val plates = listOf("UEG 412X", "UED 891B", "UEF 201A", "UEH 556W")
-            val photoIds = listOf(2, 3, 4, 1)
-            val index = Random.nextInt(riderNames.size)
-            
-            val fareWithDiscount = (calculatedFare - activePromoDiscount.value).coerceAtLeast(1000.0)
-
-            val riderPhone = "+256 781 " + (100000 + Random.nextInt(899999))
-            val packageDetails = if (serviceType == "delivery") parcelDetails else null
-            val recipientNameVal = if (serviceType == "delivery") recipientName else null
-            val recipientPhoneVal = if (serviceType == "delivery") recipientPhone else null
-
-            val backendTrip = apiRepository.bookTrip(
-                pickupName = pickupPlace!!.name,
-                pickupLat = pickupPlace!!.latitude,
-                pickupLon = pickupPlace!!.longitude,
-                dropoffName = dropoffPlace!!.name,
-                dropoffLat = dropoffPlace!!.latitude,
-                dropoffLon = dropoffPlace!!.longitude,
-                distanceKm = googleDistanceKm ?: 0.0,
-                durationMins = googleDurationMins ?: 0,
-                fare = fareWithDiscount,
-                paymentMethod = selectedPaymentMethod
-            ).getOrNull()
-
-            if (backendTrip != null) {
-                currentSimulationTrip = Trip(
-                    id = backendTrip.id,
-                    type = serviceType,
-                    pickupName = pickupPlace!!.name,
-                    dropoffName = dropoffPlace!!.name,
-                    fare = fareWithDiscount,
-                    paymentMethod = selectedPaymentMethod,
-                    status = "matched",
-                    riderName = riderNames[index],
-                    riderPlate = plates[index],
-                    riderPhone = riderPhone,
-                    riderPhotoResId = photoIds[index],
-                    packageDetails = packageDetails,
-                    recipientName = recipientNameVal,
-                    recipientPhone = recipientPhoneVal
-                )
-                bookingMatchTripId = backendTrip.id.toLong()
-                currentRideRequest = com.example.data.RideRequest(
-                    id = backendTrip.id.toString(),
-                    riderId = auth.currentUser?.uid ?: "",
-                    riderName = userProfile.value?.name ?: "",
-                    riderPhone = userProfile.value?.phoneNumber ?: "",
-                    pickupName = pickupPlace!!.name,
-                    pickupLat = pickupPlace!!.latitude,
-                    pickupLng = pickupPlace!!.longitude,
-                    dropoffName = dropoffPlace!!.name,
-                    dropoffLat = dropoffPlace!!.latitude,
-                    dropoffLng = dropoffPlace!!.longitude,
-                    fare = fareWithDiscount,
-                    paymentMethod = selectedPaymentMethod,
-                    status = "matched"
-                )
-                addPostgresLog("✓ Trip booked via PostgreSQL: ${backendTrip.id}")
-            } else {
-                val localTrip = Trip(
-                    type = serviceType,
-                    pickupName = pickupPlace!!.name,
-                    dropoffName = dropoffPlace!!.name,
-                    fare = fareWithDiscount,
-                    paymentMethod = selectedPaymentMethod,
-                    status = "matched",
-                    riderName = riderNames[index],
-                    riderPlate = plates[index],
-                    riderPhone = riderPhone,
-                    riderPhotoResId = photoIds[index],
-                    packageDetails = packageDetails,
-                    recipientName = recipientNameVal,
-                    recipientPhone = recipientPhoneVal
-                )
-                val tripId = repository.addTrip(localTrip)
-                bookingMatchTripId = tripId
-                currentSimulationTrip = localTrip.copy(id = tripId.toInt())
-            }
-
-            // Shift screen to Rider En Route
-            simulationState = "enroute"
-
-            // Wallet hold at booking confirmation
-            if (selectedPaymentMethod == "Wallet") {
-                val holdRef = "HOLD-BODA-${bookingMatchTripId}"
-                repository.addTransaction(WalletTransaction(
-                    amount = fareWithDiscount,
-                    type = "payment",
-                    status = "pending",
-                    phoneNumber = userProfile.value?.phoneNumber ?: "",
-                    timestamp = System.currentTimeMillis(),
-                    provider = "Wallet",
-                    reference = holdRef
-                ))
-                refreshWalletBalance()
-            }
-            simulationCountdown = 8
-            fetchRouteForPoints(
-                com.google.android.gms.maps.model.LatLng(2.775, 32.295),
-                com.google.android.gms.maps.model.LatLng(pickupPlace!!.latitude, pickupPlace!!.longitude)
-            )
-            navigateTo(Screen.RiderEnRoute)
-            
-            // Countdown for rider's ETA
-            while (simulationCountdown > 0) {
-                delay(1000)
-                simulationCountdown--
-            }
-            
-            // Rider Arrives
-            simulationState = "arrived"
-            // Wait for user to tap "Start Ride" on the en route screen (simulates meeting rider and entering security OTP)
-        }
-    }
-
-        if (currentSimulationTrip == null) return
-        
-        simulationState = "active"
-        simulationCountdown = 10
-        simulationRouteProgress = 0f
-        fetchRouteForPoints(
-            com.google.android.gms.maps.model.LatLng(pickupPlace!!.latitude, pickupPlace!!.longitude),
-            com.google.android.gms.maps.model.LatLng(dropoffPlace!!.latitude, dropoffPlace!!.longitude)
-        )
-        navigateTo(Screen.ActiveTrip)
-        
-        simulationJob?.cancel()
-        simulationJob = viewModelScope.launch {
-            while (simulationCountdown > 0) {
-                delay(1000)
-                simulationCountdown--
-                simulationRouteProgress = (10 - simulationCountdown) / 10f
-            }
-            
-            // Trip completes
-            simulationState = "completed"
-            
-            val ongoing = currentSimulationTrip
-            if (ongoing != null) {
-                val updated = ongoing.copy(status = "completed")
-                repository.updateTrip(updated)
-                currentSimulationTrip = updated
-                onPassengerTripCompleted()
-            }
-            
-            navigateTo(Screen.PostTrip)
-        }
-    }
-
-        simulationJob?.cancel()
-        viewModelScope.launch {
-            val ongoing = currentSimulationTrip
-            if (ongoing != null) {
-                val updated = ongoing.copy(status = "canceled", comment = "Canceled: $reason")
-                repository.updateTrip(updated)
-                apiRepository.updateTripStatus(ongoing.id, "canceled")
-                
-                // Cancellation fee only if trip is actively in progress
-                if (simulationState == "active") {
-                    repository.addTransaction(WalletTransaction(
-                        amount = 1000.0,
-                        type = "payment",
-                        status = "completed",
-                        phoneNumber = userProfile.value?.phoneNumber ?: "+256 772 123456",
-                        timestamp = System.currentTimeMillis(),
-                        provider = "Wallet",
-                        reference = "BODA-CANCELLATION-FEE-${ongoing.id}"
-                    ))
-                    apiRepository.walletPay(1000.0, "Wallet")
-                    refreshWalletBalance()
-                }
-            }
-            simulationState = "idle"
-            currentSimulationTrip = null
-            navigateTo(Screen.Home)
-        }
-    }
-
-        viewModelScope.launch {
-            val ongoing = currentSimulationTrip
-            if (ongoing != null) {
-                val updated = ongoing.copy(rating = stars, comment = comment)
-                repository.updateTrip(updated)
-                apiRepository.updateTripStatus(ongoing.id, "completed", stars, comment)
-            }
-            
-            // Complete the pending wallet hold if payment method is Wallet
-            val finalFare = (calculatedFare - activePromoDiscount.value).coerceAtLeast(1000.0)
-            if (selectedPaymentMethod == "Wallet" && ongoing != null) {
-                repository.completePendingPayment("HOLD-BODA-${ongoing.id}")
-                apiRepository.walletPay(finalFare, "Wallet")
-            } else if (ongoing != null) {
-                // Mobile money payments — record at completion
-                repository.addTransaction(WalletTransaction(
-                    amount = finalFare,
-                    type = "payment",
-                    status = "completed",
-                    phoneNumber = userProfile.value?.phoneNumber ?: "+256 772 123456",
-                    timestamp = System.currentTimeMillis(),
-                    provider = selectedPaymentMethod,
-                    reference = "${selectedPaymentMethod}-MOM-RIDE-${ongoing.id}"
-                ))
-                apiRepository.walletPay(finalFare, selectedPaymentMethod)
-            }
-
-            refreshWalletBalance()
-
-            // Reset state
-            pickupPlace = null
-            dropoffPlace = null
-            pickupText = ""
-            dropoffText = ""
-            parcelDetails = ""
-            recipientName = ""
-            recipientPhone = ""
-            scheduledBookingDateTime = null
-            activePromoDiscount.value = 0.0
-            activePromoCode = null
-            googleDistanceKm = null
-            googleDurationMins = null
-            distanceMatrixError = null
-            currentSimulationTrip = null
-            simulationState = "idle"
-            osrmRoutePoints = emptyList()
-            
-            navigateTo(Screen.Home)
-        }
-    }
-
-    // Wallet actions
-
-
-    // Call Simulator actions
-    fun initiateCall(name: String, phone: String) {
-        callOverlayName = name
-        callOverlayNumber = phone
-        callOverlayState = "dialing"
-        callDurationSeconds = 0
-        showCallOverlay = true
-        
-        callTimerJob?.cancel()
-        callTimerJob = viewModelScope.launch {
-            // Outgoing ring sound simulation (3 seconds)
-            delay(3000)
-            callOverlayState = "active"
-            while (callOverlayState == "active") {
-                delay(1000)
-                callDurationSeconds++
-            }
-        }
-    }
-
-    fun endActiveCall() {
-        callOverlayState = "disconnected"
-        callTimerJob?.cancel()
-        viewModelScope.launch {
-            delay(1000)
-            showCallOverlay = false
-        }
-    }
-
-    // Rider Chat — real-time via WebSocket
-    fun openRiderChat() {
-        showRiderChatOverlay = true
-        val trip = currentSimulationTrip ?: return
-        currentChatTripId = trip.id
-
-        // Join the trip's chat channel
-        webSocketClient.joinTripChannel(trip.id.toString())
-
-        // Load chat history from backend
-        if (riderChatMessages.isEmpty()) {
-            viewModelScope.launch {
-                apiRepository.fetchChatHistory(trip.id).onSuccess { dtos ->
-                    if (dtos.isNotEmpty()) {
-                        riderChatMessages.clear()
-                        dtos.forEach { dto ->
-                            riderChatMessages.add(ChatMessage(
-                                sender = if (dto.sender_role == "rider") "user" else "agent",
-                                message = dto.message,
-                                timestamp = System.currentTimeMillis()
-                            ))
-                        }
-                    } else {
-                        val riderName = trip.riderName
-                        riderChatMessages.add(ChatMessage(
-                            sender = "agent",
-                            message = "Yello! I am your rider $riderName. I have received your request and am coming. Atye i yo dong!"
-                        ))
-                    }
-                }.onFailure {
-                    val riderName = trip.riderName
-                    riderChatMessages.add(ChatMessage(
-                        sender = "agent",
-                        message = "Yello! I am your rider $riderName. I have received your request and am coming. Atye i yo dong!"
-                    ))
-                }
-            }
-        }
-    }
-
-    fun sendRiderChatMessage() {
-        val text = riderChatInputText.trim()
-        if (text.isEmpty()) return
-        val trip = currentSimulationTrip ?: return
-        val uid = auth.currentUser?.uid ?: ""
-        val name = userProfile.value?.name ?: "Rider"
-
-        riderChatMessages.add(ChatMessage(sender = "user", message = text))
-        riderChatInputText = ""
-
-        // Send via WebSocket
-        webSocketClient.sendChatMessage(
-            tripId = trip.id,
-            senderUid = uid,
-            senderName = name,
-            senderRole = "rider",
-            message = text
-        )
-
-        // Stop typing indicator
-        webSocketClient.sendTypingIndicator(trip.id, uid, name, false)
-    }
-
-    fun onRiderChatInputChanged(text: String) {
-        riderChatInputText = text
-        val trip = currentSimulationTrip ?: return
-        val uid = auth.currentUser?.uid ?: ""
-        val name = userProfile.value?.name ?: "Rider"
-        webSocketClient.sendTypingIndicator(trip.id, uid, name, text.isNotEmpty())
-    }
-
-    fun addSavedPlace() {
-        if (newPlaceLabel.isEmpty() || newPlaceName.isEmpty()) return
-        viewModelScope.launch {
-            val lat = 2.7712 + Random.nextDouble(-0.03, 0.03)
-            val lng = 32.2985 + Random.nextDouble(-0.03, 0.03)
-            repository.addSavedPlace(SavedPlace(
-                label = newPlaceLabel,
-                name = newPlaceName,
-                latitude = lat,
-                longitude = lng
-            ))
-            apiRepository.savePlaceToBackend(newPlaceLabel, newPlaceName, lat, lng)
-            newPlaceLabel = ""
-            newPlaceName = ""
-            navigateBack()
-        }
-    }
-
-    fun removeSavedPlace(place: SavedPlace) {
-        viewModelScope.launch {
-            repository.removeSavedPlace(place)
-            apiRepository.deleteSavedPlaceFromBackend(place.id)
-        }
-    }
-
-    fun addEmergencyContact() {
-        if (newEmergencyName.isEmpty() || newEmergencyPhone.isEmpty()) return
-        viewModelScope.launch {
-            repository.addEmergencyContact(EmergencyContact(
-                name = newEmergencyName,
-                phoneNumber = newEmergencyPhone
-            ))
-            apiRepository.addEmergencyContactToBackend(newEmergencyName, newEmergencyPhone)
-            newEmergencyName = ""
-            newEmergencyPhone = ""
-            navigateBack()
-        }
-    }
-
-    fun removeEmergencyContact(contact: EmergencyContact) {
-        viewModelScope.launch {
-            repository.removeEmergencyContact(contact)
-            apiRepository.deleteEmergencyContactFromBackend(contact.id)
-        }
-    }
-
-    // Dispute trip
-        viewModelScope.launch {
-            val list = trips.first()
-            val match = list.find { it.id == tripId }
-            if (match != null) {
-                repository.updateTrip(match.copy(
-                    status = "disputed",
-                    disputeReason = reason,
-                    disputeEvidence = details
-                ))
-                apiRepository.updateTripStatus(tripId, "disputed", disputeReason = reason, disputeEvidence = details)
-            }
-        }
-    }
-
-    // Promo Code
-
-        viewModelScope.launch {
-            val myPhone = userProfile.value?.phoneNumber ?: ""
-            if (myPhone.isNotEmpty()) {
-                val pendingRef = repository.getReferralByPhone(myPhone)
-                if (pendingRef != null && pendingRef.status == "pending") {
-                    // Credit the referred user's wallet with the welcome bonus
-                    repository.addTransaction(WalletTransaction(
-                        amount = 3000.0,
-                        type = "topup",
-                        status = "completed",
-                        phoneNumber = myPhone,
-                        timestamp = System.currentTimeMillis(),
-                        provider = "Wallet",
-                        reference = "REF-WELCOME-${pendingRef.id}"
-                    ))
-
-                    // Complete referral on backend — credits the referrer's wallet there
-                    apiRepository.completeReferralOnBackend(pendingRef.id).onSuccess {
-                        val completedRef = pendingRef.copy(status = "completed", timestamp = System.currentTimeMillis())
-                        repository.addReferral(completedRef)
-                        activePromoMessage = "Welcome Bonus: UGX 3,000 credited to your wallet!"
-                    }.onFailure {
-                        // Still mark locally so we don't retry forever
-                        val completedRef = pendingRef.copy(status = "completed", timestamp = System.currentTimeMillis())
-                        repository.addReferral(completedRef)
-                        activePromoMessage = "Welcome Bonus credited. Referrer reward pending."
-                    }
-
-                    refreshWalletBalance()
-                }
-            }
-        }
-    }
-
-    fun simulateNewReferralSignUp() {
-        viewModelScope.launch {
-            val guluNames = listOf("Okeny Francis", "Auma Jackline", "Lanyero Sharon", "Okello Dennis", "Adong Kevin")
-            val name = guluNames.random()
-            val phoneStr = "+256 7" + Random.nextInt(70000000, 89999999).toString()
-            val myCode = userProfile.value?.referralCode ?: "GULU-BODA-256"
-            
-            repository.addReferral(Referral(
-                referredName = name,
-                referredPhone = phoneStr,
-                referralCodeUsed = myCode,
-                status = "pending",
-                timestamp = System.currentTimeMillis(),
-                rewardAmount = 3000.0
-            ))
-            
-            activePromoMessage = "Simulator: $name signed up using your code $myCode!"
-        }
-    }
-
-    fun simulateReferralFirstTripCompletion() {
-        viewModelScope.launch {
-            val list = referrals.value
-            val pending = list.firstOrNull { it.status == "pending" }
-            if (pending != null) {
-                val completed = pending.copy(status = "completed", timestamp = System.currentTimeMillis())
-                repository.addReferral(completed)
-                
-                // Top up current user (referrer) wallet
-                val myPhone = userProfile.value?.phoneNumber ?: "+256 772 123456"
-                repository.addTransaction(WalletTransaction(
-                    amount = 3000.0,
-                    type = "topup",
-                    status = "completed",
-                    phoneNumber = myPhone,
-                    timestamp = System.currentTimeMillis(),
-                    provider = "Wallet",
-                    reference = "REF-REWARD-${completed.id}"
-                ))
-
-                // Top up friend's wallet too
-                repository.addTransaction(WalletTransaction(
-                    amount = 3000.0,
-                    type = "topup",
-                    status = "completed",
-                    phoneNumber = pending.referredPhone,
-                    timestamp = System.currentTimeMillis(),
-                    provider = "Wallet",
-                    reference = "REF-WELCOME-${completed.id}"
-                ))
-                
-                activePromoMessage = "Success! ${pending.referredName} completed their first ride. You earned UGX 3,000!"
-            } else {
-                activePromoMessage = "No pending referrals available to simulate trips for."
-            }
-        }
-    }
-
-    // Help Center / Support Tickets
-    fun submitSupportTicket() {
-        if (newTicketSubject.isEmpty() || newTicketDetails.isEmpty()) {
-            errorMessage.value = "Please fill in both subject and details."
-            return
-        }
-        val newId = "ST-" + Random.nextInt(1000, 9999)
-        supportTickets.add(0, SupportTicket(newId, newTicketSubject, "Open", "2026-06-24"))
-        
-        activeChatMessages.add(ChatMessage("user", "Submitted Ticket: $newTicketSubject\n$newTicketDetails"))
-        activeChatMessages.add(ChatMessage("system", "Thank you for Gulu support ticket $newId. Our agents are investigating."))
-        
-        newTicketSubject = ""
-        newTicketDetails = ""
-        navigateTo(Screen.Support)
-    }
-
-    fun sendSupportChatMessage() {
-        if (newChatMessageText.isEmpty()) return
-        activeChatMessages.add(ChatMessage("user", newChatMessageText))
-        
-        val reply = when {
-            newChatMessageText.contains("price", ignoreCase = true) || newChatMessageText.contains("fare", ignoreCase = true) -> 
-                "Fares in Gulu are calculated based on distance. Rides start at 2,000 UGX and deliveries at 3,000 UGX."
-            newChatMessageText.contains("payment", ignoreCase = true) || newChatMessageText.contains("money", ignoreCase = true) ->
-                "We accept MTN MoMo, Airtel Money, and Boda Wallet balances."
-            else -> "Thank you. Our Gulu response officer will reply in 2-3 minutes. Call 0800 112 112 for urgent safety!"
-        }
-        
-        val currentText = newChatMessageText
-        newChatMessageText = ""
-        
-        viewModelScope.launch {
-            delay(1500)
-            activeChatMessages.add(ChatMessage("agent", reply))
-        }
-    }
-
     // --- POSTGRESQL WEBSOCKET REPLICATION SYNC PIPELINE & SMS OFFLINE FLOWS ---
-    private var postgresWebSocketJob: Job? = null
+    internal var postgresWebSocketJob: Job? = null
 
-
-
-    private fun addPostgresLog(message: String) {
+    internal fun addPostgresLog(message: String) {
         val timeStr = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
         postgresWebSocketLogs.add("[$timeStr] $message")
         if (postgresWebSocketLogs.size > 30) {
@@ -1882,89 +595,9 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // triggerOfflineSMSBookingFlow() → moved to ui/offline/OfflineViewModel.kt
 
-    fun triggerOfflineSMSBookingFlow() {
-        if (pickupPlace == null || dropoffPlace == null) return
-        
-        offlineSMSRecipientNumber = "8080"
-        val modeText = if (serviceType == "ride") "RIDE" else "DELIVERY"
-        offlineSMSMessageBody = "BODA-GULU REQUEST $modeText: FROM [${pickupPlace!!.label}] TO [${dropoffPlace!!.label}] ON BODA-SAFE ESCROW. FARE UGX ${calculatedFare.toInt()}. PAY BY $selectedPaymentMethod."
-        showOfflineSMSDialog = true
-    }
-
-    fun confirmOfflineSMSBooking() {
-        if (pickupPlace == null || dropoffPlace == null) return
-        
-        showOfflineSMSDialog = false
-        
-        // Match a random vetted rider
-        val riderNames = listOf("Okeny Patrick", "Adong Scovia", "Akena Christopher", "Kidega Moses")
-        val plates = listOf("UEG 412X", "UED 891B", "UEF 201A", "UEH 556W")
-        val photoIds = listOf(2, 3, 4, 1)
-        val index = Random.nextInt(riderNames.size)
-        
-        val fareWithDiscount = (calculatedFare - activePromoDiscount.value).coerceAtLeast(1000.0)
-        
-        val offlineTrip = Trip(
-            type = serviceType,
-            pickupName = pickupPlace!!.name,
-            dropoffName = dropoffPlace!!.name,
-            fare = fareWithDiscount,
-            paymentMethod = selectedPaymentMethod,
-            status = "offline_pending", // Offline pending sync status!
-            riderName = riderNames[index],
-            riderPlate = plates[index],
-            riderPhone = "+256 781 " + (100000 + Random.nextInt(899999)),
-            riderPhotoResId = photoIds[index],
-            packageDetails = if (serviceType == "delivery") parcelDetails else null,
-            recipientName = if (serviceType == "delivery") recipientName else null,
-            recipientPhone = if (serviceType == "delivery") recipientPhone else null
-        )
-        
-        viewModelScope.launch {
-            val tripId = repository.addTrip(offlineTrip)
-            bookingMatchTripId = tripId
-            currentSimulationTrip = offlineTrip.copy(id = tripId.toInt())
-            
-            // Shift screen to Rider En Route with offline simulation notice
-            simulationState = "enroute"
-            simulationCountdown = 8
-            navigateTo(Screen.RiderEnRoute)
-            
-            // local simulation loop
-            while (simulationCountdown > 0) {
-                delay(1000)
-                simulationCountdown--
-            }
-            simulationState = "trip_started"
-            navigateTo(Screen.ActiveTrip)
-        }
-    }
-
-    fun dispatchSOSSMS() {
-        val message = "EMERGENCY ALERT: I am on a Boda ride in Gulu and triggered SOS. Track me here: https://boda-gulu.ug/track/GULU-SECURE-SOS"
-
-        emergencySMSDispatchLogs.clear()
-        viewModelScope.launch {
-            // Post SOS alert to backend so admin dashboard sees it
-            apiRepository.postSosAlert(
-                latitude = currentLocation?.latitude,
-                longitude = currentLocation?.longitude,
-                tripId = currentSimulationTrip?.id,
-                description = message
-            ).onSuccess {
-                addPostgresLog("SOS alert sent to backend")
-            }.onFailure { e ->
-                addPostgresLog("SOS alert failed: ${e.message}")
-            }
-
-            // Dispatch SMS to emergency contacts
-            emergencyContacts.value.forEach { contact ->
-                emergencySMSDispatchLogs.add("SMS dispatched to ${contact.name} (${contact.phoneNumber}): \"$message\"")
-                delay(400)
-            }
-        }
-    }
+    // confirmOfflineSMSBooking(), dispatchSOSSMS() → moved to ui/offline/OfflineViewModel.kt
 
     override fun onCleared() {
         super.onCleared()
@@ -1985,13 +618,6 @@ class BodaViewModel(application: Application) : AndroidViewModel(application) {
             "387194086675-2c2v0c3rk9o7v49cm998gu48qgaqp6pn.apps.googleusercontent.com"
     }
 
-    /**
-     * Launches the Google account picker via Credential Manager, exchanges the
-     * Google ID token for a Firebase credential, signs in, then syncs the
-     * user profile to Room and the backend exactly like the OTP path does.
-     *
-     * @param context  Pass LocalContext.current from the composable.
-     */
 }
 
 data class SupportTicket(
