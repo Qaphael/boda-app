@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -214,7 +214,7 @@ fun GuluMapView(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(MaterialTheme.shapes.medium)
     ) {
         if (hasMapsApiKey) {
             val pickupLatLng = if (isDriverMode && driverPickupName != null) {
@@ -272,11 +272,11 @@ fun GuluMapView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Default.Info, contentDescription = null, tint = mapPrimaryColor, modifier = Modifier.size(12.dp))
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         "Set MAPS_API_KEY in Secrets Panel to unlock live Google Maps",
                         color = mapOnBgColor,
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -309,7 +309,7 @@ fun GuluCanvasMapView(
     Canvas(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(MaterialTheme.shapes.medium)
             .background(canvasBgColor)
     ) {
         val w = size.width
@@ -480,7 +480,7 @@ fun GuluCanvasMapView(
                     center = Offset(currentX, currentY)
                 )
                 drawCircle(
-                    color = ComposeColor.Black,
+                    color = Color.Black,
                     radius = 4.dp.toPx(),
                     center = Offset(currentX, currentY)
                 )

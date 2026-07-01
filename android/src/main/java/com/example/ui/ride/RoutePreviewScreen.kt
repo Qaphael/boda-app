@@ -4,7 +4,6 @@ import com.example.ui.BodaViewModel
 import com.example.ui.offline.triggerOfflineSMSBookingFlow
 import com.example.ui.home.navigateBack
 
-import com.example.ui.components.Sp
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaTextField
 import com.example.ui.components.BodaCard
@@ -57,7 +56,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(Sp.lg)
+                .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -65,11 +64,11 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             IconButton(onClick = { viewModel.navigateBack() }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
-            Spacer(modifier = Modifier.width(Sp.sm))
+            Spacer(modifier = Modifier.width(8.dp))
             Text("Confirm Ride Booking", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Vector Map showing route preview
         Box(
@@ -86,33 +85,33 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             )
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Pickup / Dropoff nodes summary
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(Sp.md)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary))
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(viewModel.pickupPlace?.name ?: "", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                 }
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(MaterialTheme.colorScheme.error))
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(viewModel.dropoffPlace?.name ?: "", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // PARCEL FORM IF SERVICE TYPE IS DELIVERY
         if (viewModel.serviceType == "delivery") {
             BodaCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(Sp.md)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text("Delivery Package Details", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
                     BodaTextField(
                         value = viewModel.parcelDetails,
                         onValueChange = { viewModel.parcelDetails = it },
@@ -120,7 +119,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                         placeholder = "What is in the package? (e.g. food, documents)",
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row {
                         BodaTextField(
                             value = viewModel.recipientName,
@@ -129,7 +128,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                             placeholder = "Recipient Name",
                             modifier = Modifier.weight(1f)
                         )
-                        Spacer(modifier = Modifier.width(Sp.sm))
+                        Spacer(modifier = Modifier.width(8.dp))
                         BodaTextField(
                             value = viewModel.recipientPhone,
                             onValueChange = { viewModel.recipientPhone = it },
@@ -141,7 +140,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(Sp.sm))
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         // Schedule ride panel
@@ -152,13 +151,13 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                     .clickable {
                         viewModel.scheduledBookingDateTime = "Today, 18:30"
                     }
-                    .padding(Sp.md),
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text("Schedule for Later", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Text(viewModel.scheduledBookingDateTime ?: "Leave now (Immediate booking)", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
@@ -168,13 +167,13 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // PAYMENT METHD SELECTOR: MTN / Airtel / Wallet
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(Sp.md)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text("Select MTN / Airtel / Wallet Payment", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 val walletSufficient = walletBalance >= viewModel.calculatedFare - viewModel.activePromoDiscount.value
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     listOf("MTN" to "MTN MoMo", "Airtel" to "Airtel", "Wallet" to "Boda Wallet").forEach { (method, label) ->
@@ -207,7 +206,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Promo Code Row
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -220,7 +219,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            Spacer(modifier = Modifier.width(Sp.sm))
+            Spacer(modifier = Modifier.width(8.dp))
             BodaButton(
                 text = "Apply",
                 onClick = { viewModel.validatePromoViaBackend(viewModel.promoCodeInput) },
@@ -231,7 +230,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             Text(viewModel.activePromoMessage, color = MaterialTheme.colorScheme.tertiary, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // DETAILED ETA & METRICS DASHBOARD
         val arrivalTimeStr = remember(viewModel.calculatedTimeMinutes) {
@@ -241,7 +240,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
         }
 
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(Sp.md)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -295,19 +294,19 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // FARE ESTIMATE — Hero element with breakdown
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(Sp.md), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("TOTAL FARE", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                Spacer(Modifier.height(Sp.xs))
+                Spacer(Modifier.height(4.dp))
                 val discounted = (viewModel.calculatedFare - viewModel.activePromoDiscount.value).coerceAtLeast(1000.0)
                 Text("UGX ${discounted.toInt()}",
                     color = MaterialTheme.colorScheme.primary, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(Sp.sm))
-                Row(horizontalArrangement = Arrangement.spacedBy(Sp.md)) {
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text("${viewModel.calculatedDistanceKm.let { "%.1f".format(it) }} km",
                         color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                     Text("·", color = MaterialTheme.colorScheme.surfaceVariant, fontSize = 11.sp)
@@ -323,7 +322,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                         Text(lbl, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         Text(val_, color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
                     }
-                    Spacer(Modifier.height(Sp.xs))
+                    Spacer(Modifier.height(4.dp))
                 }
                 if (viewModel.activePromoDiscount.value > 0) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -335,7 +334,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // CONFIRM CTA
         val walletSufficient = walletBalance >= viewModel.calculatedFare - viewModel.activePromoDiscount.value

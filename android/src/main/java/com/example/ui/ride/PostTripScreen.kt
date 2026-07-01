@@ -4,7 +4,6 @@ import com.example.ui.BodaViewModel
 import com.example.ui.Screen
 import com.example.ui.home.navigateTo
 
-import com.example.ui.components.Sp
 import com.example.ui.util.BodaLang
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaSecondaryButton
@@ -43,27 +42,27 @@ fun PostTripScreen(viewModel: BodaViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(Sp.lg)
+            .padding(24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(64.dp))
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(BodaLang.get(viewModel.appLanguage, "trip_completed"), color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(Sp.xs))
+        Spacer(modifier = Modifier.height(4.dp))
         Text("Your ride with ${trip.riderName} is finished.", color = MaterialTheme.colorScheme.outline, fontSize = 14.sp)
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Rider Card
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Row(modifier = Modifier.padding(Sp.md), verticalAlignment = Alignment.CenterVertically) {
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center) {
                     Text(trip.riderName.first().uppercase(), color = MaterialTheme.colorScheme.primary,
                         fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.width(Sp.md))
+                Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text(trip.riderPlate, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
@@ -76,30 +75,30 @@ fun PostTripScreen(viewModel: BodaViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Receipt Details
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(Sp.md)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text("Official Boda Receipt", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Text("Total Charged Amount", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                     Text("UGX ${trip.fare.toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Text("Payment Method", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
                     Text(trip.paymentMethod, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Text("Trip ID Reference", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
                     Text("BODA-TRIP-${trip.id}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 BodaSecondaryButton(
                     text = "Download PDF Receipt",
                     onClick = { /* Simulate Receipt Download */ },
@@ -109,11 +108,11 @@ fun PostTripScreen(viewModel: BodaViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Stars Rating Form
         Text(BodaLang.get(viewModel.appLanguage, "rate_rider"), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
         Row {
             for (i in 1..5) {
                 IconButton(onClick = { starRating = i }) {
@@ -127,7 +126,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = feedbackComment,
@@ -144,12 +143,12 @@ fun PostTripScreen(viewModel: BodaViewModel) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(Sp.lg))
+        Spacer(modifier = Modifier.height(24.dp))
 
         if (!paymentConfirmed) {
             if (processingPayment) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text("Confirming MTN/Airtel Mobile Money escrow transfer...", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
             } else {
                 BodaButton(
@@ -169,7 +168,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
                 )
             }
         } else {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Sp.sm)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BodaSecondaryButton(
                     text = "Skip",
                     onClick = {

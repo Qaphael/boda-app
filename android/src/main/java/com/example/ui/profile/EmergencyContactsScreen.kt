@@ -34,7 +34,6 @@ import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaTextField
 import androidx.compose.material3.MaterialTheme
-import com.example.ui.components.Sp
 
 // --- SCREEN 13: EMERGENCY CONTACTS (SAFETY PATHS) ---
 @Composable
@@ -49,21 +48,21 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
             IconButton(onClick = { viewModel.navigateBack() }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
-            Spacer(modifier = Modifier.width(Sp.sm))
+            Spacer(modifier = Modifier.width(8.dp))
             Text("Emergency Contacts Linkage", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
         Text("Link up to 3 trusted contacts. We will SMS them a live Gulu tracking map link whenever you trigger the 1-Tap SOS.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Contact fields insertion
         if (contacts.size < 3) {
             BodaCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("Add Emergency Contact Link", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
                     BodaTextField(
                         value = viewModel.newEmergencyName,
                         onValueChange = { viewModel.newEmergencyName = it },
@@ -71,7 +70,7 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
                         placeholder = "e.g. Uncle Benson",
                         testTag = "emergency_contact_name_input"
                     )
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
                     BodaTextField(
                         value = viewModel.newEmergencyPhone,
                         onValueChange = { viewModel.newEmergencyPhone = it },
@@ -80,7 +79,7 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         testTag = "emergency_contact_phone_input"
                     )
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
                     BodaButton(
                         text = "Add Contact Now",
                         onClick = { viewModel.addEmergencyContact() },
@@ -90,7 +89,7 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn {
             items(contacts) { contact ->

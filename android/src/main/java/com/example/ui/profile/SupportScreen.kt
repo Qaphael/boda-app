@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
 import com.example.ui.components.BodaCard
 import androidx.compose.material3.MaterialTheme
-import com.example.ui.components.Sp
 
 // --- SCREEN 15: SUPPORT CHAT & FAQ ENGINE ---
 @Composable
@@ -66,7 +65,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         if (inChatMode) {
             // Live agent chat messages list
@@ -107,7 +106,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(Sp.sm))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Message text input bar
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -125,7 +124,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                     ),
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(Sp.sm))
+                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = { viewModel.sendSupportChatMessage() }) {
                     Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.primary)
                 }
@@ -147,7 +146,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(Sp.sm))
+            Spacer(modifier = Modifier.height(8.dp))
 
             val faqs = listOf(
                 "How is my fare calculated in Gulu?" to "Boda Gulu rides start with a base of 2,000 UGX, plus 1,000 UGX per kilometer. Deliveries start at 3,000 UGX.",
@@ -165,7 +164,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(q, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(Sp.xs))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(a, color = MaterialTheme.colorScheme.outline, fontSize = 11.sp, lineHeight = 16.sp)
                         }
                     }

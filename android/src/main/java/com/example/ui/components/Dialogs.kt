@@ -3,7 +3,6 @@ package com.example.ui.components
 import android.Manifest
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Warning
@@ -12,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,52 +34,52 @@ fun WelcomeBonusDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
+                .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(28.dp)
+                .padding(24.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("\uD83C\uDF89", fontSize = 48.sp)
+                Text("\uD83C\uDF89", style = MaterialTheme.typography.displayLarge)
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     "Welcome to Boda Gulu, ${userName.substringBefore(" ").ifEmpty { "Rider" }}!",
                     color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp, textAlign = TextAlign.Center
+                    style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 if (usedReferralCode) {
                     Text(
                         "Your referral bonus of UGX 3,000 will be added to your wallet automatically after your first completed ride.",
-                        color = MaterialTheme.colorScheme.outline, fontSize = 13.sp,
-                        textAlign = TextAlign.Center, lineHeight = 20.sp
+                        color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center, lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                     )
                 } else {
                     Text(
                         "Your account is ready. Share your referral code with friends and earn UGX 3,000 for every friend who completes their first ride.",
-                        color = MaterialTheme.colorScheme.outline, fontSize = 13.sp,
-                        textAlign = TextAlign.Center, lineHeight = 20.sp
+                        color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center, lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                     )
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-                        .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 20.dp, vertical = 10.dp)
+                        .border(1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)
+                        .padding(horizontal = 24.dp, vertical = 10.dp)
                 ) {
                     Text(
                         if (usedReferralCode) "UGX 3,000 bonus incoming \uD83C\uDFCD\uFE0F"
                         else "Earn UGX 3,000 per referral \uD83C\uDFCD\uFE0F",
-                        color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp
+                        color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge
                     )
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 BodaButton(text = "Book My First Ride", onClick = onDismiss, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(10.dp))
                 if (!usedReferralCode) {
                     TextButton(onClick = onGoToReferrals) {
-                        Text("Share my referral code", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
+                        Text("Share my referral code", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -114,7 +112,7 @@ fun NotificationPermissionNudge() {
             text = {
                 Text(
                     "Get notified the moment your boda is 2 minutes away — so you're ready at the pickup point.",
-                    color = MaterialTheme.colorScheme.outline, fontSize = 14.sp
+                    color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodyLarge
                 )
             },
             confirmButton = {
@@ -144,7 +142,7 @@ fun SystemOverlayDialog(title: String, desc: String, cta: String, onDismiss: () 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ComposeColor.Black.copy(alpha = 0.8f))
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.8f))
             .clickable(enabled = false) {},
         contentAlignment = Alignment.Center
     ) {
@@ -156,11 +154,11 @@ fun SystemOverlayDialog(title: String, desc: String, cta: String, onDismiss: () 
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(48.dp))
-                Spacer(modifier = Modifier.height(Sp.md))
-                Text(title, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(Sp.sm))
-                Text(desc, color = MaterialTheme.colorScheme.outline, fontSize = 14.sp, textAlign = TextAlign.Center, lineHeight = 18.sp)
-                Spacer(modifier = Modifier.height(Sp.lg))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(title, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(desc, color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(24.dp))
                 BodaButton(
                     text = cta,
                     onClick = { onDismiss() },
@@ -175,18 +173,17 @@ fun SystemOverlayDialog(title: String, desc: String, cta: String, onDismiss: () 
 fun MoMoPinDialog(viewModel: BodaViewModel) {
     val isMtn = viewModel.momoPromptProvider.contains("MTN", ignoreCase = true)
     val brandColor = if (isMtn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-    val brandTextColor = if (isMtn) MaterialTheme.colorScheme.onPrimary else ComposeColor.White
+    val brandTextColor = if (isMtn) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onError
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ComposeColor.Black.copy(alpha = 0.85f))
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.85f))
             .padding(24.dp)
             .clickable(enabled = false) {},
         contentAlignment = Alignment.Center
     ) {
         BodaCard(
-            border = BorderStroke(2.dp, brandColor),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
@@ -194,7 +191,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(brandColor)
-                        .padding(horizontal = 20.dp, vertical = 14.dp)
+                        .padding(horizontal = 24.dp, vertical = 14.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -205,7 +202,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                             text = viewModel.momoPromptProvider.uppercase(),
                             color = brandTextColor,
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = 18.sp,
+                            style = MaterialTheme.typography.headlineMedium,
                             letterSpacing = 1.sp
                         )
                         Icon(
@@ -217,34 +214,33 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                     }
                 }
 
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(24.dp)) {
                     Text(
                         text = "GULU SECURE ESCROW TRANSACTION",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelMedium,
                         letterSpacing = 0.5.sp
                     )
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Authorize payment of UGX ${viewModel.momoPromptAmount.toInt()} to Boda Gulu Wallet?",
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold
                     )
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Target Number: ${viewModel.momoPromptPhone}",
                         color = MaterialTheme.colorScheme.outline,
-                        fontSize = 12.sp
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
-                    Spacer(modifier = Modifier.height(Sp.md))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(MaterialTheme.shapes.small)
                             .background(MaterialTheme.colorScheme.background)
                             .padding(vertical = 12.dp),
                         contentAlignment = Alignment.Center
@@ -252,7 +248,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                         Text(
                             text = if (viewModel.momoPinInput.isEmpty()) "Enter PIN" else "• ".repeat(viewModel.momoPinInput.length),
                             color = if (viewModel.momoPinInput.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else brandColor,
-                            fontSize = 18.sp,
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp
                         )
@@ -262,13 +258,13 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                         Text(
                             text = "Invalid PIN format. Must be 4-5 digits.",
                             color = MaterialTheme.colorScheme.error,
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 6.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(Sp.md))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -290,7 +286,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                                         modifier = Modifier
                                             .weight(1f)
                                             .height(44.dp)
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .clip(MaterialTheme.shapes.small)
                                             .background(MaterialTheme.colorScheme.surfaceVariant)
                                             .clickable {
                                                 when (key) {
@@ -312,9 +308,9 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                                     ) {
                                         Text(
                                             text = key,
-                                            color = if (key in listOf("Clear", "Delete")) MaterialTheme.colorScheme.outline else ComposeColor.White,
+                                            color = if (key in listOf("Clear", "Delete")) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.onSurface,
                                             fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp
+                                            style = MaterialTheme.typography.bodyLarge
                                         )
                                     }
                                 }
@@ -322,11 +318,11 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(Sp.lg))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         BodaSecondaryButton(
                             text = "Cancel",
@@ -337,8 +333,6 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                         BodaButton(
                             text = "Approve",
                             onClick = { viewModel.confirmWalletTopupWithPin() },
-                            containerColor = brandColor,
-                            contentColor = brandTextColor,
                             modifier = Modifier.weight(1.2f)
                         )
                     }

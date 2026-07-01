@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.ui.BodaViewModel
-import com.example.ui.components.Sp
 import com.example.ui.util.BodaLang
 
 @Composable
@@ -47,7 +46,7 @@ fun SplashScreen(viewModel: BodaViewModel) {
                     .clip(RoundedCornerShape(24.dp)),
                 contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.height(Sp.md))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 "Boda Gulu",
                 color = MaterialTheme.colorScheme.primary,
@@ -55,14 +54,14 @@ fun SplashScreen(viewModel: BodaViewModel) {
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 1.sp
             )
-            Spacer(modifier = Modifier.height(Sp.xs))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 BodaLang.get(viewModel.appLanguage, "splash_tagline"),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             )
-            Spacer(modifier = Modifier.height(Sp.xxl))
+            Spacer(modifier = Modifier.height(48.dp))
             if (!authChecked) {
                 CircularProgressIndicator(
                     color = MaterialTheme.colorScheme.primary,

@@ -5,7 +5,6 @@ import com.example.ui.Screen
 import com.example.ui.home.navigateTo
 import com.example.ui.home.navigateBack
 
-import com.example.ui.components.Sp
 import com.example.ui.components.BodaTextField
 import com.example.ui.components.BodaSecondaryButton
 import com.example.data.SavedPlace
@@ -71,17 +70,17 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(Sp.lg)
+            .padding(24.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { viewModel.navigateBack() }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
-            Spacer(modifier = Modifier.width(Sp.sm))
+            Spacer(modifier = Modifier.width(8.dp))
             Text("Select Locations", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Pickup query
         BodaTextField(
@@ -109,7 +108,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 .onFocusChanged { if (it.isFocused) activeFocus = "pickup" }
         )
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Dropoff query
         BodaTextField(
@@ -137,7 +136,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 .onFocusChanged { if (it.isFocused) activeFocus = "dropoff" }
         )
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // --- NEW OPTION: CURRENT LOCATION ---
         val loc = viewModel.currentLocation
@@ -180,7 +179,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
-            Spacer(modifier = Modifier.width(Sp.sm))
+            Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text("Use Current Location", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Text(
@@ -191,7 +190,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -210,11 +209,11 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                     modifier = Modifier.size(14.dp),
                     strokeWidth = 2.dp
                 )
-                Spacer(modifier = Modifier.width(Sp.sm))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text("Searching map...", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp)
             }
         }
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn(modifier = Modifier.weight(1f)) {
             if (filteredPlaces.isEmpty()) {
@@ -226,7 +225,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text("No matching Gulu locations found", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(Sp.sm))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text("Try typing Lacor, Market, Pece, or University", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                 }
@@ -259,7 +258,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                             contentDescription = null,
                             tint = if (isSaved) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(Sp.sm))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(place.label, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Text(place.name, color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
@@ -270,7 +269,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Sim map pin selection option
         BodaSecondaryButton(

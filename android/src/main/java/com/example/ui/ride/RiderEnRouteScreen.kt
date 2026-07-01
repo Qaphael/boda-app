@@ -4,9 +4,9 @@ import com.example.ui.BodaViewModel
 import com.example.ui.chat.initiateCall
 import com.example.ui.chat.openRiderChat
 
-import com.example.ui.components.Sp
 import com.example.ui.util.BodaLang
 import com.example.ui.components.BodaButton
+import com.example.ui.components.BodaErrorButton
 import com.example.ui.components.BodaSecondaryButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.GuluMapView
@@ -38,7 +38,7 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(Sp.lg)
+            .padding(24.dp)
     ) {
         Text(BodaLang.get(viewModel.appLanguage, "rider_enroute"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Text(
@@ -48,7 +48,7 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
             fontSize = 24.sp
         )
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Gulu map tracking backdrop
         Box(
@@ -68,12 +68,12 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
             )
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Rider profile details & security verification code card
         BodaCard(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier.padding(Sp.md),
+                modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -85,7 +85,7 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
                 ) {
                     Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                 }
-                Spacer(modifier = Modifier.width(Sp.sm))
+                Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Text("Bike Plate: ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -105,7 +105,7 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // CALL, MESSAGE, SHARE LOCATION & SOS BUTTONS
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -115,25 +115,23 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
                 icon = Icons.Default.Call,
                 modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.width(Sp.sm))
+            Spacer(modifier = Modifier.width(8.dp))
             BodaSecondaryButton(
                 text = "Message",
                 onClick = { viewModel.openRiderChat() },
                 icon = Icons.Default.Message,
                 modifier = Modifier.weight(1f)
             )
-            Spacer(modifier = Modifier.width(Sp.sm))
-            BodaButton(
+            Spacer(modifier = Modifier.width(8.dp))
+            BodaErrorButton(
                 text = "SOS",
                 onClick = { displaySafetySheet = true },
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
                 icon = Icons.Default.Warning,
                 modifier = Modifier.weight(1f)
             )
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // ACTIVATE ON RIDER ARRIVAL BUTTON
         if (viewModel.simulationCountdown == 0) {
@@ -144,11 +142,9 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
                 testTag = "start_ride_btn"
             )
         } else {
-            BodaButton(
+            BodaErrorButton(
                 text = "Cancel Booking",
                 onClick = { viewModel.cancelActiveTrip("Rider taking too long") },
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.fillMaxWidth()
             )
         }

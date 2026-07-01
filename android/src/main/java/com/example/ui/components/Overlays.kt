@@ -27,11 +27,11 @@ fun OfflineBanner(onClose: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.CloudOff, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-            Spacer(modifier = Modifier.width(Sp.sm))
-            Text("Connection lost. Operating in Gulu Offline Cache Mode.", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Icon(Icons.Default.CloudOff, contentDescription = null, tint = MaterialTheme.colorScheme.onError)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Connection lost. Operating in Gulu Offline Cache Mode.", color = MaterialTheme.colorScheme.onError, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         }
-        Text("Dismiss", color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onClose() })
+        Text("Dismiss", color = MaterialTheme.colorScheme.onError, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onClose() })
     }
 }
 
@@ -53,17 +53,16 @@ fun CallOverlay(viewModel: BodaViewModel) {
                 .fillMaxSize()
                 .padding(32.dp)
         ) {
-            Spacer(modifier = Modifier.height(Sp.xxl))
+            Spacer(modifier = Modifier.height(48.dp))
 
             Text(
                 text = "SECURE GULU BODA-WATCH CONNECT",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelMedium,
                 letterSpacing = 1.sp
             )
 
-            Spacer(modifier = Modifier.height(Sp.xxl))
+            Spacer(modifier = Modifier.height(48.dp))
 
             Box(
                 contentAlignment = Alignment.Center,
@@ -97,24 +96,23 @@ fun CallOverlay(viewModel: BodaViewModel) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(Sp.lg))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = viewModel.callOverlayName,
                 color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 24.sp
+                style = MaterialTheme.typography.headlineMedium
             )
 
-            Spacer(modifier = Modifier.height(Sp.sm))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = viewModel.callOverlayNumber,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp
+                style = MaterialTheme.typography.bodyLarge
             )
 
-            Spacer(modifier = Modifier.height(Sp.md))
+            Spacer(modifier = Modifier.height(16.dp))
 
             val displayStatus = when (viewModel.callOverlayState) {
                 "dialing" -> "Dialing Gulu Boda channel..."
@@ -129,8 +127,8 @@ fun CallOverlay(viewModel: BodaViewModel) {
             Text(
                 text = displayStatus,
                 color = if (viewModel.callOverlayState == "active") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -156,8 +154,8 @@ fun CallOverlay(viewModel: BodaViewModel) {
                             modifier = Modifier.size(20.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("Mute", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Mute", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -176,12 +174,12 @@ fun CallOverlay(viewModel: BodaViewModel) {
                             modifier = Modifier.size(20.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("Speaker", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Speaker", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                 }
             }
 
-            Spacer(modifier = Modifier.height(Sp.xxl))
+            Spacer(modifier = Modifier.height(48.dp))
 
             Box(
                 modifier = Modifier
@@ -194,12 +192,12 @@ fun CallOverlay(viewModel: BodaViewModel) {
                 Icon(
                     imageVector = Icons.Default.CallEnd,
                     contentDescription = "End Call",
-                    tint = MaterialTheme.colorScheme.onBackground,
+                    tint = MaterialTheme.colorScheme.onError,
                     modifier = Modifier.size(28.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(Sp.xxl))
+            Spacer(modifier = Modifier.height(48.dp))
         }
     }
 }

@@ -40,13 +40,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
-import com.example.ui.components.Sp
 
 @Composable
 fun RiderChatOverlay(viewModel: BodaViewModel) {
@@ -90,7 +88,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                             ) {
                                 Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
                             }
-                            Spacer(modifier = Modifier.width(Sp.sm))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text("Vetted Rider • ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
@@ -192,7 +190,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                             fontSize = 11.sp,
                             fontStyle = FontStyle.Italic
                         )
-                        Spacer(modifier = Modifier.width(Sp.xs))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text("...", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -222,7 +220,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                             .weight(1f)
                             .heightIn(max = 48.dp)
                     )
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Box(
                         modifier = Modifier
                             .size(38.dp)

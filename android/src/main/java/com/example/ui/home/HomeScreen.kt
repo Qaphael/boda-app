@@ -13,7 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,6 +22,7 @@ import com.example.ui.BodaViewModel
 import com.example.ui.Screen
 import com.example.ui.driver.*
 import com.example.ui.components.*
+import com.example.ui.util.BodaLang
 
 @Composable
 fun HomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) {
@@ -119,7 +120,7 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                         .clip(RoundedCornerShape(2.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     modifier = Modifier
@@ -133,14 +134,14 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (isRide) MaterialTheme.colorScheme.primary else ComposeColor.Transparent)
+                            .background(if (isRide) MaterialTheme.colorScheme.primary else Color.Transparent)
                             .clickable { viewModel.serviceType = "ride" }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.TwoWheeler, contentDescription = null, tint = if (isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(Sp.sm))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(BodaLang.get(viewModel.appLanguage, "ride"), color = if (isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                     }
@@ -148,20 +149,20 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (!isRide) MaterialTheme.colorScheme.primary else ComposeColor.Transparent)
+                            .background(if (!isRide) MaterialTheme.colorScheme.primary else Color.Transparent)
                             .clickable { viewModel.serviceType = "delivery" }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.LocalShipping, contentDescription = null, tint = if (!isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(Sp.sm))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(BodaLang.get(viewModel.appLanguage, "delivery"), color = if (!isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(Sp.md))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier
@@ -173,14 +174,14 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(BodaLang.get(viewModel.appLanguage, "pickup"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Text(viewModel.pickupPlace?.name ?: "Set current Gulu pickup...", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, maxLines = 1)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
                     modifier = Modifier
@@ -192,14 +193,14 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(BodaLang.get(viewModel.appLanguage, "dropoff"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Text(viewModel.dropoffPlace?.name ?: BodaLang.get(viewModel.appLanguage, "where_to"), color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, maxLines = 1)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(Sp.md))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 if (savedPlaces.isNotEmpty()) {
                     LazyRow(
@@ -227,7 +228,7 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                 }
 
                 if (viewModel.pickupPlace != null && viewModel.dropoffPlace != null) {
-                    Spacer(modifier = Modifier.height(Sp.md))
+                    Spacer(modifier = Modifier.height(16.dp))
                     BodaButton(
                         text = "Calculate Boda Fare Estimate",
                         onClick = { viewModel.navigateTo(Screen.RoutePreview) },
@@ -319,7 +320,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                         .clip(RoundedCornerShape(2.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 )
-                Spacer(modifier = Modifier.height(Sp.md))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -343,7 +344,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(Sp.md))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 if (activeTrip != null) {
                     Card(
@@ -352,7 +353,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("Active Trip", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(Sp.sm))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text("From: ${activeTrip.pickupName}", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
                             Text("To: ${activeTrip.dropoffName}", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
                             Text("Fare: UGX ${activeTrip.fare.toInt()}", color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -365,10 +366,10 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("New Ride Request", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(Sp.sm))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Text("${incomingReq.pickupName} → ${incomingReq.dropoffName}", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
                             Text("Fare: UGX ${incomingReq.fare.toInt()}", color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(Sp.sm))
+                            Spacer(modifier = Modifier.height(8.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 BodaButton(
                                     text = "Accept",

@@ -33,7 +33,6 @@ import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaTextField
 import androidx.compose.material3.MaterialTheme
-import com.example.ui.components.Sp
 
 // --- SCREEN 14: SAVED PLACES MANAGEMENT ---
 @Composable
@@ -48,16 +47,16 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
             IconButton(onClick = { viewModel.navigateBack() }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
-            Spacer(modifier = Modifier.width(Sp.sm))
+            Spacer(modifier = Modifier.width(8.dp))
             Text("Saved Places", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         BodaCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text("Add New Location Bookmark", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 BodaTextField(
                     value = viewModel.newPlaceLabel,
                     onValueChange = { viewModel.newPlaceLabel = it },
@@ -65,7 +64,7 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
                     placeholder = "e.g. Market, Church, Gulu School",
                     testTag = "new_place_label_input"
                 )
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 BodaTextField(
                     value = viewModel.newPlaceName,
                     onValueChange = { viewModel.newPlaceName = it },
@@ -73,7 +72,7 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
                     placeholder = "Full Address / Landmarks in Gulu",
                     testTag = "new_place_address_input"
                 )
-                Spacer(modifier = Modifier.height(Sp.sm))
+                Spacer(modifier = Modifier.height(8.dp))
                 BodaButton(
                     text = "Bookmark Place Now",
                     onClick = { viewModel.addSavedPlace() },
@@ -82,7 +81,7 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.md))
+        Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn {
             items(savedPlaces) { place ->
@@ -95,7 +94,7 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
                 ) {
                     Row {
                         Icon(Icons.Default.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(Sp.sm))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(place.label, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Text(place.name, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)

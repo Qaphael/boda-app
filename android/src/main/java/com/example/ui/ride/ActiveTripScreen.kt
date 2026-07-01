@@ -3,9 +3,9 @@ package com.example.ui.ride
 import com.example.ui.BodaViewModel
 import com.example.ui.offline.dispatchSOSSMS
 
-import com.example.ui.components.Sp
 import com.example.ui.util.BodaLang
 import com.example.ui.components.BodaButton
+import com.example.ui.components.BodaErrorButton
 import com.example.ui.components.BodaSecondaryButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.GuluMapView
@@ -68,7 +68,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(Sp.lg)
+            .padding(24.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -89,17 +89,16 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // NAVIGATION TURN-BY-TURN CARD (TOP BAR OF MAP OVERLAY)
         BodaCard(
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
         ) {
             Row(
-                modifier = Modifier.padding(Sp.md),
+                modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -116,7 +115,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                         modifier = Modifier.size(18.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(Sp.sm))
+                Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text("LIVE BODA NAVIGATION INSTRUCTION", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Text(
@@ -132,7 +131,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
         // Expandable navigation steps list
         if (viewModel.navigationSteps.isNotEmpty()) {
             BodaCard(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                Column(modifier = Modifier.padding(Sp.md)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,7 +147,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                         )
                     }
                     if (showAllSteps) {
-                        Spacer(modifier = Modifier.height(Sp.sm))
+                        Spacer(modifier = Modifier.height(8.dp))
                         val currentStepIdx = (viewModel.simulationRouteProgress * viewModel.navigationSteps.size).toInt()
                             .coerceIn(0, viewModel.navigationSteps.size - 1)
                         viewModel.navigationSteps.forEachIndexed { idx, step ->
@@ -166,7 +165,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                 ) {
                                     Text("${idx + 1}", color = if (isCurrent) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outline, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
-                                Spacer(modifier = Modifier.width(Sp.sm))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = step.instruction,
@@ -204,20 +203,20 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
             )
         }
 
-        Spacer(modifier = Modifier.height(Sp.sm))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // INSTRUMENTATION PANEL: SPEEDOMETER & SAFETY SHIELD STATUS
         BodaCard(
             modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
         ) {
             Row(
-                modifier = Modifier.padding(Sp.md),
+                modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Speed, contentDescription = "Speed", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(24.dp))
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text("SIMULATED SPEED", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         val speed = getSimulatedSpeed(viewModel.simulationRouteProgress)
@@ -237,7 +236,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.tertiary)
                     )
-                    Spacer(modifier = Modifier.width(Sp.sm))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Column(horizontalAlignment = Alignment.End) {
                         Text("BODA-WATCH STATUS", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Text("Speed Safe", color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -258,11 +257,9 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                 modifier = Modifier.weight(1f)
             )
 
-            BodaButton(
+            BodaErrorButton(
                 text = "Gulu Safety & SOS",
                 onClick = { displaySafetySheet = true },
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
                 icon = Icons.Default.Security,
                 modifier = Modifier.weight(1.5f)
             )
@@ -290,7 +287,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else androidx.compose.ui.graphics.Color.Transparent)
-                                    .padding(Sp.sm)
+                                    .padding(8.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -306,7 +303,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
-                                Spacer(modifier = Modifier.width(Sp.sm))
+                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(st, color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, modifier = Modifier.weight(1f))
                             }
                         }
@@ -356,7 +353,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
         ) {
             Column(
                 modifier = Modifier
-                    .padding(Sp.lg)
+                    .padding(24.dp)
                     .animateContentSize()
             ) {
                 if (activeCallContact != null) {
@@ -379,7 +376,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                                 modifier = Modifier.size(36.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(Sp.md))
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "DIALING GULU HELPLINE...",
                             color = MaterialTheme.colorScheme.error,
@@ -397,13 +394,13 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                             color = MaterialTheme.colorScheme.outline,
                             fontSize = 14.sp
                         )
-                        Spacer(modifier = Modifier.height(Sp.lg))
+                        Spacer(modifier = Modifier.height(24.dp))
                         LinearProgressIndicator(
                             color = MaterialTheme.colorScheme.error,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier.width(140.dp).height(4.dp).clip(RoundedCornerShape(2.dp))
                         )
-                        Spacer(modifier = Modifier.height(Sp.sm))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Simulating encrypted community watch connection...",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -413,22 +410,22 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
 
                         // Render Emergency SMS dispatches dynamically
                         if (viewModel.emergencySMSDispatchLogs.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(Sp.md))
+                            Spacer(modifier = Modifier.height(16.dp))
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
                                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Column(modifier = Modifier.padding(Sp.md)) {
+                                Column(modifier = Modifier.padding(16.dp)) {
                                     Text("Emergency SMS Dispatches:", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    Spacer(modifier = Modifier.height(Sp.sm))
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     viewModel.emergencySMSDispatchLogs.forEach { log ->
                                         Row(
                                             modifier = Modifier.padding(vertical = 2.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Icon(Icons.Default.Send, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(12.dp))
-                                            Spacer(modifier = Modifier.width(Sp.sm))
+                                            Spacer(modifier = Modifier.width(8.dp))
                                             Text(log, color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp, style = androidx.compose.ui.text.TextStyle(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace))
                                         }
                                     }
@@ -436,7 +433,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(Sp.lg))
+                        Spacer(modifier = Modifier.height(24.dp))
                         BodaSecondaryButton(
                             text = "Cancel Call",
                             onClick = {
@@ -466,14 +463,14 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                                 modifier = Modifier.size(32.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(Sp.md))
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Trip Tracking Link Copied",
                             color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
-                        Spacer(modifier = Modifier.height(Sp.sm))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Share this secure link with family or on WhatsApp:\nhttps://boda-gulu.ug/track/BODA-LIVE-SECURE",
                             color = MaterialTheme.colorScheme.outline,
@@ -481,40 +478,39 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
-                        Spacer(modifier = Modifier.height(Sp.lg))
-                        BodaButton(
-                            text = "Done",
-                            onClick = { showShareSuccess = false },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    BodaButton(
+                        text = "Share Live Trip Tracking Link",
+                        onClick = { showShareSuccess = true },
+                        icon = Icons.Default.Share,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     }
                 } else {
                     // Primary Gulu Safety Board
                     Text("Gulu Boda Safety Center", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(Sp.xs))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text("Active satellite tracking and immediate local community dispatch.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
 
-                    Spacer(modifier = Modifier.height(Sp.md))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // SOS Red Dial Button
-                    BodaButton(
+                    BodaErrorButton(
                         text = "1-Tap Gulu SOS (0800 112 112)",
                         onClick = {
                             activeCallContact = "Gulu Boda Dispatch"
                             activeCallNumber = "0800 112 112"
                             viewModel.dispatchSOSSMS()
                         },
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError,
                         icon = Icons.Default.Call,
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(Sp.md))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Gulu Directory Title
                     Text("Local Gulu Emergency Directory", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     val safetyHotlines = listOf(
                         Triple("Gulu Central Police Station", "0471 432022", "Main division desk"),
@@ -535,7 +531,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                                 }
                         ) {
                             Row(
-                                modifier = Modifier.padding(Sp.md),
+                                modifier = Modifier.padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -545,26 +541,24 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(num, color = MaterialTheme.colorScheme.tertiary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                                    Spacer(modifier = Modifier.width(Sp.sm))
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Icon(Icons.Default.Call, contentDescription = "Dial", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     // Action 2: Share Live Location Link
-                    BodaButton(
-                        text = "Share Live Trip Tracking Link",
-                        onClick = { showShareSuccess = true },
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onError,
-                        icon = Icons.Default.Share,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            BodaErrorButton(
+                text = "Gulu Safety & SOS",
+                onClick = { onClose() },
+                icon = Icons.Default.Security,
+                modifier = Modifier.weight(1.5f)
+            )
 
-                    Spacer(modifier = Modifier.height(Sp.sm))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     BodaSecondaryButton(
                         text = "Close Safety Panel",

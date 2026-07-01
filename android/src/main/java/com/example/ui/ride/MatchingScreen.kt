@@ -1,9 +1,9 @@
 package com.example.ui.ride
 
 import com.example.ui.BodaViewModel
-import com.example.ui.components.Sp
 import com.example.ui.util.BodaLang
 import com.example.ui.components.BodaButton
+import com.example.ui.components.BodaErrorButton
 import com.example.ui.components.BodaTextButton
 import com.example.ui.components.BodaTextField
 import com.example.ui.components.BodaCard
@@ -35,13 +35,13 @@ fun MatchingScreen(viewModel: BodaViewModel) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(Sp.lg)
+            modifier = Modifier.padding(24.dp)
         ) {
             Text("Assigning closest Gulu Rider", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(Sp.sm))
+            Spacer(modifier = Modifier.height(8.dp))
             Text("Boda Escrow secures this payment. You can cancel for free before matching.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, textAlign = TextAlign.Center)
 
-            Spacer(modifier = Modifier.height(Sp.xxl))
+            Spacer(modifier = Modifier.height(48.dp))
 
             // Animated Matching progress radar sweep
             val radarSurface = MaterialTheme.colorScheme.surface
@@ -58,7 +58,7 @@ fun MatchingScreen(viewModel: BodaViewModel) {
                 Icon(Icons.Default.TwoWheeler, contentDescription = null, tint = radarPrimary, modifier = Modifier.size(60.dp))
             }
 
-            Spacer(modifier = Modifier.height(Sp.xl))
+            Spacer(modifier = Modifier.height(32.dp))
 
             LinearProgressIndicator(
                 progress = { viewModel.matchProgress },
@@ -67,13 +67,11 @@ fun MatchingScreen(viewModel: BodaViewModel) {
                 modifier = Modifier.fillMaxWidth(0.8f)
             )
 
-            Spacer(modifier = Modifier.height(Sp.xxl))
+            Spacer(modifier = Modifier.height(48.dp))
 
-            BodaButton(
+            BodaErrorButton(
                 text = BodaLang.get(viewModel.appLanguage, "cancel"),
                 onClick = { showCancelReason = true },
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -87,11 +85,11 @@ fun MatchingScreen(viewModel: BodaViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 BodaCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(Sp.lg)) {
+                    Column(modifier = Modifier.padding(24.dp)) {
                         Text("Cancel Boda Request?", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Spacer(modifier = Modifier.height(Sp.sm))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text("Late cancelation may charge a 1,000 UGX fee to reimburse the rider's fuel.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
-                        Spacer(modifier = Modifier.height(Sp.sm))
+                        Spacer(modifier = Modifier.height(8.dp))
                         BodaTextField(
                             value = cancelReasonText,
                             onValueChange = { cancelReasonText = it },
@@ -99,22 +97,19 @@ fun MatchingScreen(viewModel: BodaViewModel) {
                             placeholder = "e.g. Changed mind, long wait",
                             modifier = Modifier.fillMaxWidth()
                         )
-                        Spacer(modifier = Modifier.height(Sp.md))
+                        Spacer(modifier = Modifier.height(16.dp))
                         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             BodaTextButton(
                                 text = "Go Back",
-                                onClick = { showCancelReason = false },
-                                contentColor = MaterialTheme.colorScheme.onBackground
+                                onClick = { showCancelReason = false }
                             )
-                            Spacer(modifier = Modifier.width(Sp.sm))
-                            BodaButton(
+                            Spacer(modifier = Modifier.width(8.dp))
+                            BodaErrorButton(
                                 text = "Cancel Request",
                                 onClick = {
                                     viewModel.cancelActiveTrip(cancelReasonText)
                                 },
-                                enabled = cancelReasonText.isNotEmpty(),
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
+                                enabled = cancelReasonText.isNotEmpty()
                             )
                         }
                     }
