@@ -27,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.ui.BodaViewModel
 import com.example.ui.driver.startDriverOnboarding
@@ -69,8 +68,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                 Text(
                     text = "Skip",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier
                         .clickable { viewModel.completeOnboardingCarousel() }
                         .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -108,17 +106,15 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
             Text(
                 text = slideTitle,
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = slideDesc,
                 color = MaterialTheme.colorScheme.outline,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                lineHeight = 22.sp,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
@@ -196,8 +192,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
             Text(
                 text = "Select Preferred Language",
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
 
@@ -206,9 +201,8 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
             Text(
                 text = "Choose your preferred dialect for using Boda Gulu. You can also adjust this later in settings.",
                 color = MaterialTheme.colorScheme.outline,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                lineHeight = 20.sp,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
@@ -250,8 +244,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                                         else -> "LUO"
                                     },
                                     color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    style = MaterialTheme.typography.labelLarge
                                 )
                             }
 
@@ -261,14 +254,13 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                                 Text(
                                     text = label,
                                     color = MaterialTheme.colorScheme.onBackground,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = desc,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 12.sp
+                                    style = MaterialTheme.typography.bodySmall
                                 )
                             }
 
@@ -364,9 +356,9 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                 }
 
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(BodaLang.get(viewModel.appLanguage, "phone_title"), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(BodaLang.get(viewModel.appLanguage, "phone_title"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(BodaLang.get(viewModel.appLanguage, "phone_sub"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(BodaLang.get(viewModel.appLanguage, "phone_sub"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -440,7 +432,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                         Text(
                             "  or  ",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 12.sp
+                            style = MaterialTheme.typography.bodySmall
                         )
                         HorizontalDivider(
                             modifier = Modifier.weight(1f),
@@ -460,9 +452,9 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                 }
             } else if (!viewModel.isOtpVerified) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(BodaLang.get(viewModel.appLanguage, "otp_title"), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(BodaLang.get(viewModel.appLanguage, "otp_title"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(BodaLang.get(viewModel.appLanguage, "otp_sub"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(BodaLang.get(viewModel.appLanguage, "otp_sub"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Spacer(modifier = Modifier.height(16.dp))
                     OutlinedTextField(
                         value = viewModel.otpInput,
@@ -493,21 +485,20 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                             Text(
                                 "${BodaLang.get(viewModel.appLanguage, "otp_resend")} ${viewModel.otpResendTimer}s",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 12.sp
+                                style = MaterialTheme.typography.bodySmall
                             )
                         } else {
                             Text(
                                 "Resend Code Now",
                                 color = if (viewModel.isSendingOtp) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier.clickable(enabled = !viewModel.isSendingOtp) { viewModel.startOtpFlow() }
                             )
                         }
                         Text(
                             "Change Number",
                             color = if (viewModel.isSendingOtp) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.clickable(enabled = !viewModel.isSendingOtp) { viewModel.otpSent = false }
                         )
                     }
@@ -527,8 +518,8 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                         .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    Text(BodaLang.get(viewModel.appLanguage, "profile_title"), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Text(BodaLang.get(viewModel.appLanguage, "profile_desc"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text(BodaLang.get(viewModel.appLanguage, "profile_title"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                    Text(BodaLang.get(viewModel.appLanguage, "profile_desc"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Spacer(modifier = Modifier.height(16.dp))
                     BodaTextField(
                         value = viewModel.signupName,
@@ -548,7 +539,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Select Avatar:", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Select Avatar:", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth()) {
                         listOf(1, 2, 3, 4).forEach { id ->
@@ -622,8 +613,7 @@ fun GoogleSignInButton(
             Spacer(Modifier.width(12.dp))
             Text(
                 "Continue with Google",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                 color = ComposeColor(0xFF3C4043)
             )
         }
@@ -642,8 +632,8 @@ fun OnboardingProgressBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(stepLabel, color = MaterialTheme.colorScheme.outline, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-            Text("Step $currentStep of $totalSteps", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+            Text(stepLabel, color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium))
+            Text("Step $currentStep of $totalSteps", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {

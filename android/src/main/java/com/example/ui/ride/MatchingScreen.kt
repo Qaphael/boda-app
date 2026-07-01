@@ -19,7 +19,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 // --- SCREEN 6: MATCHING & WAITING ONBOARD SPINNER ---
 @Composable
@@ -37,9 +36,9 @@ fun MatchingScreen(viewModel: BodaViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(24.dp)
         ) {
-            Text("Assigning closest Gulu Rider", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Assigning closest Gulu Rider", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Boda Escrow secures this payment. You can cancel for free before matching.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, textAlign = TextAlign.Center)
+            Text("Boda Escrow secures this payment. You can cancel for free before matching.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
 
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -86,9 +85,9 @@ fun MatchingScreen(viewModel: BodaViewModel) {
             ) {
                 BodaCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(24.dp)) {
-                        Text("Cancel Boda Request?", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Cancel Boda Request?", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Late cancelation may charge a 1,000 UGX fee to reimburse the rider's fuel.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
+                        Text("Late cancelation may charge a 1,000 UGX fee to reimburse the rider's fuel.", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(8.dp))
                         BodaTextField(
                             value = cancelReasonText,

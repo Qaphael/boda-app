@@ -26,7 +26,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 fun getSimulatedSpeed(progress: Float): Int {
     val baseSpeed = 28
@@ -76,8 +75,8 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(BodaLang.get(viewModel.appLanguage, "active_trip"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                Text("Transit to ${trip.dropoffName.take(18)}...", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                Text(BodaLang.get(viewModel.appLanguage, "active_trip"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
+                Text("Transit to ${trip.dropoffName.take(18)}...", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
             }
             Box(
                 modifier = Modifier
@@ -85,7 +84,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                     .background(MaterialTheme.colorScheme.primary)
                     .padding(horizontal = 10.dp, vertical = 6.dp)
             ) {
-                Text("${viewModel.simulationCountdown}s ETA", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Text("${viewModel.simulationCountdown}s ETA", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
             }
         }
 
@@ -117,12 +116,11 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("LIVE BODA NAVIGATION INSTRUCTION", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text("LIVE BODA NAVIGATION INSTRUCTION", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                     Text(
                         text = getActiveNavigationStep(trip.pickupName, trip.dropoffName, viewModel.simulationRouteProgress, viewModel.navigationSteps),
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                 }
             }
@@ -137,12 +135,11 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("ALL NAV STEPS (${viewModel.navigationSteps.size})", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("ALL NAV STEPS (${viewModel.navigationSteps.size})", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                         Text(
                             text = if (showAllSteps) "Hide" else "Show",
                             color = MaterialTheme.colorScheme.primary,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.clickable { showAllSteps = !showAllSteps }
                         )
                     }
@@ -163,20 +160,19 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                         .background(if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("${idx + 1}", color = if (isCurrent) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outline, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("${idx + 1}", color = if (isCurrent) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = step.instruction,
                                         color = if (isCurrent) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outline,
-                                        fontSize = 11.sp,
-                                        fontWeight = if (isCurrent) FontWeight.SemiBold else FontWeight.Normal
+                                        style = if (isCurrent) MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.labelSmall
                                     )
                                     Text(
                                         text = "${step.distanceMeters / 1000.0} km · ${step.durationSeconds / 60} min",
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 11.sp
+                                        style = MaterialTheme.typography.labelSmall
                                     )
                                 }
                             }
@@ -218,13 +214,12 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                     Icon(Icons.Default.Speed, contentDescription = "Speed", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
-                        Text("SIMULATED SPEED", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("SIMULATED SPEED", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                         val speed = getSimulatedSpeed(viewModel.simulationRouteProgress)
                         Text(
                             text = "$speed km/h",
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 18.sp
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold)
                         )
                     }
                 }
@@ -238,8 +233,8 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("BODA-WATCH STATUS", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text("Speed Safe", color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("BODA-WATCH STATUS", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                        Text("Speed Safe", color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
                     }
                 }
             }
@@ -299,12 +294,11 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                     Text(
                                         text = "${idx + 1}",
                                         color = if (isCurrent) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(st, color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                                Text(st, color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
                             }
                         }
                     }
@@ -380,19 +374,17 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                         Text(
                             text = "DIALING GULU HELPLINE...",
                             color = MaterialTheme.colorScheme.error,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
                             text = activeCallContact ?: "",
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
                         Text(
                             text = activeCallNumber ?: "",
                             color = MaterialTheme.colorScheme.outline,
-                            fontSize = 14.sp
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         LinearProgressIndicator(
@@ -404,7 +396,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                         Text(
                             text = "Simulating encrypted community watch connection...",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             textAlign = TextAlign.Center
                         )
 
@@ -417,7 +409,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Emergency SMS Dispatches:", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("Emergency SMS Dispatches:", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                                     Spacer(modifier = Modifier.height(8.dp))
                                     viewModel.emergencySMSDispatchLogs.forEach { log ->
                                         Row(
@@ -426,7 +418,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                                         ) {
                                             Icon(Icons.Default.Send, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(12.dp))
                                             Spacer(modifier = Modifier.width(8.dp))
-                                            Text(log, color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp, style = androidx.compose.ui.text.TextStyle(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace))
+                                            Text(log, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelSmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace))
                                         }
                                     }
                                 }
@@ -467,14 +459,13 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                         Text(
                             text = "Trip Tracking Link Copied",
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Share this secure link with family or on WhatsApp:\nhttps://boda-gulu.ug/track/BODA-LIVE-SECURE",
                             color = MaterialTheme.colorScheme.outline,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -488,9 +479,9 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                     }
                 } else {
                     // Primary Gulu Safety Board
-                    Text("Gulu Boda Safety Center", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("Gulu Boda Safety Center", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Active satellite tracking and immediate local community dispatch.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
+                    Text("Active satellite tracking and immediate local community dispatch.", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -509,7 +500,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Gulu Directory Title
-                    Text("Local Gulu Emergency Directory", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("Local Gulu Emergency Directory", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
                     Spacer(modifier = Modifier.height(8.dp))
 
                     val safetyHotlines = listOf(
@@ -536,11 +527,11 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(name, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                    Text(desc, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                                    Text(name, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
+                                    Text(desc, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(num, color = MaterialTheme.colorScheme.tertiary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(num, color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold))
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Icon(Icons.Default.Call, contentDescription = "Dial", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(16.dp))
                                 }

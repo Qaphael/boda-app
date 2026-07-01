@@ -43,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
 
 @Composable
@@ -90,8 +89,8 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
-                                Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("Vetted Rider • ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+                                Text("Vetted Rider • ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                             }
                         }
 
@@ -140,8 +139,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                                 Text(
                                     text = msg.message,
                                     color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
-                                    fontSize = 14.sp,
-                                    fontWeight = if (isUser) FontWeight.SemiBold else FontWeight.Normal
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }
@@ -173,7 +171,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                                 }
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
-                            Text(chip, color = MaterialTheme.colorScheme.outline, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(chip, color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                         }
                     }
                 }
@@ -187,11 +185,11 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                         Text(
                             text = "${trip.riderName} is typing",
                             color = MaterialTheme.colorScheme.outline,
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontStyle = FontStyle.Italic
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("...", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("...", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                     }
                 }
 
@@ -206,7 +204,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                     OutlinedTextField(
                         value = viewModel.riderChatInputText,
                         onValueChange = { viewModel.onRiderChatInputChanged(it) },
-                        placeholder = { Text("Write message...", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp) },
+                        placeholder = { Text("Write message...", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium) },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = MaterialTheme.colorScheme.onBackground,
                             unfocusedTextColor = MaterialTheme.colorScheme.onBackground,

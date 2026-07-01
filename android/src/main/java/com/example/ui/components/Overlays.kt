@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
 import com.example.ui.chat.endActiveCall
 
@@ -29,9 +28,9 @@ fun OfflineBanner(onClose: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.CloudOff, contentDescription = null, tint = MaterialTheme.colorScheme.onError)
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Connection lost. Operating in Gulu Offline Cache Mode.", color = MaterialTheme.colorScheme.onError, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text("Connection lost. Operating in Gulu Offline Cache Mode.", color = MaterialTheme.colorScheme.onError, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
         }
-        Text("Dismiss", color = MaterialTheme.colorScheme.onError, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onClose() })
+        Text("Dismiss", color = MaterialTheme.colorScheme.onError, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), modifier = Modifier.clickable { onClose() })
     }
 }
 
@@ -58,8 +57,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
             Text(
                 text = "SECURE GULU BODA-WATCH CONNECT",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelMedium,
-                letterSpacing = 1.sp
+                style = MaterialTheme.typography.labelMedium
             )
 
             Spacer(modifier = Modifier.height(48.dp))

@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.data.EmergencyContact
 import com.example.ui.BodaViewModel
 import com.example.ui.home.navigateBack
@@ -49,11 +48,11 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Emergency Contacts Linkage", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Emergency Contacts Linkage", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Link up to 3 trusted contacts. We will SMS them a live Gulu tracking map link whenever you trigger the 1-Tap SOS.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
+        Text("Link up to 3 trusted contacts. We will SMS them a live Gulu tracking map link whenever you trigger the 1-Tap SOS.", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -61,7 +60,7 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
         if (contacts.size < 3) {
             BodaCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("Add Emergency Contact Link", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Add Emergency Contact Link", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(8.dp))
                     BodaTextField(
                         value = viewModel.newEmergencyName,
@@ -101,8 +100,8 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(contact.name, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text(contact.phoneNumber, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        Text(contact.name, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+                        Text(contact.phoneNumber, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     }
                     IconButton(onClick = { viewModel.removeEmergencyContact(contact) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)

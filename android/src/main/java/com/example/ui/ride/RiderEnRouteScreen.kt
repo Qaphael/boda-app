@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 // --- SCREEN 7: RIDER EN ROUTE ---
 @Composable
@@ -40,12 +39,11 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
             .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
-        Text(BodaLang.get(viewModel.appLanguage, "rider_enroute"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(BodaLang.get(viewModel.appLanguage, "rider_enroute"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
         Text(
             if (viewModel.simulationCountdown > 0) "Arriving in ${viewModel.simulationCountdown}s..." else BodaLang.get(viewModel.appLanguage, "rider_arrived"),
             color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 24.sp
+            style = MaterialTheme.typography.headlineSmall
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -87,9 +85,9 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Bike Plate: ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Verified community rider", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
+                    Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+                    Text("Bike Plate: ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+                    Text("Verified community rider", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.labelSmall)
                 }
                 Box(
                     modifier = Modifier
@@ -98,8 +96,8 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Security OTP", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
-                        Text("5892", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Security OTP", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+                        Text("5892", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                     }
                 }
             }

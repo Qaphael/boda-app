@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
 fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
@@ -45,7 +44,7 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Text("Your Trips & Deliveries", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text("Your Trips & Deliveries", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(8.dp))
 
         if (trips.isEmpty()) {
@@ -61,9 +60,9 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                         modifier = Modifier.size(64.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("No trips yet", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("No trips yet", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Your past ride and delivery ledger will appear here.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                    Text("Your past ride and delivery ledger will appear here.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Spacer(modifier = Modifier.height(16.dp))
                     BodaButton(
                         text = "Book your first ride",
@@ -91,23 +90,22 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(trip.type.replaceFirstChar { it.uppercase() }, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text(trip.type.replaceFirstChar { it.uppercase() }, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                                 }
                                 Text(
                                     text = "UGX ${trip.fare.toInt()}",
                                     color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 14.sp
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold)
                                 )
                             }
 
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("From: ${trip.pickupName}", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
-                            Text("To: ${trip.dropoffName}", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
+                            Text("From: ${trip.pickupName}", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
+                            Text("To: ${trip.dropoffName}", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
 
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text("Rider: ${trip.riderName} (${trip.riderPlate})", color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp)
+                                Text("Rider: ${trip.riderName} (${trip.riderPlate})", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelSmall)
                                 Text(
                                     text = trip.status.uppercase(),
                                     color = when (trip.status) {
@@ -115,8 +113,7 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                         "canceled" -> MaterialTheme.colorScheme.error
                                         else -> MaterialTheme.colorScheme.primary
                                     },
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 11.sp
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
                                 )
                             }
 
@@ -137,7 +134,7 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                         .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
                                         .padding(8.dp)
                                 ) {
-                                    Text("Disputed Filed: ${trip.disputeReason}. Gulu team is reviewing evidence.", color = MaterialTheme.colorScheme.error, fontSize = 11.sp)
+                                    Text("Disputed Filed: ${trip.disputeReason}. Gulu team is reviewing evidence.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
                                 }
                             }
                         }
@@ -156,7 +153,7 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
             ) {
                 BodaCard(modifier = Modifier.fillMaxWidth(0.85f)) {
                     Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Dispute Boda Trip", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Dispute Boda Trip", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                         Spacer(modifier = Modifier.height(8.dp))
                         listOf("Wrong Route taken", "Rider was rude", "Overcharged", "Package damaged").forEach { reason ->
                             Row(
@@ -172,7 +169,7 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(reason, color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
+                                Text(reason, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))

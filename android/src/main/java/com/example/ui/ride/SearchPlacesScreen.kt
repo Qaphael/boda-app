@@ -29,7 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 // --- SCREEN 4: SEARCH PLACES ---
 @Composable
@@ -77,7 +76,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Select Locations", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Select Locations", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -181,11 +180,11 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
             Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
             Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text("Use Current Location", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Use Current Location", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                 Text(
                     if (loc != null) "GPS: ${"%.4f".format(loc.latitude)}, ${"%.4f".format(loc.longitude)}"
                     else "Waiting for GPS...",
-                    color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp
+                    color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodySmall
                 )
             }
         }
@@ -199,8 +198,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
             Text(
                 text = if (activeFocus == "pickup") "Pickup Suggestions (${filteredPlaces.size})" else "Drop-off Suggestions (${filteredPlaces.size})",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.weight(1f)
             )
             if (viewModel.isSearchingPlaces) {
@@ -210,7 +208,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                     strokeWidth = 2.dp
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Searching map...", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp)
+                Text("Searching map...", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall)
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -224,9 +222,9 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                             .padding(vertical = 32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("No matching Gulu locations found", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                        Text("No matching Gulu locations found", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Try typing Lacor, Market, Pece, or University", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        Text("Try typing Lacor, Market, Pece, or University", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             } else {
@@ -260,8 +258,8 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Text(place.label, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text(place.name, color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
+                            Text(place.label, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+                            Text(place.name, color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.surface)

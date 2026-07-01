@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.data.SavedPlace
 import com.example.ui.BodaViewModel
 import com.example.ui.home.navigateBack
@@ -48,14 +47,14 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Saved Places", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Saved Places", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         BodaCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(14.dp)) {
-                Text("Add New Location Bookmark", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Add New Location Bookmark", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 BodaTextField(
                     value = viewModel.newPlaceLabel,
@@ -96,8 +95,8 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
                         Icon(Icons.Default.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Text(place.label, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text(place.name, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                            Text(place.label, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+                            Text(place.name, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     IconButton(onClick = { viewModel.removeSavedPlace(place) }) {

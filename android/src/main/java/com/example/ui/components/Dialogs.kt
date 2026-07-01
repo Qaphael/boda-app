@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.ui.BodaViewModel
 import com.example.ui.wallet.confirmWalletTopupWithPin
@@ -201,9 +200,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                         Text(
                             text = viewModel.momoPromptProvider.uppercase(),
                             color = brandTextColor,
-                            fontWeight = FontWeight.ExtraBold,
-                            style = MaterialTheme.typography.headlineMedium,
-                            letterSpacing = 1.sp
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold)
                         )
                         Icon(
                             imageVector = Icons.Default.Lock,
@@ -218,8 +215,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                     Text(
                         text = "GULU SECURE ESCROW TRANSACTION",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelMedium,
-                        letterSpacing = 0.5.sp
+                        style = MaterialTheme.typography.labelMedium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -248,9 +244,7 @@ fun MoMoPinDialog(viewModel: BodaViewModel) {
                         Text(
                             text = if (viewModel.momoPinInput.isEmpty()) "Enter PIN" else "• ".repeat(viewModel.momoPinInput.length),
                             color = if (viewModel.momoPinInput.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else brandColor,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
                         )
                     }
 

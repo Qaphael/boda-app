@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
@@ -62,14 +61,13 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                 Text(
                     text = "Boda-Safe SMS Fallback Booking",
                     color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "You are currently offline. This booking will be dispatched via cell SMS shortcode and safely stored in your local Room SQLite database cache. Remote sync resumes automatically once you regain internet access.",
                     color = MaterialTheme.colorScheme.outline,
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center
                 )
 
@@ -79,8 +77,7 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                 Text(
                     text = "SMS PAYLOAD PREVIEW:",
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.align(Alignment.Start)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -94,8 +91,8 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                 ) {
                     Column {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("To Shortcode:", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text(viewModel.offlineSMSRecipientNumber, color = MaterialTheme.colorScheme.tertiary, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("To Shortcode:", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                            Text(viewModel.offlineSMSRecipientNumber, color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold))
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         HorizontalDivider(color = MaterialTheme.colorScheme.surface)
@@ -103,8 +100,7 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                         Text(
                             text = viewModel.offlineSMSMessageBody,
                             color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 11.sp,
-                            style = androidx.compose.ui.text.TextStyle(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                            style = MaterialTheme.typography.labelSmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                         )
                     }
                 }

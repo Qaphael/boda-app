@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
 import com.example.ui.components.BodaCard
 import androidx.compose.material3.MaterialTheme
@@ -53,7 +52,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Help & Support Gulu", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text("Help & Support Gulu", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineSmall)
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -61,7 +60,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                     .clickable { inChatMode = !inChatMode }
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text(if (inChatMode) "FAQ Center" else "Live Officer Chat", color = if (inChatMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                Text(if (inChatMode) "FAQ Center" else "Live Officer Chat", color = if (inChatMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
             }
         }
 
@@ -98,8 +97,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                             Text(
                                 msg.message,
                                 color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
-                                fontSize = 12.sp,
-                                fontWeight = if (isSystem) FontWeight.Medium else FontWeight.Normal
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }
@@ -163,9 +161,9 @@ fun SupportScreen(viewModel: BodaViewModel) {
                             .padding(vertical = 4.dp)
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text(q, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(q, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(a, color = MaterialTheme.colorScheme.outline, fontSize = 11.sp, lineHeight = 16.sp)
+                            Text(a, color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
