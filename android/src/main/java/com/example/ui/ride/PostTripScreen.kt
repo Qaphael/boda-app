@@ -3,9 +3,9 @@ package com.example.ui.ride
 import com.example.ui.BodaViewModel
 import com.example.ui.Screen
 import com.example.ui.home.navigateTo
-import com.example.ui.components.Color
+
 import com.example.ui.components.Sp
-import com.example.ui.components.BodaLang
+import com.example.ui.util.BodaLang
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaSecondaryButton
 import com.example.ui.components.BodaCard
@@ -42,36 +42,36 @@ fun PostTripScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
-            .padding(24.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(Sp.lg)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF10B981), modifier = Modifier.size(64.dp))
+        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(Sp.sm))
-        Text(BodaLang.get(viewModel.appLanguage, "trip_completed"), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(BodaLang.get(viewModel.appLanguage, "trip_completed"), color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(Sp.xs))
-        Text("Your ride with ${trip.riderName} is finished.", color = Color(0xFF94A3B8), fontSize = 14.sp)
+        Text("Your ride with ${trip.riderName} is finished.", color = MaterialTheme.colorScheme.outline, fontSize = 14.sp)
 
         Spacer(modifier = Modifier.height(Sp.md))
 
         // Rider Card
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF334155)),
+            Row(modifier = Modifier.padding(Sp.md), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center) {
-                    Text(trip.riderName.first().uppercase(), color = Color(0xFFFDB913),
+                    Text(trip.riderName.first().uppercase(), color = MaterialTheme.colorScheme.primary,
                         fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(Sp.md))
                 Column(Modifier.weight(1f)) {
-                    Text(trip.riderName, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Text(trip.riderPlate, color = Color(0xFF64748B), fontSize = 11.sp)
+                    Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(trip.riderPlate, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("UGX ${trip.fare.toInt()}",
-                        color = Color(0xFFFDB913), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-                    Text("via ${trip.paymentMethod}", color = Color(0xFF64748B), fontSize = 10.sp)
+                        color = MaterialTheme.colorScheme.primary, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("via ${trip.paymentMethod}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
                 }
             }
         }
@@ -80,25 +80,25 @@ fun PostTripScreen(viewModel: BodaViewModel) {
 
         // Receipt Details
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Official Boda Receipt", color = Color(0xFF64748B), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            Column(modifier = Modifier.padding(Sp.md)) {
+                Text("Official Boda Receipt", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text("Total Charged Amount", color = Color.White, fontSize = 14.sp)
-                    Text("UGX ${trip.fare.toInt()}", color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("Total Charged Amount", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
+                    Text("UGX ${trip.fare.toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text("Payment Method", color = Color.White, fontSize = 12.sp)
-                    Text(trip.paymentMethod, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("Payment Method", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
+                    Text(trip.paymentMethod, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text("Trip ID Reference", color = Color.White, fontSize = 12.sp)
-                    Text("BODA-TRIP-${trip.id}", color = Color(0xFF64748B), fontSize = 12.sp)
+                    Text("Trip ID Reference", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
+                    Text("BODA-TRIP-${trip.id}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
                 Spacer(modifier = Modifier.height(Sp.sm))
-                HorizontalDivider(color = Color(0xFF334155))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                 Spacer(modifier = Modifier.height(Sp.sm))
                 BodaSecondaryButton(
                     text = "Download PDF Receipt",
@@ -112,7 +112,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
         Spacer(modifier = Modifier.height(Sp.md))
 
         // Stars Rating Form
-        Text(BodaLang.get(viewModel.appLanguage, "rate_rider"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(BodaLang.get(viewModel.appLanguage, "rate_rider"), color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(Sp.sm))
         Row {
             for (i in 1..5) {
@@ -120,7 +120,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
                     Icon(
                         imageVector = if (i <= starRating) Icons.Default.Star else Icons.Default.StarBorder,
                         contentDescription = null,
-                        tint = Color(0xFFFDB913),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(36.dp)
                     )
                 }
@@ -132,14 +132,14 @@ fun PostTripScreen(viewModel: BodaViewModel) {
         OutlinedTextField(
             value = feedbackComment,
             onValueChange = { feedbackComment = it },
-            placeholder = { Text(BodaLang.get(viewModel.appLanguage, "comment_hint"), color = Color(0xFF475569)) },
+            placeholder = { Text(BodaLang.get(viewModel.appLanguage, "comment_hint"), color = MaterialTheme.colorScheme.onSurfaceVariant) },
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedContainerColor = Color(0xFF1E293B),
-                unfocusedContainerColor = Color(0xFF1E293B),
-                focusedBorderColor = Color(0xFFFDB913),
-                unfocusedBorderColor = Color(0xFF334155)
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             modifier = Modifier.fillMaxWidth()
         )
@@ -148,9 +148,9 @@ fun PostTripScreen(viewModel: BodaViewModel) {
 
         if (!paymentConfirmed) {
             if (processingPayment) {
-                CircularProgressIndicator(color = Color(0xFFFDB913))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.height(Sp.sm))
-                Text("Confirming MTN/Airtel Mobile Money escrow transfer...", color = Color(0xFFFDB913), fontSize = 12.sp)
+                Text("Confirming MTN/Airtel Mobile Money escrow transfer...", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
             } else {
                 BodaButton(
                     text = "Release Escrow & Pay",

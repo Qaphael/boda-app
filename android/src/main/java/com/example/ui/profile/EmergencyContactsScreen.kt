@@ -33,7 +33,7 @@ import com.example.ui.home.navigateBack
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaTextField
-import com.example.ui.components.Color
+import androidx.compose.material3.MaterialTheme
 import com.example.ui.components.Sp
 
 // --- SCREEN 13: EMERGENCY CONTACTS (SAFETY PATHS) ---
@@ -42,19 +42,19 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { viewModel.navigateBack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(Sp.sm))
-            Text("Emergency Contacts Linkage", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Emergency Contacts Linkage", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(Sp.sm))
-        Text("Link up to 3 trusted contacts. We will SMS them a live Gulu tracking map link whenever you trigger the 1-Tap SOS.", color = Color(0xFF94A3B8), fontSize = 12.sp)
+        Text("Link up to 3 trusted contacts. We will SMS them a live Gulu tracking map link whenever you trigger the 1-Tap SOS.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
 
         Spacer(modifier = Modifier.height(Sp.md))
 
@@ -62,7 +62,7 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
         if (contacts.size < 3) {
             BodaCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("Add Emergency Contact Link", color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Add Emergency Contact Link", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(Sp.sm))
                     BodaTextField(
                         value = viewModel.newEmergencyName,
@@ -102,14 +102,14 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(contact.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text(contact.phoneNumber, color = Color(0xFF64748B), fontSize = 12.sp)
+                        Text(contact.name, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(contact.phoneNumber, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                     IconButton(onClick = { viewModel.removeEmergencyContact(contact) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFE4002B))
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                     }
                 }
-                HorizontalDivider(color = Color(0xFF1E293B))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surface)
             }
         }
     }

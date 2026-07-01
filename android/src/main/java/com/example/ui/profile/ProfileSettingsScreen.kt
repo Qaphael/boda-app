@@ -57,6 +57,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.EmergencyContact
@@ -67,7 +68,7 @@ import com.example.ui.driver.*
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaSecondaryButton
-import com.example.ui.components.Color
+import androidx.compose.material3.MaterialTheme
 import com.example.ui.components.Sp
 import com.example.ui.home.navigateTo
 import com.example.ui.home.updateLanguage
@@ -92,8 +93,8 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         trips.filter { it.rating > 0 }.map { it.rating }.average() else 0.0
 
     if (viewModel.isLoadingData) {
-        Box(Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFFFDB913))
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
@@ -101,7 +102,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
@@ -111,18 +112,18 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFDB913)),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Person, contentDescription = null, tint = Color.Black, modifier = Modifier.size(32.dp))
+                Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp))
             }
             Spacer(modifier = Modifier.width(Sp.sm))
             Column {
-                Text(user?.name ?: "Boda Gulu Customer", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(user?.phoneNumber ?: "No verified phone", color = Color(0xFF64748B), fontSize = 14.sp)
+                Text(user?.name ?: "Boda Gulu Customer", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(user?.phoneNumber ?: "No verified phone", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                 Text(
                     "$tripCount trips · ⭐ ${"%.1f".format(avgRating)} rating",
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     modifier = Modifier.padding(top = 2.dp)
                 )
@@ -140,15 +141,15 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Referral Earnings", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Referral Earnings", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("UGX ${referralEarnings.toInt()}", color = Color(0xFF10B981), fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                        Text("UGX ${referralEarnings.toInt()}", color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
                         Spacer(modifier = Modifier.width(Sp.xs))
-                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFF10B981), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(16.dp))
                     }
                 }
                 Spacer(modifier = Modifier.height(Sp.xs))
-                Text("Share code $myReferralCode to earn 3,000 UGX for each friend registered in Gulu. Click to view dashboard & refer friends!", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                Text("Share code $myReferralCode to earn 3,000 UGX for each friend registered in Gulu. Click to view dashboard & refer friends!", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
             }
         }
 
@@ -156,16 +157,16 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
 
         // Gulu Local Language Selector Card
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Language, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Language, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(Sp.xs))
-            Text("App Language Localization", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("App Language Localization", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(Sp.sm))
         BodaCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
-                Text("Select Local Gulu Dialect:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Select Local Gulu Dialect:", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -182,7 +183,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSelected) Color(0xFFFDB913) else Color(0xFF0F172A))
+                                .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background)
                                 .clickable {
                                     coroutineScope.launch {
                                         viewModel.updateLanguage(code)
@@ -198,7 +199,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                                 Spacer(modifier = Modifier.height(Sp.xs))
                                 Text(
                                     text = label,
-                                    color = if (isSelected) Color.Black else Color.White,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp
                                 )
@@ -213,16 +214,16 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
 
         // App Theme Selector Card
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.DarkMode, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.DarkMode, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(Sp.xs))
-            Text("App Theme & Styling Mode", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("App Theme & Styling Mode", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(Sp.sm))
         BodaCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
-                Text("Select Theme mode for Boda Gulu:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Select Theme mode for Boda Gulu:", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -239,7 +240,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSelected) Color(0xFFFDB913) else Color(0xFF0F172A))
+                                .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background)
                                 .clickable {
                                     viewModel.updateAppThemeSetting(mode)
                                 }
@@ -250,13 +251,13 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                                 Icon(
                                     imageVector = icon,
                                     contentDescription = null,
-                                    tint = if (isSelected) Color.Black else Color.White,
+                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.height(Sp.sm))
                                 Text(
                                     text = label,
-                                    color = if (isSelected) Color.Black else Color.White,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp
                                 )
@@ -270,10 +271,10 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         Spacer(modifier = Modifier.height(Sp.md))
 
         // PostgreSQL Real-time WebSocket Sync & Room Cache Control Center
-        Text("PostgreSQL Real-time Sync & Cache Monitor", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text("PostgreSQL Real-time Sync & Cache Monitor", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(Sp.sm))
         BodaCard(
-            border = BorderStroke(1.dp, if (viewModel.isOnline) Color(0xFF10B981) else Color(0xFF64748B)),
+            border = BorderStroke(1.dp, if (viewModel.isOnline) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
@@ -288,12 +289,12 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(if (viewModel.isOnline) Color(0xFF10B981) else Color(0xFFEF4444))
+                                .background(if (viewModel.isOnline) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error)
                         )
                         Spacer(modifier = Modifier.width(Sp.sm))
                         Text(
                             text = if (viewModel.isOnline) "Postgres WebSocket Connected" else "Postgres Offline (Room Active)",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
@@ -304,10 +305,10 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         checked = viewModel.isOnline,
                         onCheckedChange = { viewModel.toggleNetworkConnection() },
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color(0xFF10B981),
-                            checkedTrackColor = Color(0xFF10B981).copy(alpha = 0.3f),
-                            uncheckedThumbColor = Color.Gray,
-                            uncheckedTrackColor = Color.DarkGray
+                            checkedThumbColor = MaterialTheme.colorScheme.tertiary,
+                            checkedTrackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
+                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     )
                 }
@@ -324,23 +325,23 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Cached Trips", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text("${cachedTrips.size}", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("Cached Trips", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("${cachedTrips.size}", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Cached Places", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text("$cachedPlacesCount", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("Cached Places", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("$cachedPlacesCount", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Unsynced to PG", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text("$unsyncedCount", color = if (unsyncedCount > 0) Color(0xFFFDB913) else Color(0xFF10B981), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("Unsynced to PG", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("$unsyncedCount", color = if (unsyncedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(Sp.sm))
 
                 // Real-time scrolling CDC WebSocket log terminal!
-                Text("PostgreSQL Live CDC Replication Log:", color = Color(0xFFFDB913), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("PostgreSQL Live CDC Replication Log:", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(Sp.xs))
 
                 Box(
@@ -348,8 +349,8 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         .fillMaxWidth()
                         .height(110.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFF0F172A))
-                        .border(1.dp, Color(0xFF334155), RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.background)
+                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
                         .padding(8.dp)
                 ) {
                     LazyColumn(
@@ -359,7 +360,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         items(viewModel.postgresWebSocketLogs) { log ->
                             Text(
                                 text = log,
-                                color = if (log.contains("SUCCESS") || log.contains("\u2713")) Color(0xFF10B981) else if (log.contains("Warning") || log.contains("offline")) Color(0xFFFDB913) else Color.White,
+                                color = if (log.contains("SUCCESS") || log.contains("\u2713")) MaterialTheme.colorScheme.tertiary else if (log.contains("Warning") || log.contains("offline")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                                 fontSize = 11.sp,
                                 style = androidx.compose.ui.text.TextStyle(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                             )
@@ -400,10 +401,10 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
 
         // Dual Mode Switch: Driver Mode Toggle
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, Color(0xFFFDB913), RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
         ) {
             Row(
                 modifier = Modifier
@@ -421,15 +422,15 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.TwoWheeler, contentDescription = null, tint = Color(0xFFFDB913), modifier = Modifier.size(24.dp))
+                    Icon(Icons.Default.TwoWheeler, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                     Spacer(modifier = Modifier.width(Sp.sm))
                     Column {
-                        Text("Gulu Boda Driver Mode", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Gulu Boda Driver Mode", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Text(
                             if (!viewModel.isDriverRegistered) "Tap to Register as Vetted Rider"
                             else if (viewModel.isDriverMode) "Active (Gulu Cockpit)"
                             else "Inactive (Passenger)",
-                            color = if (viewModel.isDriverRegistered) Color(0xFF10B981) else Color(0xFFFDB913),
+                            color = if (viewModel.isDriverRegistered) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp
                         )
                     }
@@ -445,10 +446,10 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         }
                     },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.Black,
-                        checkedTrackColor = Color(0xFFFDB913),
-                        uncheckedThumbColor = Color.Gray,
-                        uncheckedTrackColor = Color(0xFF1E293B)
+                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surface
                     )
                 )
             }
@@ -457,7 +458,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         Spacer(modifier = Modifier.height(Sp.md))
 
         // Settings Buttons list
-        Text("Preferences & Customization", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text("Preferences & Customization", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(Sp.sm))
 
         // Option: Emergency Contacts
@@ -470,16 +471,16 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Emergency, contentDescription = null, tint = Color(0xFFE4002B))
+                Icon(Icons.Default.Emergency, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.width(Sp.sm))
                 Column {
-                    Text("Emergency Contacts", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("${contacts.size} of 3 emergency linkages setup", color = Color(0xFF64748B), fontSize = 12.sp)
+                    Text("Emergency Contacts", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("${contacts.size} of 3 emergency linkages setup", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White)
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
         }
-        HorizontalDivider(color = Color(0xFF1E293B))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
 
         // Option: Saved Places
         Row(
@@ -491,13 +492,13 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Bookmark, contentDescription = null, tint = Color(0xFFFDB913))
+                Icon(Icons.Default.Bookmark, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(Sp.sm))
-                Text("Manage Saved Places", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Manage Saved Places", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White)
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
         }
-        HorizontalDivider(color = Color(0xFF1E293B))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
 
         // Option: Help & Support
         Row(
@@ -509,13 +510,13 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Help, contentDescription = null, tint = Color(0xFFFDB913))
+                Icon(Icons.Default.Help, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(Sp.sm))
-                Text("Help & Support", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Help & Support", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White)
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
         }
-        HorizontalDivider(color = Color(0xFF1E293B))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
 
         // Option: System Overlay Triggers (For testing and complete 75 screen path coverage)
         Row(
@@ -527,12 +528,12 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Build, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.Build, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(Sp.sm))
-                Text("Simulate App Maintenance Error", color = Color.White, fontSize = 14.sp)
+                Text("Simulate App Maintenance Error", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
             }
         }
-        HorizontalDivider(color = Color(0xFF1E293B))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
 
         Row(
             modifier = Modifier
@@ -543,12 +544,12 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Gavel, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.Gavel, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(Sp.sm))
-                Text("Simulate Account Suspension Error", color = Color.White, fontSize = 14.sp)
+                Text("Simulate Account Suspension Error", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
             }
         }
-        HorizontalDivider(color = Color(0xFF1E293B))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
 
         Row(
             modifier = Modifier
@@ -559,12 +560,12 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CloudOff, contentDescription = null, tint = Color.Gray)
+                Icon(Icons.Default.CloudOff, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(Sp.sm))
-                Text("Simulate Offline State Error Banner", color = Color.White, fontSize = 14.sp)
+                Text("Simulate Offline State Error Banner", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
             }
         }
-        HorizontalDivider(color = Color(0xFF1E293B))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
 
         Spacer(Modifier.height(Sp.md))
         BodaSecondaryButton(
@@ -576,9 +577,9 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         if (showDeleteConfirmDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmDialog = false },
-                title = { Text("Delete Account?", color = Color.White, fontWeight = FontWeight.Bold) },
-                text = { Text("Are you sure you want to delete your account? This action cannot be undone and you will lose all Gulu wallet balances, trip history, and settings.", color = Color(0xFF94A3B8)) },
-                containerColor = Color(0xFF1E293B),
+                title = { Text("Delete Account?", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold) },
+                text = { Text("Are you sure you want to delete your account? This action cannot be undone and you will lose all Gulu wallet balances, trip history, and settings.", color = MaterialTheme.colorScheme.outline) },
+                containerColor = MaterialTheme.colorScheme.surface,
                 confirmButton = {
                     BodaButton(
                         text = "Delete",
@@ -586,13 +587,13 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                             showDeleteConfirmDialog = false
                             viewModel.deleteAccount()
                         },
-                        containerColor = Color(0xFFE4002B),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
                     )
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                        Text("Cancel", color = Color.White)
+                        Text("Cancel", color = MaterialTheme.colorScheme.onBackground)
                     }
                 }
             )
@@ -601,7 +602,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         Spacer(Modifier.height(Sp.xl))
         Text(
             "Delete account",
-            color = Color(0xFF475569),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 11.sp,
             modifier = Modifier.clickable { showDeleteConfirmDialog = true }
         )

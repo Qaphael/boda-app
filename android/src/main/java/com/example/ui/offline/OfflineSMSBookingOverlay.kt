@@ -33,7 +33,7 @@ import com.example.ui.BodaViewModel
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaSecondaryButton
-import com.example.ui.components.Color
+import androidx.compose.material3.MaterialTheme
 import com.example.ui.components.Sp
 
 @Composable
@@ -41,12 +41,12 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ComposeColor.Black.copy(alpha = 0.85f))
+            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f))
             .clickable { viewModel.showOfflineSMSDialog = false },
         contentAlignment = Alignment.Center
     ) {
         BodaCard(
-            border = BorderStroke(1.5.dp, ComposeColor(0xFFFDB913)),
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
             modifier = Modifier
                 .fillMaxWidth(0.9f)
                 .clickable(enabled = false) {}
@@ -58,20 +58,20 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                 Icon(
                     imageVector = Icons.Default.CloudOff,
                     contentDescription = "Offline Mode",
-                    tint = ComposeColor(0xFFFDB913),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(48.dp)
                 )
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Text(
                     text = "Boda-Safe SMS Fallback Booking",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Text(
                     text = "You are currently offline. This booking will be dispatched via cell SMS shortcode and safely stored in your local Room SQLite database cache. Remote sync resumes automatically once you regain internet access.",
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 11.sp,
                     textAlign = TextAlign.Center
                 )
@@ -81,7 +81,7 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                 // Formatted Message Window
                 Text(
                     text = "SMS PAYLOAD PREVIEW:",
-                    color = ComposeColor(0xFFFDB913),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                     modifier = Modifier.align(Alignment.Start)
@@ -91,21 +91,21 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF0F172A))
-                        .border(1.dp, Color(0xFF334155), RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.background)
+                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
                         .padding(12.dp)
                 ) {
                     Column {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("To Shortcode:", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text(viewModel.offlineSMSRecipientNumber, color = ComposeColor(0xFF10B981), fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                            Text("To Shortcode:", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(viewModel.offlineSMSRecipientNumber, color = MaterialTheme.colorScheme.tertiary, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
                         }
                         Spacer(modifier = Modifier.height(Sp.sm))
-                        HorizontalDivider(color = Color(0xFF1E293B))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
                         Spacer(modifier = Modifier.height(Sp.sm))
                         Text(
                             text = viewModel.offlineSMSMessageBody,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontSize = 11.sp,
                             style = androidx.compose.ui.text.TextStyle(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                         )

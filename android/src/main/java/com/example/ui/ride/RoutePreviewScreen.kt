@@ -3,7 +3,7 @@ package com.example.ui.ride
 import com.example.ui.BodaViewModel
 import com.example.ui.offline.triggerOfflineSMSBookingFlow
 import com.example.ui.home.navigateBack
-import com.example.ui.components.Color
+
 import com.example.ui.components.Sp
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaTextField
@@ -56,17 +56,17 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF0F172A))
-                .padding(24.dp)
+                .background(MaterialTheme.colorScheme.background)
+                .padding(Sp.lg)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = { viewModel.navigateBack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(Sp.sm))
-            Text("Confirm Ride Booking", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Confirm Ride Booking", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(Sp.sm))
@@ -81,7 +81,8 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                 modifier = Modifier.fillMaxSize(),
                 pickup = viewModel.pickupPlace,
                 dropoff = viewModel.dropoffPlace,
-                viewModel = viewModel
+                viewModel = viewModel,
+                userLocation = viewModel.currentLocation
             )
         }
 
@@ -89,17 +90,17 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
 
         // Pickup / Dropoff nodes summary
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(Sp.md)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(Color(0xFF10B981)))
+                    Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(MaterialTheme.colorScheme.tertiary))
                     Spacer(modifier = Modifier.width(Sp.sm))
-                    Text(viewModel.pickupPlace?.name ?: "", color = Color.White, fontSize = 14.sp)
+                    Text(viewModel.pickupPlace?.name ?: "", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                 }
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(Color(0xFFF97316)))
+                    Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(MaterialTheme.colorScheme.error))
                     Spacer(modifier = Modifier.width(Sp.sm))
-                    Text(viewModel.dropoffPlace?.name ?: "", color = Color.White, fontSize = 14.sp)
+                    Text(viewModel.dropoffPlace?.name ?: "", color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                 }
             }
         }
@@ -109,8 +110,8 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
         // PARCEL FORM IF SERVICE TYPE IS DELIVERY
         if (viewModel.serviceType == "delivery") {
             BodaCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Text("Delivery Package Details", color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Column(modifier = Modifier.padding(Sp.md)) {
+                    Text("Delivery Package Details", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(Sp.sm))
                     BodaTextField(
                         value = viewModel.parcelDetails,
@@ -151,19 +152,19 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                     .clickable {
                         viewModel.scheduledBookingDateTime = "Today, 18:30"
                     }
-                    .padding(14.dp),
+                    .padding(Sp.md),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Schedule, contentDescription = null, tint = Color.White)
+                    Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
                     Spacer(modifier = Modifier.width(Sp.sm))
                     Column {
-                        Text("Schedule for Later", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text(viewModel.scheduledBookingDateTime ?: "Leave now (Immediate booking)", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                        Text("Schedule for Later", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(viewModel.scheduledBookingDateTime ?: "Leave now (Immediate booking)", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
                     }
                 }
-                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White)
+                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             }
         }
 
@@ -171,8 +172,8 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
 
         // PAYMENT METHD SELECTOR: MTN / Airtel / Wallet
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                Text("Select MTN / Airtel / Wallet Payment", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Column(modifier = Modifier.padding(Sp.md)) {
+                Text("Select MTN / Airtel / Wallet Payment", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
                 val walletSufficient = walletBalance >= viewModel.calculatedFare - viewModel.activePromoDiscount.value
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -181,21 +182,21 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSelected) Color(0xFFFDB913) else Color(0xFF334155))
+                                .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable { viewModel.selectedPaymentMethod = method }
                                 .padding(horizontal = 12.dp, vertical = 8.dp)
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = label,
-                                    color = if (isSelected) Color.Black else Color.White,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp
                                 )
                                 if (method == "Wallet") {
                                     Text(
                                         text = "UGX ${walletBalance.toInt()}",
-                                        color = if (walletSufficient) Color(0xFF10B981) else Color(0xFFF87171),
+                                        color = if (walletSufficient) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error,
                                         fontSize = 10.sp
                                     )
                                 }
@@ -227,7 +228,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
             )
         }
         if (viewModel.activePromoMessage.isNotEmpty()) {
-            Text(viewModel.activePromoMessage, color = Color(0xFF10B981), fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+            Text(viewModel.activePromoMessage, color = MaterialTheme.colorScheme.tertiary, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
         }
 
         Spacer(modifier = Modifier.height(Sp.md))
@@ -240,52 +241,52 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
         }
 
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(Sp.md)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("ESTIMATED ROUTE TIME", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("ESTIMATED ROUTE TIME", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Text(
                             text = "${viewModel.calculatedTimeMinutes} mins",
-                            color = Color(0xFFFDB913),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 24.sp
                         )
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("EST. ARRIVAL TIME", color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("EST. ARRIVAL TIME", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Text(
                             text = arrivalTimeStr,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
                     }
                 }
 
-                HorizontalDivider(color = Color(0xFF334155), modifier = Modifier.padding(vertical = 10.dp), thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 10.dp), thickness = 1.dp)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("Distance", color = Color(0xFF64748B), fontSize = 11.sp)
+                        Text("Distance", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         Text(
                             text = "${"%.2f".format(viewModel.calculatedDistanceKm)} km",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Duration", color = Color(0xFF64748B), fontSize = 11.sp)
+                        Text("Duration", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         Text(
                             text = "${viewModel.calculatedTimeMinutes} mins",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onBackground,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
@@ -298,37 +299,37 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
 
         // FARE ESTIMATE — Hero element with breakdown
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("TOTAL FARE", color = Color(0xFF64748B), fontSize = 10.sp,
+            Column(modifier = Modifier.padding(Sp.md), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("TOTAL FARE", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(Sp.xs))
                 val discounted = (viewModel.calculatedFare - viewModel.activePromoDiscount.value).coerceAtLeast(1000.0)
                 Text("UGX ${discounted.toInt()}",
-                    color = Color(0xFFFDB913), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    color = MaterialTheme.colorScheme.primary, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                Spacer(Modifier.height(Sp.sm))
+                Row(horizontalArrangement = Arrangement.spacedBy(Sp.md)) {
                     Text("${viewModel.calculatedDistanceKm.let { "%.1f".format(it) }} km",
-                        color = Color(0xFF64748B), fontSize = 11.sp)
-                    Text("·", color = Color(0xFF334155), fontSize = 11.sp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                    Text("·", color = MaterialTheme.colorScheme.surfaceVariant, fontSize = 11.sp)
                     Text("${viewModel.calculatedTimeMinutes} min",
-                        color = Color(0xFF64748B), fontSize = 11.sp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                 }
-                HorizontalDivider(color = Color(0xFF334155), modifier = Modifier.padding(vertical = 10.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.padding(vertical = 10.dp))
                 val baseFare = if (viewModel.serviceType == "ride") 1500.0 else 2500.0
                 val distCharge = viewModel.calculatedDistanceKm * 1000.0
                 listOf("Base" to "UGX ${baseFare.toInt()}",
                     "Distance" to "UGX ${distCharge.toInt()}").forEach { (lbl, val_) ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(lbl, color = Color(0xFF64748B), fontSize = 11.sp)
-                        Text(val_, color = Color(0xFF94A3B8), fontSize = 11.sp)
+                        Text(lbl, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                        Text(val_, color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
                     }
-                    Spacer(Modifier.height(3.dp))
+                    Spacer(Modifier.height(Sp.xs))
                 }
                 if (viewModel.activePromoDiscount.value > 0) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Promo ${viewModel.activePromoCode}", color = Color(0xFF64748B), fontSize = 11.sp)
+                        Text("Promo ${viewModel.activePromoCode}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         Text("- UGX ${viewModel.activePromoDiscount.value.toInt()}",
-                            color = Color(0xFF10B981), fontSize = 11.sp)
+                            color = MaterialTheme.colorScheme.tertiary, fontSize = 11.sp)
                     }
                 }
             }

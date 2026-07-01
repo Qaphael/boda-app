@@ -4,7 +4,7 @@ import com.example.ui.BodaViewModel
 import com.example.ui.Screen
 import com.example.ui.home.navigateTo
 import com.example.ui.home.navigateBack
-import com.example.ui.components.Color
+
 import com.example.ui.components.Sp
 import com.example.ui.components.BodaTextField
 import com.example.ui.components.BodaSecondaryButton
@@ -70,15 +70,15 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
-            .padding(20.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(Sp.lg)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { viewModel.navigateBack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(Sp.sm))
-            Text("Select Locations", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Select Locations", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(Sp.md))
@@ -92,7 +92,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
             },
             label = "Pickup Location" + if (activeFocus == "pickup") " 🟢 (Searching...)" else "",
             placeholder = "Search pickup location...",
-            leadingIcon = { Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color(0xFF10B981)) },
+            leadingIcon = { Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary) },
             trailingIcon = if (viewModel.pickupText.isNotEmpty() || viewModel.pickupPlace != null) {
                 {
                     IconButton(onClick = {
@@ -100,7 +100,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                         viewModel.pickupPlace = null
                         activeFocus = "pickup"
                     }) {
-                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = Color.Gray)
+                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else null,
@@ -120,7 +120,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
             },
             label = "Drop-off Destination" + if (activeFocus == "dropoff") " 🟢 (Searching...)" else "",
             placeholder = "Where are you heading?",
-            leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFFE4002B)) },
+            leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
             trailingIcon = if (viewModel.dropoffText.isNotEmpty() || viewModel.dropoffPlace != null) {
                 {
                     IconButton(onClick = {
@@ -128,7 +128,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                         viewModel.dropoffPlace = null
                         activeFocus = "dropoff"
                     }) {
-                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = Color.Gray)
+                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else null,
@@ -140,18 +140,28 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
         Spacer(modifier = Modifier.height(Sp.md))
 
         // --- NEW OPTION: CURRENT LOCATION ---
+        val loc = viewModel.currentLocation
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF1E293B))
+                .background(MaterialTheme.colorScheme.surface)
                 .clickable {
-                    val currentLocation = SavedPlace(
-                        label = "Current Location",
-                        name = "My Current Location (Pece, Gulu)",
-                        latitude = 2.7750,
-                        longitude = 32.2950
-                    )
+                    val currentLocation = if (loc != null) {
+                        SavedPlace(
+                            label = "Current Location",
+                            name = "Current Location",
+                            latitude = loc.latitude,
+                            longitude = loc.longitude
+                        )
+                    } else {
+                        SavedPlace(
+                            label = "Current Location",
+                            name = "Gulu City Centre",
+                            latitude = 2.7750,
+                            longitude = 32.2950
+                        )
+                    }
                     if (activeFocus == "pickup") {
                         viewModel.pickupPlace = currentLocation
                         viewModel.pickupText = currentLocation.name
@@ -169,11 +179,15 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.MyLocation, contentDescription = null, tint = Color(0xFF10B981))
+            Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
             Spacer(modifier = Modifier.width(Sp.sm))
             Column {
-                Text("Use Current Location", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Text("Gulu City Center coordinate (2.7750, 32.2950)", color = Color(0xFF10B981), fontSize = 12.sp)
+                Text("Use Current Location", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(
+                    if (loc != null) "GPS: ${"%.4f".format(loc.latitude)}, ${"%.4f".format(loc.longitude)}"
+                    else "Waiting for GPS...",
+                    color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp
+                )
             }
         }
 
@@ -185,19 +199,19 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
         ) {
             Text(
                 text = if (activeFocus == "pickup") "Pickup Suggestions (${filteredPlaces.size})" else "Drop-off Suggestions (${filteredPlaces.size})",
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
             if (viewModel.isSearchingPlaces) {
                 CircularProgressIndicator(
-                    color = Color(0xFFFDB913),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp),
                     strokeWidth = 2.dp
                 )
                 Spacer(modifier = Modifier.width(Sp.sm))
-                Text("Searching map...", color = Color(0xFFFDB913), fontSize = 11.sp)
+                Text("Searching map...", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp)
             }
         }
         Spacer(modifier = Modifier.height(Sp.sm))
@@ -211,9 +225,9 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                             .padding(vertical = 32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("No matching Gulu locations found", color = Color(0xFF64748B), fontSize = 14.sp)
+                        Text("No matching Gulu locations found", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(Sp.sm))
-                        Text("Try typing Lacor, Market, Pece, or University", color = Color(0xFF475569), fontSize = 12.sp)
+                        Text("Try typing Lacor, Market, Pece, or University", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     }
                 }
             } else {
@@ -243,15 +257,15 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                         Icon(
                             imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.Place,
                             contentDescription = null,
-                            tint = if (isSaved) Color(0xFF10B981) else Color(0xFFFDB913)
+                            tint = if (isSaved) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(Sp.sm))
                         Column {
-                            Text(place.label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text(place.name, color = Color(0xFF94A3B8), fontSize = 12.sp)
+                            Text(place.label, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(place.name, color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
                         }
                     }
-                    HorizontalDivider(color = Color(0xFF1E293B))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surface)
                 }
             }
         }

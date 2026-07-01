@@ -45,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +56,7 @@ import com.example.ui.home.navigateBack
 import com.example.ui.home.shareReferralLink
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
-import com.example.ui.components.Color
+import androidx.compose.material3.MaterialTheme
 import com.example.ui.components.Sp
 
 @Composable
@@ -75,7 +74,7 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         // Top Back Header
@@ -90,19 +89,19 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF1E293B))
+                    .background(MaterialTheme.colorScheme.surface)
                     .testTag("referrals_back_btn")
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
             Spacer(modifier = Modifier.width(Sp.md))
             Text(
                 text = "Refer & Earn Gulu",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -110,7 +109,7 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
 
         if (viewModel.activePromoMessage.isNotEmpty()) {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF10B981)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
@@ -120,17 +119,17 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                     modifier = Modifier.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Celebration, contentDescription = null, tint = Color.White)
+                    Icon(Icons.Default.Celebration, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
                     Spacer(modifier = Modifier.width(Sp.sm))
                     Text(
                         text = viewModel.activePromoMessage,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = { viewModel.activePromoMessage = "" }) {
-                        Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = Color.White, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Default.Close, contentDescription = "Dismiss", tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(14.dp))
                     }
                 }
             }
@@ -151,38 +150,38 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                                 modifier = Modifier
                                     .size(48.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFFFDB913).copy(alpha = 0.2f)),
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Payments, contentDescription = null, tint = Color(0xFFFDB913), modifier = Modifier.size(24.dp))
+                                Icon(Icons.Default.Payments, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                             }
                             Spacer(modifier = Modifier.width(Sp.sm))
                             Column {
-                                Text("Get UGX 3,000 for every friend!", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("Both of you get rewarded on their 1st ride", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                                Text("Get UGX 3,000 for every friend!", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("Both of you get rewarded on their 1st ride", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
                             }
                         }
 
                         Spacer(modifier = Modifier.height(Sp.sm))
-                        HorizontalDivider(color = Color(0xFF334155))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         Spacer(modifier = Modifier.height(Sp.sm))
 
-                        Text("YOUR REFERRAL CODE", color = Color(0xFF64748B), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                        Text("YOUR REFERRAL CODE", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                         Spacer(modifier = Modifier.height(Sp.sm))
 
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFF0F172A))
-                                .border(1.dp, Color(0xFF334155), RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.background)
+                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = myCode,
-                                color = Color(0xFFFDB913),
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.ExtraBold,
                                 fontSize = 18.sp,
                                 letterSpacing = 1.sp,
@@ -193,14 +192,14 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                                     clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(myCode))
                                     isCopied = true
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = if (isCopied) Color(0xFF10B981) else Color(0xFFFDB913)),
+                                colors = ButtonDefaults.buttonColors(containerColor = if (isCopied) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 shape = RoundedCornerShape(6.dp),
                                 modifier = Modifier.height(32.dp).testTag("copy_code_btn")
                             ) {
                                 Text(
                                     text = if (isCopied) "Copied!" else "Copy",
-                                    color = if (isCopied) ComposeColor.White else Color.Black,
+                                    color = if (isCopied) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -231,9 +230,9 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                             modifier = Modifier.padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Total Referred", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("Total Referred", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(Sp.xs))
-                            Text(text = "$totalCount", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(text = "$totalCount", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                         }
                     }
                     BodaCard(
@@ -243,9 +242,9 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                             modifier = Modifier.padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("In Progress", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("In Progress", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(Sp.xs))
-                            Text(text = "$pendingCount", color = Color(0xFFFDB913), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(text = "$pendingCount", color = MaterialTheme.colorScheme.primary, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                         }
                     }
                     BodaCard(
@@ -255,9 +254,9 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                             modifier = Modifier.padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Total Earned", color = Color(0xFF64748B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text("Total Earned", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(Sp.xs))
-                            Text(text = "UGX ${totalEarnings.toInt()}", color = Color(0xFF10B981), fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(text = "UGX ${totalEarnings.toInt()}", color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
                         }
                     }
                 }
@@ -267,7 +266,7 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
             item {
                 Text(
                     text = "REFERRED FRIENDS",
-                    color = Color(0xFF64748B),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 4.dp)
@@ -284,9 +283,9 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Group, contentDescription = null, tint = Color(0xFF334155), modifier = Modifier.size(48.dp))
+                            Icon(Icons.Default.Group, contentDescription = null, tint = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.size(48.dp))
                             Spacer(modifier = Modifier.height(Sp.sm))
-                            Text("No referrals yet in Gulu.", color = Color(0xFF64748B), fontSize = 12.sp)
+                            Text("No referrals yet in Gulu.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         }
                     }
                 }
@@ -306,15 +305,15 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF334155)),
+                                        .background(MaterialTheme.colorScheme.surfaceVariant),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                    Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
                                 }
                                 Spacer(modifier = Modifier.width(Sp.sm))
                                 Column {
-                                    Text(ref.referredName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                    Text(ref.referredPhone, color = Color(0xFF64748B), fontSize = 11.sp)
+                                    Text(ref.referredName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text(ref.referredPhone, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                                 }
                             }
 
@@ -323,14 +322,14 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(
-                                        if (ref.status == "completed") Color(0xFF10B981).copy(alpha = 0.15f)
-                                        else Color(0xFFFDB913).copy(alpha = 0.15f)
+                                        if (ref.status == "completed") MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                     )
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
                                     text = if (ref.status == "completed") "UGX +3,000" else "Pending 1st Ride",
-                                    color = if (ref.status == "completed") Color(0xFF10B981) else Color(0xFFFDB913),
+                                    color = if (ref.status == "completed") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -343,20 +342,20 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
             // Testing / Simulation Controls
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B).copy(alpha = 0.6f)),
-                    border = BorderStroke(1.dp, Color(0xFF334155)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Code, contentDescription = null, tint = Color(0xFFFDB913), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Code, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(Sp.sm))
-                            Text("GULU REFERRAL SIMULATOR", color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                            Text("GULU REFERRAL SIMULATOR", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                         }
                         Spacer(modifier = Modifier.height(Sp.xs))
                         Text(
                             "Simulate realistic refer-a-friend operations locally to test the automated payouts and statistics updates.",
-                            color = Color(0xFF94A3B8),
+                            color = MaterialTheme.colorScheme.outline,
                             fontSize = 11.sp,
                             lineHeight = 15.sp
                         )
@@ -367,21 +366,21 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                         ) {
                             Button(
                                 onClick = { viewModel.simulateNewReferralSignUp() },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF334155)),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                                 shape = RoundedCornerShape(6.dp),
                                 modifier = Modifier.weight(1f).testTag("simulate_signup_btn")
                             ) {
-                                Text("1. Friend Sign-up", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("1. Friend Sign-up", color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                             Button(
                                 onClick = { viewModel.simulateReferralFirstTripCompletion() },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFDB913)),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                                 shape = RoundedCornerShape(6.dp),
                                 modifier = Modifier.weight(1f).testTag("simulate_trip_btn")
                             ) {
-                                Text("2. Friend's 1st Ride", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("2. Friend's 1st Ride", color = MaterialTheme.colorScheme.onPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

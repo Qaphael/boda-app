@@ -253,6 +253,14 @@ fun BodaViewModel.startLocationTracking() {
         override fun onLocationResult(result: LocationResult) {
             result.lastLocation?.let { location ->
                 currentLocation = location
+                if (pickupPlace?.label == "Current Location") {
+                    pickupPlace = SavedPlace(
+                        label = "Current Location",
+                        name = "Current Location",
+                        latitude = location.latitude,
+                        longitude = location.longitude
+                    )
+                }
             }
         }
     }
@@ -368,6 +376,15 @@ fun BodaViewModel.getLastKnownLocation() {
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
         if (location != null) {
             currentLocation = location
+            if (pickupPlace == null) {
+                pickupPlace = SavedPlace(
+                    label = "Current Location",
+                    name = "Current Location",
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                )
+                pickupText = "Current Location"
+            }
         }
     }
 }

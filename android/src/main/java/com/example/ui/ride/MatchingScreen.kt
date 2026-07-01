@@ -1,9 +1,8 @@
 package com.example.ui.ride
 
 import com.example.ui.BodaViewModel
-import com.example.ui.components.Color
 import com.example.ui.components.Sp
-import com.example.ui.components.BodaLang
+import com.example.ui.util.BodaLang
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaTextButton
 import com.example.ui.components.BodaTextField
@@ -31,38 +30,40 @@ fun MatchingScreen(viewModel: BodaViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A)),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(24.dp)
+            modifier = Modifier.padding(Sp.lg)
         ) {
-            Text("Assigning closest Gulu Rider", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Assigning closest Gulu Rider", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(Sp.sm))
-            Text("Boda Escrow secures this payment. You can cancel for free before matching.", color = Color(0xFF64748B), fontSize = 12.sp, textAlign = TextAlign.Center)
+            Text("Boda Escrow secures this payment. You can cancel for free before matching.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, textAlign = TextAlign.Center)
 
             Spacer(modifier = Modifier.height(Sp.xxl))
 
             // Animated Matching progress radar sweep
+            val radarSurface = MaterialTheme.colorScheme.surface
+            val radarPrimary = MaterialTheme.colorScheme.primary
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(200.dp)
                     .drawBehind {
-                        drawCircle(Color(0xFF1E293B), radius = size.width * 0.5f)
-                        drawCircle(Color(0xFFFDB913).copy(alpha = viewModel.matchProgress), radius = size.width * 0.5f * viewModel.matchProgress)
+                        drawCircle(radarSurface, radius = size.width * 0.5f)
+                        drawCircle(radarPrimary.copy(alpha = viewModel.matchProgress), radius = size.width * 0.5f * viewModel.matchProgress)
                     }
             ) {
-                Icon(Icons.Default.TwoWheeler, contentDescription = null, tint = Color(0xFFFDB913), modifier = Modifier.size(60.dp))
+                Icon(Icons.Default.TwoWheeler, contentDescription = null, tint = radarPrimary, modifier = Modifier.size(60.dp))
             }
 
             Spacer(modifier = Modifier.height(Sp.xl))
 
             LinearProgressIndicator(
                 progress = { viewModel.matchProgress },
-                color = Color(0xFFFDB913),
-                trackColor = Color(0xFF334155),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.fillMaxWidth(0.8f)
             )
 
@@ -71,9 +72,9 @@ fun MatchingScreen(viewModel: BodaViewModel) {
             BodaButton(
                 text = BodaLang.get(viewModel.appLanguage, "cancel"),
                 onClick = { showCancelReason = true },
-                containerColor = Color(0xFFE4002B),
-                contentColor = Color.White,
-                modifier = Modifier.fillMaxWidth(0.8f)
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -82,14 +83,14 @@ fun MatchingScreen(viewModel: BodaViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f)),
+                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)),
                 contentAlignment = Alignment.Center
             ) {
-                BodaCard(modifier = Modifier.fillMaxWidth(0.85f)) {
-                    Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Cancel Boda Request?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                BodaCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(Sp.lg)) {
+                        Text("Cancel Boda Request?", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Spacer(modifier = Modifier.height(Sp.sm))
-                        Text("Late cancelation may charge a 1,000 UGX fee to reimburse the rider's fuel.", color = Color(0xFF94A3B8), fontSize = 12.sp)
+                        Text("Late cancelation may charge a 1,000 UGX fee to reimburse the rider's fuel.", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
                         Spacer(modifier = Modifier.height(Sp.sm))
                         BodaTextField(
                             value = cancelReasonText,
@@ -103,7 +104,7 @@ fun MatchingScreen(viewModel: BodaViewModel) {
                             BodaTextButton(
                                 text = "Go Back",
                                 onClick = { showCancelReason = false },
-                                contentColor = Color.White
+                                contentColor = MaterialTheme.colorScheme.onBackground
                             )
                             Spacer(modifier = Modifier.width(Sp.sm))
                             BodaButton(
@@ -112,8 +113,8 @@ fun MatchingScreen(viewModel: BodaViewModel) {
                                     viewModel.cancelActiveTrip(cancelReasonText)
                                 },
                                 enabled = cancelReasonText.isNotEmpty(),
-                                containerColor = Color(0xFFE4002B),
-                                contentColor = Color.White
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
                             )
                         }
                     }

@@ -25,10 +25,10 @@ fun BodaCard(
     Card(
         modifier = cardModifier,
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E293B)
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp),
-        border = border ?: BorderStroke(1.dp, Color(0xFF334155)),
+        border = border ?: BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
         content = content
     )
 }

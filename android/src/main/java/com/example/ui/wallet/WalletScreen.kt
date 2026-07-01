@@ -40,15 +40,15 @@ import com.example.ui.BodaViewModel
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaTextField
-import com.example.ui.components.Color
+import androidx.compose.material3.MaterialTheme
 import com.example.ui.components.Sp
 
 // --- SCREEN 11: WALLET balance & DEPOSITS ---
 @Composable
 fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTransaction>) {
     if (viewModel.isLoadingData) {
-        Box(Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFFFDB913))
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
@@ -56,11 +56,11 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text("Boda Gulu Wallet", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text("Boda Gulu Wallet", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(Sp.sm))
 
         // Balance Card
@@ -68,11 +68,11 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text("Available Escrow Balance", color = Color(0xFF64748B), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Text("Available Escrow Balance", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
-                Text("UGX ${balance.toInt()}", color = Color(0xFFFDB913), fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
+                Text("UGX ${balance.toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold, fontSize = 24.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
-                Text("Secure payments around Gulu without physical cash.", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                Text("Secure payments around Gulu without physical cash.", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
             }
         }
 
@@ -95,8 +95,8 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
             stats.forEach { pair ->
                 BodaCard(modifier = Modifier.weight(1f)) {
                     Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(pair.first, color = Color(0xFFFDB913), fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        Text(pair.second, color = Color(0xFF64748B), fontSize = 9.sp)
+                        Text(pair.first, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(pair.second, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 9.sp)
                     }
                 }
             }
@@ -105,7 +105,7 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
         Spacer(modifier = Modifier.height(Sp.md))
 
         // Quick Top-up selector
-        Text("MTN / Airtel Quick Deposit", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text("MTN / Airtel Quick Deposit", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(Sp.sm))
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             listOf("2000", "5000", "10000", "20000").forEach { valAmount ->
@@ -113,11 +113,11 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(6.dp))
-                        .background(if (isSelected) Color(0xFFFDB913) else Color(0xFF1E293B))
+                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
                         .clickable { viewModel.walletTopupAmountInput = valAmount }
                         .padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
-                    Text("+$valAmount", color = if (isSelected) Color.Black else Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    Text("+$valAmount", color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 }
             }
         }
@@ -138,9 +138,9 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
         if (viewModel.walletTopupStatus == "pending") {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(color = Color(0xFFFDB913))
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("Awaiting Mobile Money OTP and Pin Approval...", color = Color(0xFFFDB913), fontSize = 12.sp)
+                    Text("Awaiting Mobile Money OTP and Pin Approval...", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                 }
             }
         } else {
@@ -154,13 +154,13 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
         }
 
         if (viewModel.walletTopupStatus == "success") {
-            Text("Top up successful! Ref: ${viewModel.activeTransactionReference}", color = Color(0xFF10B981), fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+            Text("Top up successful! Ref: ${viewModel.activeTransactionReference}", color = MaterialTheme.colorScheme.tertiary, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
         }
 
         Spacer(modifier = Modifier.height(Sp.md))
 
         // Historic Ledger list
-        Text("Transaction History Ledger", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text("Transaction History Ledger", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(Sp.sm))
 
         if (txns.isEmpty()) {
@@ -174,13 +174,13 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
                     Icon(
                         imageVector = Icons.Default.Receipt,
                         contentDescription = "No Transactions",
-                        tint = Color(0xFF64748B),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(48.dp)
                     )
                     Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("No transactions yet", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("No transactions yet", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(Sp.xs))
-                    Text("Your Mobile Money deposits and ride payments will show up here.", color = Color(0xFF64748B), fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text("Your Mobile Money deposits and ride payments will show up here.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             }
         } else {
@@ -198,7 +198,7 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
                             txn.reference.startsWith("REF-") -> Icons.Default.CardGiftcard
                             else -> Icons.Default.ArrowUpward
                         }
-                        val txColor = if (txn.type == "payment") androidx.compose.ui.graphics.Color(0xFFF87171) else androidx.compose.ui.graphics.Color(0xFF10B981)
+                        val txColor = if (txn.type == "payment") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
                         Icon(
                             imageVector = txIcon,
                             contentDescription = null,
@@ -206,18 +206,18 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
                         )
                         Spacer(modifier = Modifier.width(Sp.sm))
                         Column {
-                            Text(if (txn.type == "topup") "MoMo Topup Deposit" else "Boda Booking Payment", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text("Ref: ${txn.reference} • ${txn.provider}", color = Color(0xFF64748B), fontSize = 11.sp)
+                            Text(if (txn.type == "topup") "MoMo Topup Deposit" else "Boda Booking Payment", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Ref: ${txn.reference} • ${txn.provider}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         }
                     }
                     Text(
                         text = "${if (txn.type == "topup") "+" else "-"} UGX ${txn.amount.toInt()}",
-                        color = if (txn.type == "topup") Color(0xFF10B981) else Color.White,
+                        color = if (txn.type == "topup") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
                 }
-                HorizontalDivider(color = Color(0xFF1E293B))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surface)
             }
         }
     }

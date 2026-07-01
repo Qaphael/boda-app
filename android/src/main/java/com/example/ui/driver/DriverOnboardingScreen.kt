@@ -30,6 +30,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -50,7 +51,6 @@ import com.example.ui.home.navigateTo
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaTextField
-import com.example.ui.components.Color
 import com.example.ui.components.Sp
 
 @Composable
@@ -60,7 +60,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -75,10 +75,10 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 if (step > 1) viewModel.driverOnboardingStep-- 
                 else viewModel.navigateTo(Screen.WelcomeOnboarding) 
             }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(Sp.sm))
-            Text("Driver Onboarding Portal", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Driver Onboarding Portal", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(Sp.md))
@@ -89,7 +89,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Step $step of 5", color = ComposeColor(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text("Step $step of 5", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
             Text(
                 text = when(step) {
                     1 -> "Personal & NIN Details"
@@ -98,7 +98,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     4 -> "Gulu Safety Code Quiz"
                     else -> "Approved!"
                 },
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp
             )
@@ -113,7 +113,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                         .padding(horizontal = 2.dp)
                         .clip(RoundedCornerShape(3.dp))
                         .background(
-                            if (i <= step) ComposeColor(0xFF10B981) else Color(0xFF334155)
+                            if (i <= step) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
                         )
                 )
             }
@@ -126,14 +126,14 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 // Step 1: Personal Details
                 Text(
                     "Register as Gulu Boda Member",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 18.sp,
                     modifier = Modifier.align(Alignment.Start)
                 )
                 Text(
                     "Enter your legal bio-data and National ID details. All drivers must be vetted for safety.",
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
                     modifier = Modifier.padding(top = 4.dp, bottom = 20.dp).align(Alignment.Start)
@@ -179,14 +179,14 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 // Step 2: Motorcycle Details
                 Text(
                     "Motorcycle & Stage Setup",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 18.sp,
                     modifier = Modifier.align(Alignment.Start)
                 )
                 Text(
                     "Enter your license plate and local Gulu security stage association.",
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
                     modifier = Modifier.padding(top = 4.dp, bottom = 20.dp).align(Alignment.Start)
@@ -202,7 +202,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
 
                 Spacer(modifier = Modifier.height(Sp.md))
 
-                Text("Select Assigned Security Stage in Gulu:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.align(Alignment.Start))
+                Text("Select Assigned Security Stage in Gulu:", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.align(Alignment.Start))
                 Spacer(modifier = Modifier.height(Sp.sm))
 
                 val stages = listOf(
@@ -218,8 +218,8 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(if (viewModel.driverRegStage == s) Color(0xFF1E293B) else Color.Transparent)
-                            .border(1.dp, if (viewModel.driverRegStage == s) ComposeColor(0xFFFDB913) else Color(0xFF334155), RoundedCornerShape(8.dp))
+                            .background(if (viewModel.driverRegStage == s) MaterialTheme.colorScheme.surface else ComposeColor.Transparent)
+                            .border(1.dp, if (viewModel.driverRegStage == s) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
                             .clickable { viewModel.driverRegStage = s }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -227,15 +227,15 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                         RadioButton(
                             selected = viewModel.driverRegStage == s,
                             onClick = { viewModel.driverRegStage = s },
-                            colors = RadioButtonDefaults.colors(selectedColor = ComposeColor(0xFFFDB913), unselectedColor = Color.White)
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary, unselectedColor = MaterialTheme.colorScheme.onBackground)
                         )
                         Spacer(modifier = Modifier.width(Sp.sm))
-                        Text(s, color = Color.White, fontSize = 14.sp)
+                        Text(s, color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(Sp.md))
-                Text("Select Helmet Color Scheme:", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.align(Alignment.Start))
+                Text("Select Helmet Color Scheme:", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.align(Alignment.Start))
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     listOf("Yellow", "Orange", "Black").forEach { color ->
@@ -244,13 +244,13 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                                 .weight(1f)
                                 .padding(horizontal = 4.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(if (viewModel.driverRegHelmetColor == color) Color(0xFF1E293B) else Color.Transparent)
-                                .border(1.dp, if (viewModel.driverRegHelmetColor == color) ComposeColor(0xFFFDB913) else Color(0xFF334155), RoundedCornerShape(8.dp))
+                                .background(if (viewModel.driverRegHelmetColor == color) MaterialTheme.colorScheme.surface else ComposeColor.Transparent)
+                                .border(1.dp, if (viewModel.driverRegHelmetColor == color) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
                                 .clickable { viewModel.driverRegHelmetColor = color }
                                 .padding(vertical = 10.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(color, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(color, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -268,14 +268,14 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 // Step 3: Document Security Upload
                 Text(
                     "Security Vetting & Documents",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 18.sp,
                     modifier = Modifier.align(Alignment.Start)
                 )
                 Text(
                     "Upload high-quality scans of required legal documents to verify identification.",
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 4.dp, bottom = 20.dp).align(Alignment.Start)
                 )
@@ -290,12 +290,12 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     val isUploaded = viewModel.driverDocsUploaded.contains(doc)
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isUploaded) Color(0xFF1E293B) else Color(0xFF131A2A)
+                            containerColor = if (isUploaded) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp)
-                            .border(1.dp, if (isUploaded) ComposeColor(0xFF10B981) else Color(0xFF334155), RoundedCornerShape(12.dp))
+                            .border(1.dp, if (isUploaded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                     ) {
                         Row(
                             modifier = Modifier
@@ -305,10 +305,10 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(doc, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(doc, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text(
                                     if (isUploaded) "Document Security Approved" else "Requires High-Res JPEG Scan",
-                                    color = if (isUploaded) ComposeColor(0xFF10B981) else Color(0xFF64748B),
+                                    color = if (isUploaded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp
                                 )
                             }
@@ -316,8 +316,8 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                             BodaButton(
                                 text = if (isUploaded) "UPLOADED" else "UPLOAD",
                                 onClick = { viewModel.simulateDocUpload(doc) },
-                                containerColor = if (isUploaded) Color(0xFF10B981) else Color(0xFFFDB913),
-                                contentColor = ComposeColor.Black,
+                                containerColor = if (isUploaded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.height(36.dp).widthIn(max = 120.dp)
                             )
                         }
@@ -329,15 +329,15 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             "Uploading ${viewModel.driverDocumentType}...",
-                            color = ComposeColor(0xFFFDB913),
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(Sp.sm))
                         LinearProgressIndicator(
                             progress = viewModel.driverUploadProgress,
-                            color = ComposeColor(0xFF10B981),
-                            trackColor = Color(0xFF334155),
+                            color = MaterialTheme.colorScheme.tertiary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))
                         )
                     }
@@ -356,14 +356,14 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 // Step 4: Safety & Community Quiz
                 Text(
                     "Gulu Safety & Code of Conduct",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 18.sp,
                     modifier = Modifier.align(Alignment.Start)
                 )
                 Text(
                     "Verify Gulu street safety compliance rules. Select correct answers below.",
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 4.dp, bottom = 20.dp).align(Alignment.Start)
                 )
@@ -373,7 +373,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
-                        Text("1. What is the maximum speed limit for Bodas inside Gulu Town center?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("1. What is the maximum speed limit for Bodas inside Gulu Town center?", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(Sp.sm))
                         listOf("30 km/h (Town Core Limit)", "60 km/h (High Speed)", "No speed limit").forEach { choice ->
                             Row(
@@ -386,9 +386,9 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                                 RadioButton(
                                     selected = viewModel.driverQuizAnswer1 == choice,
                                     onClick = { viewModel.driverQuizAnswer1 = choice },
-                                    colors = RadioButtonDefaults.colors(selectedColor = ComposeColor(0xFFFDB913), unselectedColor = Color.White)
+                                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary, unselectedColor = MaterialTheme.colorScheme.onBackground)
                                 )
-                                Text(choice, color = Color.White, fontSize = 12.sp)
+                                Text(choice, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
                             }
                         }
                     }
@@ -399,7 +399,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
-                        Text("2. What are you mandatory required to provide to all passengers?", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("2. What are you mandatory required to provide to all passengers?", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(Sp.sm))
                         listOf("A clean spare Helmet and Reflector Jacket", "Nothing, passenger holds tightly", "A bottle of water").forEach { choice ->
                             Row(
@@ -412,9 +412,9 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                                 RadioButton(
                                     selected = viewModel.driverQuizAnswer2 == choice,
                                     onClick = { viewModel.driverQuizAnswer2 = choice },
-                                    colors = RadioButtonDefaults.colors(selectedColor = ComposeColor(0xFFFDB913), unselectedColor = Color.White)
+                                    colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary, unselectedColor = MaterialTheme.colorScheme.onBackground)
                                 )
-                                Text(choice, color = Color.White, fontSize = 12.sp)
+                                Text(choice, color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp)
                             }
                         }
                     }
@@ -432,12 +432,12 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     Checkbox(
                         checked = viewModel.driverTermsAccepted,
                         onCheckedChange = { viewModel.driverTermsAccepted = it },
-                        colors = CheckboxDefaults.colors(checkedColor = ComposeColor(0xFFFDB913), uncheckedColor = Color.White)
+                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary, uncheckedColor = MaterialTheme.colorScheme.onBackground)
                     )
                     Spacer(modifier = Modifier.width(Sp.sm))
                     Text(
                         "I pledge to drive safely and respect all traffic codes and passengers in Gulu.",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 11.sp
                     )
                 }
@@ -457,24 +457,24 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(ComposeColor(0xFF10B981).copy(alpha = 0.2f))
-                        .border(2.dp, ComposeColor(0xFF10B981), CircleShape),
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
+                        .border(2.dp, MaterialTheme.colorScheme.tertiary, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = "Verified", tint = ComposeColor(0xFF10B981), modifier = Modifier.size(50.dp))
+                    Icon(Icons.Default.Check, contentDescription = "Verified", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(50.dp))
                 }
 
                 Spacer(modifier = Modifier.height(Sp.md))
                 Text(
                     "Congratulations & Welcome!",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 24.sp
                 )
                 Spacer(modifier = Modifier.height(Sp.sm))
                 Text(
                     "Your Boda-Gulu Driver Account has been dynamically approved & synchronized! You are officially registered in Gulu.",
-                    color = Color(0xFF94A3B8),
+                    color = MaterialTheme.colorScheme.outline,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 12.dp)
@@ -487,23 +487,23 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("Driver Name:", color = Color(0xFF64748B), fontSize = 12.sp)
-                            Text(viewModel.driverRegName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Driver Name:", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                            Text(viewModel.driverRegName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(Sp.sm))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("Plate Number:", color = Color(0xFF64748B), fontSize = 12.sp)
-                            Text(viewModel.driverRegPlate, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Plate Number:", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                            Text(viewModel.driverRegPlate, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(Sp.sm))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("Assigned Stage:", color = Color(0xFF64748B), fontSize = 12.sp)
-                            Text(viewModel.driverRegStage, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Assigned Stage:", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                            Text(viewModel.driverRegStage, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(Sp.sm))
                         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                            Text("Helmet Preference:", color = Color(0xFF64748B), fontSize = 12.sp)
-                            Text(viewModel.driverRegHelmetColor, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Helmet Preference:", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                            Text(viewModel.driverRegHelmetColor, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                     }
                 }
@@ -513,8 +513,8 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 BodaButton(
                     text = "LAUNCH DRIVER COCKPIT",
                     onClick = { viewModel.completeDriverOnboarding() },
-                    containerColor = Color(0xFF10B981),
-                    contentColor = ComposeColor.Black,
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

@@ -32,7 +32,7 @@ import com.example.ui.home.navigateBack
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
 import com.example.ui.components.BodaTextField
-import com.example.ui.components.Color
+import androidx.compose.material3.MaterialTheme
 import com.example.ui.components.Sp
 
 // --- SCREEN 14: SAVED PLACES MANAGEMENT ---
@@ -41,22 +41,22 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { viewModel.navigateBack() }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(Sp.sm))
-            Text("Saved Places", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text("Saved Places", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.height(Sp.sm))
 
         BodaCard(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(14.dp)) {
-                Text("Add New Location Bookmark", color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Add New Location Bookmark", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(Sp.sm))
                 BodaTextField(
                     value = viewModel.newPlaceLabel,
@@ -94,18 +94,18 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row {
-                        Icon(Icons.Default.Place, contentDescription = null, tint = Color(0xFFFDB913))
+                        Icon(Icons.Default.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(Sp.sm))
                         Column {
-                            Text(place.label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text(place.name, color = Color(0xFF64748B), fontSize = 12.sp)
+                            Text(place.label, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(place.name, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                         }
                     }
                     IconButton(onClick = { viewModel.removeSavedPlace(place) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFE4002B))
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                     }
                 }
-                HorizontalDivider(color = Color(0xFF1E293B))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surface)
             }
         }
     }

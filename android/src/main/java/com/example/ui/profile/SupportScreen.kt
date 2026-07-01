@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
 import com.example.ui.components.BodaCard
-import com.example.ui.components.Color
+import androidx.compose.material3.MaterialTheme
 import com.example.ui.components.Sp
 
 // --- SCREEN 15: SUPPORT CHAT & FAQ ENGINE ---
@@ -46,7 +46,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Row(
@@ -54,15 +54,15 @@ fun SupportScreen(viewModel: BodaViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Help & Support Gulu", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text("Help & Support Gulu", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .background(if (inChatMode) Color(0xFFFDB913) else Color(0xFF334155))
+                    .background(if (inChatMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { inChatMode = !inChatMode }
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text(if (inChatMode) "FAQ Center" else "Live Officer Chat", color = if (inChatMode) Color.Black else Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                Text(if (inChatMode) "FAQ Center" else "Live Officer Chat", color = if (inChatMode) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 11.sp)
             }
         }
 
@@ -73,7 +73,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .background(Color(0xFF1E293B), RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
                     .padding(12.dp)
             ) {
                 items(viewModel.activeChatMessages) { msg ->
@@ -89,16 +89,16 @@ fun SupportScreen(viewModel: BodaViewModel) {
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (isUser) Color(0xFFFDB913)
-                                    else if (isSystem) Color(0xFF475569).copy(alpha = 0.5f)
-                                    else Color(0xFF334155)
+                                    if (isUser) MaterialTheme.colorScheme.primary
+                                    else if (isSystem) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                    else MaterialTheme.colorScheme.surfaceVariant
                                 )
                                 .padding(10.dp)
                                 .fillMaxWidth(if (isSystem) 0.9f else 0.75f)
                         ) {
                             Text(
                                 msg.message,
-                                color = if (isUser) Color.Black else Color.White,
+                                color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                 fontSize = 12.sp,
                                 fontWeight = if (isSystem) FontWeight.Medium else FontWeight.Normal
                             )
@@ -114,20 +114,20 @@ fun SupportScreen(viewModel: BodaViewModel) {
                 OutlinedTextField(
                     value = viewModel.newChatMessageText,
                     onValueChange = { viewModel.newChatMessageText = it },
-                    placeholder = { Text("Ask about fares or lost items...", color = Color(0xFF475569)) },
+                    placeholder = { Text("Ask about fares or lost items...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color(0xFF1E293B),
-                        unfocusedContainerColor = Color(0xFF1E293B),
-                        focusedBorderColor = Color(0xFFFDB913),
-                        unfocusedBorderColor = Color(0xFF334155)
+                        focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.width(Sp.sm))
                 IconButton(onClick = { viewModel.sendSupportChatMessage() }) {
-                    Icon(Icons.Default.Send, contentDescription = "Send", tint = Color(0xFFFDB913))
+                    Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.primary)
                 }
             }
         } else {
@@ -135,14 +135,14 @@ fun SupportScreen(viewModel: BodaViewModel) {
             OutlinedTextField(
                 value = viewModel.supportSearchQuery,
                 onValueChange = { viewModel.supportSearchQuery = it },
-                placeholder = { Text("Search FAQ articles (e.g. lost bag)...", color = Color(0xFF475569)) },
+                placeholder = { Text("Search FAQ articles (e.g. lost bag)...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color(0xFF1E293B),
-                    unfocusedContainerColor = Color(0xFF1E293B),
-                    focusedBorderColor = Color(0xFFFDB913),
-                    unfocusedBorderColor = Color(0xFF334155)
+                    focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -164,9 +164,9 @@ fun SupportScreen(viewModel: BodaViewModel) {
                             .padding(vertical = 4.dp)
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text(q, color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(q, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Spacer(modifier = Modifier.height(Sp.xs))
-                            Text(a, color = Color(0xFF94A3B8), fontSize = 11.sp, lineHeight = 16.sp)
+                            Text(a, color = MaterialTheme.colorScheme.outline, fontSize = 11.sp, lineHeight = 16.sp)
                         }
                     }
                 }

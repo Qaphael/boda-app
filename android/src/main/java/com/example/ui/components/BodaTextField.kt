@@ -6,7 +6,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,7 +27,7 @@ fun BodaTextField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
@@ -38,20 +37,20 @@ fun BodaTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = placeholder?.let { { Text(it, color = Color(0xFF64748B)) } },
+            placeholder = placeholder?.let { { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant) } },
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             keyboardOptions = keyboardOptions,
             singleLine = singleLine,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedContainerColor = Color(0xFF1E293B),
-                unfocusedContainerColor = Color(0xFF1E293B),
-                focusedBorderColor = Color(0xFFFDB913),
-                unfocusedBorderColor = Color(0xFF334155),
-                focusedLabelColor = Color(0xFFFDB913),
-                unfocusedLabelColor = Color(0xFF94A3B8)
+                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                unfocusedLabelColor = MaterialTheme.colorScheme.outline
             ),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier

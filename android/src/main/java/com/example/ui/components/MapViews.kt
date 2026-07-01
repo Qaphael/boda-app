@@ -77,7 +77,8 @@ fun GoogleMapViewWrapper(
     dropoffLatLng: com.google.android.gms.maps.model.LatLng?,
     riderProgress: Float,
     simulationState: String,
-    routePoints: List<com.google.android.gms.maps.model.LatLng> = emptyList()
+    routePoints: List<com.google.android.gms.maps.model.LatLng> = emptyList(),
+    userLocation: android.location.Location? = null
 ) {
     val context = LocalContext.current
     val mapView = remember { com.google.android.gms.maps.MapView(context) }
@@ -91,6 +92,10 @@ fun GoogleMapViewWrapper(
                     googleMap.uiSettings.isZoomControlsEnabled = true
                     googleMap.uiSettings.isMapToolbarEnabled = false
                     googleMap.mapType = com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL
+                    try {
+                        googleMap.isMyLocationEnabled = true
+                        googleMap.uiSettings.isMyLocationButtonEnabled = true
+                    } catch (_: SecurityException) {}
                 }
             }
         },
@@ -105,6 +110,16 @@ fun GoogleMapViewWrapper(
                         .title("Pickup Point")
                         .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_GREEN))
                 )
+
+                if (userLocation != null) {
+                    val userLatLng = com.google.android.gms.maps.model.LatLng(userLocation.latitude, userLocation.longitude)
+                    googleMap.addMarker(
+                        com.google.android.gms.maps.model.MarkerOptions()
+                            .position(userLatLng)
+                            .title("Your Location")
+                            .icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(com.google.android.gms.maps.model.BitmapDescriptorFactory.HUE_AZURE))
+                    )
+                }
 
                 if (dropoffLatLng != null) {
                     googleMap.addMarker(
@@ -157,7 +172,12 @@ fun GoogleMapViewWrapper(
                         googleMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(pickupLatLng, 14f))
                     }
                 } else {
-                    googleMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(pickupLatLng, 15f))
+                    val cameraTarget = if (userLocation != null) {
+                        com.google.android.gms.maps.model.LatLng(userLocation.latitude, userLocation.longitude)
+                    } else {
+                        pickupLatLng
+                    }
+                    googleMap.animateCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(cameraTarget, 15f))
                 }
             }
         }
@@ -176,7 +196,8 @@ fun GuluMapView(
     driverPickupName: String? = null,
     driverDropoffName: String? = null,
     driverProgress: Float = 0f,
-    viewModel: BodaViewModel? = null
+    viewModel: BodaViewModel? = null,
+    userLocation: android.location.Location? = null
 ) {
     val hasMapsApiKey = try {
         com.example.BuildConfig.MAPS_API_KEY.isNotEmpty() &&
@@ -185,6 +206,10 @@ fun GuluMapView(
     } catch (e: Throwable) {
         false
     }
+
+    val mapPrimaryColor = MaterialTheme.colorScheme.primary
+    val mapOnBgColor = MaterialTheme.colorScheme.onBackground
+    val mapSurfaceColor = MaterialTheme.colorScheme.surface
 
     Box(
         modifier = modifier
@@ -217,7 +242,8 @@ fun GuluMapView(
                 dropoffLatLng = dropoffLatLng,
                 riderProgress = progress,
                 simulationState = activeState,
-                routePoints = viewModel?.osrmRoutePoints ?: emptyList()
+                routePoints = viewModel?.osrmRoutePoints ?: emptyList(),
+                userLocation = userLocation
             )
         } else {
             GuluCanvasMapView(
@@ -237,7 +263,7 @@ fun GuluMapView(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color(0xFF1E293B).copy(alpha = 0.9f))
+                    .background(mapSurfaceColor.copy(alpha = 0.9f))
                     .padding(6.dp)
             ) {
                 Row(
@@ -245,11 +271,11 @@ fun GuluMapView(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Info, contentDescription = null, tint = ComposeColor(0xFFFDB913), modifier = Modifier.size(12.dp))
+                    Icon(Icons.Default.Info, contentDescription = null, tint = mapPrimaryColor, modifier = Modifier.size(12.dp))
                     Spacer(modifier = Modifier.width(Sp.sm))
                     Text(
                         "Set MAPS_API_KEY in Secrets Panel to unlock live Google Maps",
-                        color = Color.White,
+                        color = mapOnBgColor,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -272,16 +298,24 @@ fun GuluCanvasMapView(
     driverDropoffName: String? = null,
     driverProgress: Float = 0f
 ) {
+    val canvasBgColor = MaterialTheme.colorScheme.background
+    val canvasSurfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+    val canvasOnSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+    val canvasPrimary = MaterialTheme.colorScheme.primary
+    val canvasTertiary = MaterialTheme.colorScheme.tertiary
+    val canvasError = MaterialTheme.colorScheme.error
+    val canvasSecondary = MaterialTheme.colorScheme.secondary
+
     Canvas(
         modifier = modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF0F172A))
+            .background(canvasBgColor)
     ) {
         val w = size.width
         val h = size.height
 
-        val streetColor = Color(0xFF334155)
+        val streetColor = canvasSurfaceVariant
         val roadStroke = 4.dp.toPx()
 
         drawCircle(
@@ -292,7 +326,7 @@ fun GuluCanvasMapView(
         )
 
         drawCircle(
-            color = Color(0xFF475569),
+            color = canvasOnSurfaceVariant,
             radius = w * 0.08f,
             center = Offset(w * 0.5f, h * 0.5f),
             style = Stroke(width = roadStroke)
@@ -323,8 +357,8 @@ fun GuluCanvasMapView(
             strokeWidth = roadStroke
         )
 
-        val landmarkColor = Color(0xFF64748B)
-        drawCircle(Color(0xFFFDB913), radius = 8.dp.toPx(), center = Offset(w * 0.52f, h * 0.52f))
+        val landmarkColor = canvasOnSurfaceVariant
+        drawCircle(canvasPrimary, radius = 8.dp.toPx(), center = Offset(w * 0.52f, h * 0.52f))
         drawCircle(landmarkColor, radius = 6.dp.toPx(), center = Offset(w * 0.12f, h * 0.34f))
         drawCircle(landmarkColor, radius = 6.dp.toPx(), center = Offset(w * 0.88f, h * 0.18f))
         drawCircle(landmarkColor, radius = 6.dp.toPx(), center = Offset(w * 0.68f, h * 0.68f))
@@ -404,15 +438,15 @@ fun GuluCanvasMapView(
             }
             drawPath(
                 path = routePath,
-                color = Color(0xFFFDB913),
+                color = canvasPrimary,
                 style = Stroke(
                     width = 5.dp.toPx(),
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f), 0f)
                 )
             )
 
-            drawCircle(Color(0xFF10B981), radius = 7.dp.toPx(), center = activePickup)
-            drawCircle(Color(0xFFE4002B), radius = 7.dp.toPx(), center = activeDropoff)
+            drawCircle(canvasTertiary, radius = 7.dp.toPx(), center = activePickup)
+            drawCircle(canvasError, radius = 7.dp.toPx(), center = activeDropoff)
 
             if (activeState in listOf("enroute", "accepted", "pickup_arrived", "active")) {
                 val currentX: Float
@@ -436,12 +470,12 @@ fun GuluCanvasMapView(
                 }
 
                 drawCircle(
-                    color = Color(0xFF0061A4).copy(alpha = 0.4f),
+                    color = canvasSecondary.copy(alpha = 0.4f),
                     radius = 16.dp.toPx(),
                     center = Offset(currentX, currentY)
                 )
                 drawCircle(
-                    color = Color(0xFFFDB913),
+                    color = canvasPrimary,
                     radius = 9.dp.toPx(),
                     center = Offset(currentX, currentY)
                 )

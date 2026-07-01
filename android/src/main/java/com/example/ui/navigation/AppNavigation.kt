@@ -96,11 +96,13 @@ fun BodaAppContent(viewModel: BodaViewModel) {
         }
     }
 
+    val scaffoldBg = MaterialTheme.colorScheme.background
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .drawBehind {
-                drawRect(Color(0xFF0F172A))
+                drawRect(scaffoldBg)
             },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {

@@ -5,7 +5,7 @@ import com.example.ui.BodaViewModel
 import com.example.ui.ride.disputeTrip
 import com.example.ui.home.navigateTo
 import com.example.ui.Screen
-import com.example.ui.components.Color
+
 import com.example.ui.components.Sp
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaCard
@@ -33,8 +33,8 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
     var disputeDetails by remember { mutableStateOf("") }
 
     if (viewModel.isLoadingData) {
-        Box(Modifier.fillMaxSize().background(Color(0xFF0F172A)), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Color(0xFFFDB913))
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
@@ -42,10 +42,10 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Text("Your Trips & Deliveries", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Text("Your Trips & Deliveries", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 24.sp)
         Spacer(modifier = Modifier.height(Sp.sm))
 
         if (trips.isEmpty()) {
@@ -57,13 +57,13 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                     Icon(
                         imageVector = Icons.Default.Receipt,
                         contentDescription = "No Trips",
-                        tint = Color(0xFF64748B),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(64.dp)
                     )
                     Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("No trips yet", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("No trips yet", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("Your past ride and delivery ledger will appear here.", color = Color(0xFF64748B), fontSize = 12.sp)
+                    Text("Your past ride and delivery ledger will appear here.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(Sp.md))
                     BodaButton(
                         text = "Book your first ride",
@@ -88,32 +88,32 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                     Icon(
                                         imageVector = if (trip.type == "ride") Icons.Default.TwoWheeler else Icons.Default.LocalShipping,
                                         contentDescription = null,
-                                        tint = Color(0xFFFDB913)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.width(Sp.sm))
-                                    Text(trip.type.replaceFirstChar { it.uppercase() }, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text(trip.type.replaceFirstChar { it.uppercase() }, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                                 Text(
                                     text = "UGX ${trip.fare.toInt()}",
-                                    color = Color(0xFFFDB913),
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.ExtraBold,
                                     fontSize = 14.sp
                                 )
                             }
 
                             Spacer(modifier = Modifier.height(Sp.sm))
-                            Text("From: ${trip.pickupName}", color = Color(0xFF94A3B8), fontSize = 12.sp)
-                            Text("To: ${trip.dropoffName}", color = Color(0xFF94A3B8), fontSize = 12.sp)
+                            Text("From: ${trip.pickupName}", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
+                            Text("To: ${trip.dropoffName}", color = MaterialTheme.colorScheme.outline, fontSize = 12.sp)
 
                             Spacer(modifier = Modifier.height(Sp.sm))
                             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text("Rider: ${trip.riderName} (${trip.riderPlate})", color = Color.White, fontSize = 11.sp)
+                                Text("Rider: ${trip.riderName} (${trip.riderPlate})", color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp)
                                 Text(
                                     text = trip.status.uppercase(),
                                     color = when (trip.status) {
-                                        "completed" -> Color(0xFF10B981)
-                                        "canceled" -> Color(0xFFEF4444)
-                                        else -> Color(0xFFFDB913)
+                                        "completed" -> MaterialTheme.colorScheme.tertiary
+                                        "canceled" -> MaterialTheme.colorScheme.error
+                                        else -> MaterialTheme.colorScheme.primary
                                     },
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 11.sp
@@ -126,8 +126,8 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                     BodaButton(
                                         text = "Dispute Fare / Trip",
                                         onClick = { displayDisputeDialog = trip },
-                                        containerColor = Color(0xFFE4002B),
-                                        contentColor = Color.White,
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError,
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
@@ -136,10 +136,10 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(Color(0xFFE4002B).copy(alpha = 0.2f))
+                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
                                         .padding(8.dp)
                                 ) {
-                                    Text("Disputed Filed: ${trip.disputeReason}. Gulu team is reviewing evidence.", color = Color(0xFFEF4444), fontSize = 11.sp)
+                                    Text("Disputed Filed: ${trip.disputeReason}. Gulu team is reviewing evidence.", color = MaterialTheme.colorScheme.error, fontSize = 11.sp)
                                 }
                             }
                         }
@@ -153,12 +153,12 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.8f)),
+                    .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)),
                 contentAlignment = Alignment.Center
             ) {
                 BodaCard(modifier = Modifier.fillMaxWidth(0.85f)) {
                     Column(modifier = Modifier.padding(20.dp)) {
-                        Text("Dispute Boda Trip", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Dispute Boda Trip", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Spacer(modifier = Modifier.height(Sp.sm))
                         listOf("Wrong Route taken", "Rider was rude", "Overcharged", "Package damaged").forEach { reason ->
                             Row(
@@ -171,31 +171,31 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                 Icon(
                                     imageVector = if (disputeReason == reason) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
                                     contentDescription = null,
-                                    tint = Color(0xFFFDB913)
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                                 Spacer(modifier = Modifier.width(Sp.sm))
-                                Text(reason, color = Color.White, fontSize = 14.sp)
+                                Text(reason, color = MaterialTheme.colorScheme.onBackground, fontSize = 14.sp)
                             }
                         }
                         Spacer(modifier = Modifier.height(Sp.sm))
                         OutlinedTextField(
                             value = disputeDetails,
                             onValueChange = { disputeDetails = it },
-                            placeholder = { Text("Provide details / description of incident", color = Color(0xFF475569)) },
+                            placeholder = { Text("Provide details / description of incident", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedContainerColor = Color(0xFF1E293B),
-                                unfocusedContainerColor = Color(0xFF1E293B),
-                                focusedBorderColor = Color(0xFFFDB913),
-                                unfocusedBorderColor = Color(0xFF334155)
+                                focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
                             ),
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(modifier = Modifier.height(Sp.md))
                         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                             TextButton(onClick = { displayDisputeDialog = null }) {
-                                Text("Cancel", color = Color.White)
+                                Text("Cancel", color = MaterialTheme.colorScheme.onBackground)
                             }
                             Spacer(modifier = Modifier.width(Sp.sm))
                             BodaButton(
@@ -205,8 +205,8 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                     displayDisputeDialog = null
                                 },
                                 enabled = disputeReason.isNotEmpty() && disputeDetails.isNotEmpty(),
-                                containerColor = Color(0xFFE4002B),
-                                contentColor = Color.White
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
                             )
                         }
                     }

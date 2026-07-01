@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.BodaViewModel
-import com.example.ui.components.Color
 import com.example.ui.components.Sp
 
 @Composable
@@ -55,13 +55,13 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ComposeColor.Black.copy(alpha = 0.5f))
+            .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f))
             .clickable { viewModel.showRiderChatOverlay = false },
         contentAlignment = Alignment.BottomCenter
     ) {
         Card(
             shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.75f)
@@ -72,7 +72,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF1E293B))
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
                     Row(
@@ -85,20 +85,20 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(ComposeColor(0xFFFDB913)),
+                                    .background(MaterialTheme.colorScheme.primary),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.Person, contentDescription = null, tint = ComposeColor.Black, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
                             }
                             Spacer(modifier = Modifier.width(Sp.sm))
                             Column {
-                                Text(trip.riderName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("Vetted Rider • ${trip.riderPlate}", color = ComposeColor(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("Vetted Rider • ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                             }
                         }
 
                         IconButton(onClick = { viewModel.showRiderChatOverlay = false }) {
-                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onBackground)
                         }
                     }
                 }
@@ -135,13 +135,13 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                                             bottomEnd = if (isUser) 2.dp else 12.dp
                                         )
                                     )
-                                    .background(if (isUser) ComposeColor(0xFFFDB913) else Color(0xFF1E293B))
+                                    .background(if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
                                     .padding(horizontal = 14.dp, vertical = 10.dp)
                                     .widthIn(max = 260.dp)
                             ) {
                                 Text(
                                     text = msg.message,
-                                    color = if (isUser) ComposeColor.Black else Color.White,
+                                    color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                                     fontSize = 14.sp,
                                     fontWeight = if (isUser) FontWeight.SemiBold else FontWeight.Normal
                                 )
@@ -167,15 +167,15 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(Color(0xFF131A2A))
-                                .border(1.dp, Color(0xFF334155), RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surface)
+                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                                 .clickable {
                                     viewModel.riderChatInputText = chip
                                     viewModel.sendRiderChatMessage()
                                 }
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
-                            Text(chip, color = Color(0xFF94A3B8), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(chip, color = MaterialTheme.colorScheme.outline, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -188,12 +188,12 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                     ) {
                         Text(
                             text = "${trip.riderName} is typing",
-                            color = Color(0xFF94A3B8),
+                            color = MaterialTheme.colorScheme.outline,
                             fontSize = 11.sp,
                             fontStyle = FontStyle.Italic
                         )
                         Spacer(modifier = Modifier.width(Sp.xs))
-                        Text("...", color = Color(0xFFFDB913), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("...", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -201,21 +201,21 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF1E293B))
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
                         value = viewModel.riderChatInputText,
                         onValueChange = { viewModel.onRiderChatInputChanged(it) },
-                        placeholder = { Text("Write message...", color = Color(0xFF64748B), fontSize = 14.sp) },
+                        placeholder = { Text("Write message...", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp) },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedContainerColor = Color(0xFF1E293B),
-                            unfocusedContainerColor = Color(0xFF1E293B),
-                            focusedBorderColor = Color(0xFFFDB913),
-                            unfocusedBorderColor = Color(0xFF334155)
+                            focusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier
@@ -227,11 +227,11 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                         modifier = Modifier
                             .size(38.dp)
                             .clip(CircleShape)
-                            .background(ComposeColor(0xFFFDB913))
+                            .background(MaterialTheme.colorScheme.primary)
                             .clickable { viewModel.sendRiderChatMessage() },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Send, contentDescription = "Send", tint = ComposeColor.Black, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
                     }
                 }
             }

@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,17 +21,17 @@ fun OfflineBanner(onClose: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFEF4444))
+            .background(MaterialTheme.colorScheme.error)
             .padding(vertical = 10.dp, horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.CloudOff, contentDescription = null, tint = Color.White)
+            Icon(Icons.Default.CloudOff, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
             Spacer(modifier = Modifier.width(Sp.sm))
-            Text("Connection lost. Operating in Gulu Offline Cache Mode.", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text("Connection lost. Operating in Gulu Offline Cache Mode.", color = MaterialTheme.colorScheme.onBackground, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
-        Text("Dismiss", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onClose() })
+        Text("Dismiss", color = MaterialTheme.colorScheme.onBackground, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onClose() })
     }
 }
 
@@ -44,7 +43,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
+            .background(MaterialTheme.colorScheme.background)
             .clickable(enabled = false) {},
         contentAlignment = Alignment.Center
     ) {
@@ -58,7 +57,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
 
             Text(
                 text = "SECURE GULU BODA-WATCH CONNECT",
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
                 letterSpacing = 1.sp
@@ -74,25 +73,25 @@ fun CallOverlay(viewModel: BodaViewModel) {
                     modifier = Modifier
                         .size(150.dp)
                         .clip(CircleShape)
-                        .background(ComposeColor(0xFFFDB913).copy(alpha = 0.05f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))
                 )
                 Box(
                     modifier = Modifier
                         .size(110.dp)
                         .clip(CircleShape)
-                        .background(ComposeColor(0xFFFDB913).copy(alpha = 0.15f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                 )
                 Box(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(ComposeColor(0xFFFDB913)),
+                        .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
-                        tint = Color.Black,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -102,7 +101,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
 
             Text(
                 text = viewModel.callOverlayName,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 24.sp
             )
@@ -111,7 +110,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
 
             Text(
                 text = viewModel.callOverlayNumber,
-                color = Color(0xFF64748B),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp
             )
 
@@ -129,7 +128,7 @@ fun CallOverlay(viewModel: BodaViewModel) {
             }
             Text(
                 text = displayStatus,
-                color = if (viewModel.callOverlayState == "active") ComposeColor(0xFF10B981) else ComposeColor(0xFFFDB913),
+                color = if (viewModel.callOverlayState == "active") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
@@ -146,19 +145,19 @@ fun CallOverlay(viewModel: BodaViewModel) {
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .background(if (isMuted) Color.White else Color(0xFF1E293B))
+                            .background(if (isMuted) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surface)
                             .clickable { isMuted = !isMuted },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = if (isMuted) Icons.Default.MicOff else Icons.Default.Mic,
                             contentDescription = "Mute",
-                            tint = if (isMuted) Color.Black else Color.White,
+                            tint = if (isMuted) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                     Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("Mute", color = Color(0xFF64748B), fontSize = 11.sp)
+                    Text("Mute", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -166,19 +165,19 @@ fun CallOverlay(viewModel: BodaViewModel) {
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .background(if (isSpeaker) Color.White else Color(0xFF1E293B))
+                            .background(if (isSpeaker) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.surface)
                             .clickable { isSpeaker = !isSpeaker },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.VolumeUp,
                             contentDescription = "Speaker",
-                            tint = if (isSpeaker) Color.Black else Color.White,
+                            tint = if (isSpeaker) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                     Spacer(modifier = Modifier.height(Sp.sm))
-                    Text("Speaker", color = Color(0xFF64748B), fontSize = 11.sp)
+                    Text("Speaker", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                 }
             }
 
@@ -188,14 +187,14 @@ fun CallOverlay(viewModel: BodaViewModel) {
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE4002B))
+                    .background(MaterialTheme.colorScheme.error)
                     .clickable { viewModel.endActiveCall() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.CallEnd,
                     contentDescription = "End Call",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(28.dp)
                 )
             }

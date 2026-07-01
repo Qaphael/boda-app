@@ -22,8 +22,8 @@ fun BodaButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
-    containerColor: ComposeColor = Color(0xFFFDB913),
-    contentColor: ComposeColor = ComposeColor.Black,
+    containerColor: ComposeColor = MaterialTheme.colorScheme.primary,
+    contentColor: ComposeColor = MaterialTheme.colorScheme.onPrimary,
     icon: ImageVector? = null,
     testTag: String? = null
 ) {
@@ -33,8 +33,8 @@ fun BodaButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
-            disabledContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f),
-            disabledContentColor = Color(0xFF64748B)
+            disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         modifier = modifier
             .height(52.dp)
@@ -84,8 +84,8 @@ fun BodaSecondaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    containerColor: ComposeColor = Color(0xFF334155),
-    contentColor: ComposeColor = Color.White,
+    containerColor: ComposeColor = MaterialTheme.colorScheme.surfaceVariant,
+    contentColor: ComposeColor = MaterialTheme.colorScheme.onBackground,
     icon: ImageVector? = null,
     testTag: String? = null
 ) {
@@ -107,8 +107,8 @@ fun BodaOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    borderColor: ComposeColor = Color(0xFF334155),
-    contentColor: ComposeColor = Color.White,
+    borderColor: ComposeColor = MaterialTheme.colorScheme.surfaceVariant,
+    contentColor: ComposeColor = MaterialTheme.colorScheme.onBackground,
     icon: ImageVector? = null,
     testTag: String? = null
 ) {
@@ -117,7 +117,7 @@ fun BodaOutlinedButton(
         enabled = enabled,
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = contentColor,
-            disabledContentColor = Color(0xFF64748B)
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         border = BorderStroke(1.5.dp, borderColor),
         modifier = modifier
@@ -160,7 +160,7 @@ fun BodaTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    contentColor: ComposeColor = Color.White,
+    contentColor: ComposeColor = MaterialTheme.colorScheme.onBackground,
     testTag: String? = null
 ) {
     TextButton(
@@ -168,7 +168,7 @@ fun BodaTextButton(
         enabled = enabled,
         colors = ButtonDefaults.textButtonColors(
             contentColor = contentColor,
-            disabledContentColor = Color(0xFF64748B)
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         modifier = modifier
             .heightIn(min = 48.dp)

@@ -3,9 +3,9 @@ package com.example.ui.ride
 import com.example.ui.BodaViewModel
 import com.example.ui.chat.initiateCall
 import com.example.ui.chat.openRiderChat
-import com.example.ui.components.Color
+
 import com.example.ui.components.Sp
-import com.example.ui.components.BodaLang
+import com.example.ui.util.BodaLang
 import com.example.ui.components.BodaButton
 import com.example.ui.components.BodaSecondaryButton
 import com.example.ui.components.BodaCard
@@ -37,13 +37,13 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F172A))
-            .padding(20.dp)
+            .background(MaterialTheme.colorScheme.background)
+            .padding(Sp.lg)
     ) {
-        Text(BodaLang.get(viewModel.appLanguage, "rider_enroute"), color = Color(0xFF64748B), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(BodaLang.get(viewModel.appLanguage, "rider_enroute"), color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Text(
             if (viewModel.simulationCountdown > 0) "Arriving in ${viewModel.simulationCountdown}s..." else BodaLang.get(viewModel.appLanguage, "rider_arrived"),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 24.sp
         )
@@ -63,7 +63,8 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
                 dropoff = viewModel.dropoffPlace,
                 riderProgress = progress,
                 simulationState = "enroute",
-                viewModel = viewModel
+                viewModel = viewModel,
+                userLocation = viewModel.currentLocation
             )
         }
 
@@ -72,33 +73,33 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
         // Rider profile details & security verification code card
         BodaCard(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier.padding(14.dp),
+                modifier = Modifier.padding(Sp.md),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFDB913)),
+                        .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = Color.Black)
+                    Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
                 }
                 Spacer(modifier = Modifier.width(Sp.sm))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(trip.riderName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Bike Plate: ${trip.riderPlate}", color = Color(0xFFFDB913), fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Verified community rider", color = Color(0xFF94A3B8), fontSize = 11.sp)
+                    Text(trip.riderName, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Bike Plate: ${trip.riderPlate}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Verified community rider", color = MaterialTheme.colorScheme.outline, fontSize = 11.sp)
                 }
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF0F172A))
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Security OTP", color = Color(0xFF64748B), fontSize = 11.sp)
-                        Text("5892", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Security OTP", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                        Text("5892", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     }
                 }
             }
@@ -125,8 +126,8 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
             BodaButton(
                 text = "SOS",
                 onClick = { displaySafetySheet = true },
-                containerColor = Color(0xFFE4002B),
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
                 icon = Icons.Default.Warning,
                 modifier = Modifier.weight(1f)
             )
@@ -146,8 +147,8 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
             BodaButton(
                 text = "Cancel Booking",
                 onClick = { viewModel.cancelActiveTrip("Rider taking too long") },
-                containerColor = Color(0xFFE4002B),
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.fillMaxWidth()
             )
         }

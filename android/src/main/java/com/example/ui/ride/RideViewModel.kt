@@ -222,9 +222,10 @@ fun BodaViewModel.searchLocations(query: String) {
             try {
                 val searchQuery = if (query.lowercase().contains("gulu")) query else "$query, Gulu, Uganda"
                 val encodedQuery = java.net.URLEncoder.encode(searchQuery, "UTF-8")
+                val searchLocation = currentLocation?.let { "${it.latitude},${it.longitude}" } ?: "2.7750,32.2950"
                 val url = "https://maps.googleapis.com/maps/api/place/textsearch/json" +
                         "?query=$encodedQuery" +
-                        "&location=2.7750,32.2950" +
+                        "&location=$searchLocation" +
                         "&radius=50000" +
                         "&key=$googleApiKey"
 
@@ -715,8 +716,9 @@ fun BodaViewModel.confirmBooking() {
             refreshWalletBalance()
         }
         simulationCountdown = 8
+        val riderStartLatLng = currentLocation?.let { LatLng(it.latitude, it.longitude) } ?: LatLng(2.775, 32.295)
         fetchRouteForPoints(
-            LatLng(2.775, 32.295),
+            riderStartLatLng,
             LatLng(pickupPlace!!.latitude, pickupPlace!!.longitude)
         )
         navigateTo(Screen.RiderEnRoute)
