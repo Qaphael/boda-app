@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  boda-api:
+    build: .
+    container_name: boda-gulu-api
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=boda-postgres
+      - DB_PORT=5432
+      - DB_SSL=false
+    volumes:
+      - /opt/boda-gulu/apps/admin:/app/admin
+    networks:
+      - boda_default
+
+networks:
+  boda_default:
+    external: true

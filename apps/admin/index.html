@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeBoda Gulu | Real-Time Admin Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0F172A; color: #F8FAFC; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1E293B; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .leaflet-container { background: #1E293B; border-radius: 12px; }
+    </style>
+</head>
+<body class="overflow-hidden h-screen flex flex-col">
+
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-full max-w-sm space-y-6 shadow-2xl">
+            <div class="text-center space-y-2">
+                <div class="bg-amber-500 text-slate-950 font-black p-3 rounded-xl text-xl tracking-wider inline-block">BODA</div>
+                <h2 class="text-lg font-extrabold">Admin Command Center</h2>
+                <p class="text-xs text-slate-400">Enter your admin secret key to continue</p>
+            </div>
+            <input type="password" id="login-key-input" placeholder="Admin secret key"
+                class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-slate-200 text-sm outline-none focus:border-amber-500 transition">
+            <button id="login-btn" onclick="attemptLogin()"
+                class="w-full py-3 bg-amber-500 text-slate-950 font-extrabold rounded-xl text-sm tracking-wide hover:bg-amber-400 transition">Unlock Dashboard</button>
+            <p id="login-error" class="text-rose-400 text-xs text-center hidden">Invalid key. Try again.</p>
+        </div>
+    </div>
+
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-amber-500 text-slate-950 font-black p-2.5 rounded-xl shadow-lg shadow-amber-500/20 text-lg tracking-wider">BODA</div>
+            <div>
+                <h1 class="text-lg font-extrabold tracking-tight">SafeBoda Gulu</h1>
+                <p class="text-xs text-amber-500 font-semibold tracking-widest uppercase">Admin Command Center</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-xs font-semibold">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Production Mode</span>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-slate-400 font-bold">Admin Operator</p>
+                <p class="text-xs text-amber-500" id="current-time">UTC 00:00:00</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+        <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between py-6 px-4 shrink-0">
+            <div class="space-y-6">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3">System Navigation</div>
+                <nav class="space-y-1">
+                    <button onclick="switchTab('dashboard-tab')" id="nav-dashboard-tab" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-bold transition bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/10">
+                        <span class="text-base">📊</span><span>Operations Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('map-tab')" id="nav-map-tab" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-bold transition text-slate-400 hover:bg-slate-900 hover:text-white">
+                        <span class="text-base">🗺️</span><span>Live Command Map</span>
+                    </button>
+                    <button onclick="switchTab('drivers-tab')" id="nav-drivers-tab" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-bold transition text-slate-400 hover:bg-slate-900 hover:text-white">
+                        <span class="text-base">🏍️</span><span>Boda Drivers</span>
+                    </button>
+                    <button onclick="switchTab('riders-tab')" id="nav-riders-tab" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-bold transition text-slate-400 hover:bg-slate-900 hover:text-white">
+                        <span class="text-base">👥</span><span>Riders & Users</span>
+                    </button>
+                    <button onclick="switchTab('trips-tab')" id="nav-trips-tab" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-bold transition text-slate-400 hover:bg-slate-900 hover:text-white">
+                        <span class="text-base">📜</span><span>Trip Ledger</span>
+                    </button>
+                    <button onclick="switchTab('settings-tab')" id="nav-settings-tab" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-bold transition text-slate-400 hover:bg-slate-900 hover:text-white">
+                        <span class="text-base">⚙️</span><span>System Settings</span>
+                    </button>
+                </nav>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-2">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">WebSocket Stream</div>
+                <div class="flex items-center space-x-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-[11px] text-slate-300 font-bold">PostgreSQL Realtime</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- TAB 0: OPERATIONS DASHBOARD -->
+        <div id="tab-content-dashboard" class="flex-1 flex flex-col p-8 overflow-y-auto bg-slate-950 space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Gulu Operations Dashboard</h2>
+                    <p class="text-xs text-slate-400">Live performance telemetry and dispatch logs.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 flex items-center space-x-3">
+                    <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">System Pulse</span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-xs text-slate-200 font-bold" id="dashboard-pulse">Active Stream</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div onclick="switchTab('trips-tab')" class="cursor-pointer bg-slate-900 border border-slate-800/80 p-5 rounded-2xl hover:border-amber-500/50 transition">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gross Revenue</span>
+                    </div>
+                    <p class="text-2xl font-black text-white mt-3" id="dash-revenue-val">UGX 0</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Total completed booking fares</p>
+                </div>
+                <div onclick="switchTab('map-tab')" class="cursor-pointer bg-slate-900 border border-slate-800/80 p-5 rounded-2xl hover:border-amber-500/50 transition">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Bookings</span>
+                        <span class="text-[10px] font-extrabold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full animate-pulse">Live</span>
+                    </div>
+                    <p class="text-2xl font-black text-white mt-3" id="dash-active-val">0 Active</p>
+                </div>
+                <div onclick="switchTab('drivers-tab')" class="cursor-pointer bg-slate-900 border border-slate-800/80 p-5 rounded-2xl hover:border-amber-500/50 transition">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Online Bodas</span>
+                    </div>
+                    <p class="text-2xl font-black text-white mt-3" id="dash-online-val">0 Online</p>
+                </div>
+                <div onclick="switchTab('trips-tab')" class="cursor-pointer bg-slate-900 border border-slate-800/80 p-5 rounded-2xl hover:border-amber-500/50 transition">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completed Trips</span>
+                    </div>
+                    <p class="text-2xl font-black text-white mt-3" id="completed-trips-val">0</p>
+                </div>
+            </div>
+
+            <!-- Bottom: Activity Feed & SOS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl lg:col-span-2 flex flex-col h-80">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+                        <h3 class="text-xs font-bold text-amber-500 uppercase tracking-widest">Real-time Operations Activity Feed</h3>
+                        <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 rounded-full">Stream Active</span>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar space-y-3" id="dash-activity-list">
+                        <div class="text-center text-slate-500 text-xs py-8">Waiting for live data...</div>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex flex-col h-80 justify-between">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                            <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest flex items-center space-x-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span>SOS Response Center</span>
+                            </h3>
+                            <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 rounded-full" id="dash-sos-count">0 Crises</span>
+                        </div>
+                        <div id="dash-sos-container">
+                            <div class="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-4 text-center space-y-1">
+                                <div class="text-base">🛡️</div>
+                                <p class="text-xs font-bold text-emerald-400">System Fully Secure</p>
+                                <p class="text-[10px] text-slate-400">No active emergency alerts.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="resolveDashboardSOS()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-lg transition mt-4 hidden" id="dash-sos-resolve-btn">DISPATCH CRISIS HELP</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: LIVE MAP -->
+        <div id="tab-content-map" class="hidden flex-1 flex overflow-hidden">
+            <aside class="w-96 bg-slate-900/50 border-r border-slate-800 flex flex-col overflow-hidden shrink-0">
+                <div class="p-5 border-b border-slate-800 space-y-4">
+                    <h2 class="text-xs font-bold text-slate-400 tracking-wider uppercase">Gulu System Health</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-800/60 border border-slate-700/50 p-3.5 rounded-xl">
+                            <p class="text-xs text-slate-400 font-bold">Online Bodas</p>
+                            <p class="text-2xl font-extrabold text-amber-500 mt-1" id="online-drivers-val">0</p>
+                        </div>
+                        <div class="bg-slate-800/60 border border-slate-700/50 p-3.5 rounded-xl">
+                            <p class="text-xs text-slate-400 font-bold">Active Trips</p>
+                            <p class="text-2xl font-extrabold text-white mt-1" id="active-trips-val">0</p>
+                        </div>
+                        <div class="bg-slate-800/60 border border-slate-700/50 p-3.5 rounded-xl">
+                            <p class="text-xs text-slate-400 font-bold">Completed Trips</p>
+                            <p class="text-2xl font-extrabold text-emerald-500 mt-1" id="completed-trips-val">0</p>
+                        </div>
+                        <div class="bg-slate-800/60 border border-slate-700/50 p-3.5 rounded-xl">
+                            <p class="text-xs text-slate-400 font-bold">System Revenue</p>
+                            <p class="text-sm font-extrabold text-emerald-400 mt-2 truncate" id="system-revenue-val">UGX 0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <div class="px-5 py-3 border-b border-slate-800 bg-slate-900 flex justify-between items-center">
+                        <h2 class="text-xs font-bold text-slate-400 tracking-wider uppercase">Active Dispatch List</h2>
+                        <span class="bg-slate-800 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded-full" id="dispatch-count">0 Active</span>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3" id="dispatch-list">
+                        <div class="text-center text-slate-500 text-xs py-8">No active dispatches</div>
+                    </div>
+                </div>
+            </aside>
+            <section class="flex-1 flex flex-col relative overflow-hidden bg-slate-950">
+                <div class="absolute top-4 left-4 z-[1000] bg-slate-900/90 border border-slate-800 p-4 rounded-xl shadow-2xl backdrop-blur-md max-w-sm">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></span>
+                        <h3 class="text-sm font-bold text-white">Live Gulu City GPS Feed</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Real-time driver locations from PostgreSQL.</p>
+                </div>
+                <div class="flex-1 flex overflow-hidden">
+                    <div id="map" class="flex-1 h-full"></div>
+                    <aside class="w-[380px] bg-slate-900 border-l border-slate-800 flex flex-col overflow-y-auto custom-scrollbar p-5 space-y-5 shrink-0">
+                        <div class="bg-rose-950/50 border border-rose-500/40 rounded-xl p-4 flex flex-col space-y-3 hidden" id="sos-alert-box">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3.5 h-3.5 rounded-full bg-rose-500 animate-ping"></span>
+                                <h3 class="text-xs font-black tracking-widest text-rose-400 uppercase">⚠ EMERGENCY SOS</h3>
+                            </div>
+                            <div class="text-xs text-rose-200 space-y-1" id="sos-details"></div>
+                            <button class="w-full py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-xs text-white font-extrabold" onclick="resolveActiveSOS()">RESOLVE</button>
+                        </div>
+                        <div class="bg-slate-800/60 border border-slate-700/50 p-4 rounded-xl flex flex-col space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <h3 class="text-xs font-extrabold tracking-wider text-amber-500 uppercase">Surge Controller</h3>
+                                <span class="text-xs text-slate-300 font-bold" id="live-surge-lbl">1.0x (Normal)</span>
+                            </div>
+                            <div class="space-y-2 text-xs">
+                                <input type="range" min="1.0" max="3.0" step="0.1" value="1.0" class="w-full accent-amber-500" id="surge-slider" oninput="updateSurgeLabel(this.value)">
+                                <select class="w-full bg-slate-950 border border-slate-800 p-2 rounded-lg text-slate-200 outline-none" id="surge-reason">
+                                    <option value="Normal">Normal Demand</option>
+                                    <option value="Rush Hour">Rush Hour</option>
+                                    <option value="Heavy Rain">Heavy Rain</option>
+                                    <option value="Late Night">Late Night Premium</option>
+                                </select>
+                            </div>
+                            <button class="w-full py-2 bg-amber-500 text-slate-950 font-extrabold rounded-lg text-xs" onclick="applySurgePricing()">APPLY SURGE</button>
+                        </div>
+                        <div class="bg-slate-800/60 border border-slate-700/50 p-4 rounded-xl flex flex-col space-y-3">
+                            <div class="border-b border-slate-800 pb-2">
+                                <h3 class="text-xs font-extrabold tracking-wider text-slate-300 uppercase">Promo Campaigns</h3>
+                            </div>
+                            <div class="space-y-2.5 text-xs">
+                                <div class="flex space-x-2">
+                                    <div class="flex-1"><input type="text" placeholder="Code" class="w-full bg-slate-950 border border-slate-800 p-2 rounded-lg text-slate-200 uppercase outline-none" id="promo-code"></div>
+                                    <div class="w-24"><input type="number" placeholder="Value" class="w-full bg-slate-950 border border-slate-800 p-2 rounded-lg text-slate-200 outline-none" id="promo-value"></div>
+                                </div>
+                                <select class="w-full bg-slate-950 border border-slate-800 p-2 rounded-lg text-slate-200 outline-none" id="promo-type">
+                                    <option value="fixed">Fixed (UGX)</option>
+                                    <option value="percent">Percent (%)</option>
+                                </select>
+                            </div>
+                            <button class="w-full py-2 bg-slate-700 text-white font-extrabold rounded-lg text-xs" onclick="createNewPromo()">DEPLOY CODE</button>
+                            <div class="pt-2 border-t border-slate-800 space-y-1.5 overflow-y-auto max-h-32 custom-scrollbar" id="promo-list"></div>
+                        </div>
+                    </aside>
+                </div>
+                <div class="h-44 bg-slate-900 border-t border-slate-800 p-4 flex flex-col overflow-hidden shrink-0">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+                        <h3 class="text-xs font-bold text-amber-500 uppercase tracking-widest">Console Logs</h3>
+                        <button class="text-[10px] text-slate-400 bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded" onclick="clearLogs()">Clear</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar font-mono text-[11px] text-emerald-400 space-y-1" id="system-console-logs"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB 2: DRIVERS -->
+        <div id="tab-content-drivers" class="hidden flex-1 flex flex-col p-8 overflow-y-auto bg-slate-950 space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Boda Drivers Directory</h2>
+                    <p class="text-xs text-slate-400">Manage registered motorcycle operators.</p>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 bg-slate-900/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                            <th class="p-4">Name</th><th class="p-4">Plate</th><th class="p-4">Phone</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="drivers-table-body" class="text-xs divide-y divide-slate-800/50 text-slate-300">
+                        <tr><td colspan="5" class="p-8 text-center text-slate-500">No drivers registered yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: RIDERS -->
+        <div id="tab-content-riders" class="hidden flex-1 flex flex-col p-8 overflow-y-auto bg-slate-950 space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Riders & Passenger Accounts</h2>
+                    <p class="text-xs text-slate-400">Manage customer accounts.</p>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 bg-slate-900/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                            <th class="p-4">Name</th><th class="p-4">Phone</th><th class="p-4">Wallet</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="riders-table-body" class="text-xs divide-y divide-slate-800/50 text-slate-300">
+                        <tr><td colspan="5" class="p-8 text-center text-slate-500">No riders registered yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: TRIPS -->
+        <div id="tab-content-trips" class="hidden flex-1 flex flex-col p-8 overflow-y-auto bg-slate-950 space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white tracking-tight">Trip Dispatch Ledger</h2>
+                    <p class="text-xs text-slate-400">All ride history.</p>
+                </div>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 bg-slate-900/50 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                            <th class="p-4">Trip Code</th><th class="p-4">Passenger</th><th class="p-4">Driver</th><th class="p-4">Route</th><th class="p-4">Fare</th><th class="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trips-table-body" class="text-xs divide-y divide-slate-800/50 text-slate-300">
+                        <tr><td colspan="6" class="p-8 text-center text-slate-500">No trips yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 5: SETTINGS -->
+        <div id="tab-content-settings" class="hidden flex-1 flex flex-col p-8 overflow-y-auto bg-slate-950 space-y-6">
+            <div>
+                <h2 class="text-2xl font-extrabold text-white tracking-tight">System Configuration</h2>
+                <p class="text-xs text-slate-400">Pricing, fare settings, and admin access.</p>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-bold text-amber-500 uppercase tracking-wider">Admin Secret Key</h3>
+                    <p class="text-[11px] text-slate-400">Required to access admin API endpoints. Stored in your browser only.</p>
+                    <input type="password" id="admin-key-input" placeholder="Enter admin secret key"
+                        class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-lg text-slate-200 outline-none focus:border-amber-500"
+                        onchange="localStorage.setItem('admin_secret_key', this.value); logConsole('Admin key saved', 'system')">
+                    <button onclick="const k=document.getElementById('admin-key-input').value; localStorage.setItem('admin_secret_key',k); logConsole('Admin key updated','system')"
+                        class="w-full py-2.5 bg-amber-500 text-slate-950 font-extrabold rounded-xl text-xs">Save Key</button>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-bold text-amber-500 uppercase tracking-wider">Core Pricing</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div><label class="text-[10px] text-slate-400 font-bold block mb-1">Base Fare (UGX)</label><input type="number" id="base-fare-input" value="1500" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-lg text-slate-200 outline-none"></div>
+                        <div><label class="text-[10px] text-slate-400 font-bold block mb-1">Rate/KM (UGX)</label><input type="number" id="rate-km-input" value="1000" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-lg text-slate-200 outline-none"></div>
+                        <div><label class="text-[10px] text-slate-400 font-bold block mb-1">Rate/Min (UGX)</label><input type="number" id="rate-min-input" value="150" class="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-lg text-slate-200 outline-none"></div>
+                    </div>
+                    <button onclick="saveCorePricing()" class="w-full py-2.5 bg-amber-500 text-slate-950 font-extrabold rounded-xl text-xs">Update Pricing</button>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-bold text-amber-500 uppercase tracking-wider">Surge Adjuster</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-300">Surge Factor</span>
+                            <span class="text-xs font-bold text-amber-500" id="settings-surge-lbl">1.0x</span>
+                        </div>
+                        <input type="range" min="1.0" max="3.0" step="0.1" value="1.0" class="w-full accent-amber-500" id="settings-surge-slider" oninput="document.getElementById('settings-surge-lbl').innerText = parseFloat(this.value).toFixed(1) + 'x'">
+                    </div>
+                    <button onclick="applySettingsSurge()" class="w-full py-2.5 bg-slate-800 text-white font-extrabold rounded-xl text-xs">Apply Surge</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="src/app.js"></script>
+    <script src="src/components/sidebar.js"></script>
+    <script src="src/components/statsCard.js"></script>
+    <script src="src/components/liveMap.js"></script>
+    <script src="src/pages/dashboard.js"></script>
+    <script src="src/pages/drivers.js"></script>
+    <script src="src/pages/riders.js"></script>
+    <script src="src/pages/trips.js"></script>
+    <script src="src/pages/pricing.js"></script>
+    <script src="src/pages/sos.js"></script>
+</body>
+</html>
