@@ -55,7 +55,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
             Text("Help & Support Gulu", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineSmall)
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(MaterialTheme.shapes.extraSmall)
                     .background(if (inChatMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { inChatMode = !inChatMode }
                     .padding(horizontal = 12.dp, vertical = 6.dp)
@@ -71,7 +71,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small)
                     .padding(12.dp)
             ) {
                 items(viewModel.activeChatMessages) { msg ->
@@ -85,7 +85,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(MaterialTheme.shapes.small)
                                 .background(
                                     if (isUser) MaterialTheme.colorScheme.primary
                                     else if (isSystem) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)

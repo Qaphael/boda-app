@@ -108,15 +108,11 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             listOf("2000", "5000", "10000", "20000").forEach { valAmount ->
                 val isSelected = viewModel.walletTopupAmountInput == valAmount
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
-                        .clickable { viewModel.walletTopupAmountInput = valAmount }
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
-                ) {
-                    Text("+$valAmount", color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                }
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { viewModel.walletTopupAmountInput = valAmount },
+                    label = { Text("+$valAmount", style = MaterialTheme.typography.labelSmall) }
+                )
             }
         }
 

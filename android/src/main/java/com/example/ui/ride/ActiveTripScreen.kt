@@ -80,7 +80,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
             }
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(MaterialTheme.shapes.small)
                     .background(MaterialTheme.colorScheme.primary)
                     .padding(horizontal = 10.dp, vertical = 6.dp)
             ) {
@@ -280,7 +280,7 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(6.dp))
+                                    .clip(MaterialTheme.shapes.extraSmall)
                                     .background(if (isCurrent) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else androidx.compose.ui.graphics.Color.Transparent)
                                     .padding(8.dp)
                             ) {
@@ -339,7 +339,7 @@ fun SafetyActionsOverlay(viewModel: BodaViewModel, onClose: () -> Unit) {
         contentAlignment = Alignment.BottomCenter
     ) {
         Card(
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            shape = MaterialTheme.shapes.medium,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .fillMaxWidth()

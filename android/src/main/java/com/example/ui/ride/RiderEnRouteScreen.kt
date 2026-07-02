@@ -91,7 +91,7 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
                 }
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.background)
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {

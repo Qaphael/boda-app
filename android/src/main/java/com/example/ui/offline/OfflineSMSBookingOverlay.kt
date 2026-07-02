@@ -84,9 +84,9 @@ fun OfflineSMSBookingOverlay(viewModel: BodaViewModel) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.background)
-                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                         .padding(12.dp)
                 ) {
                     Column {

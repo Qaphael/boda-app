@@ -142,7 +142,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(MaterialTheme.shapes.small)
                 .background(MaterialTheme.colorScheme.surface)
                 .clickable {
                     val currentLocation = if (loc != null) {

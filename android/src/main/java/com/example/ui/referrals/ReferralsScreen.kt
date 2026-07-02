@@ -168,9 +168,9 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(MaterialTheme.shapes.small)
                                 .background(MaterialTheme.colorScheme.background)
-                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -188,7 +188,7 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = if (isCopied) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                                shape = RoundedCornerShape(6.dp),
+                                shape = MaterialTheme.shapes.extraSmall,
                                 modifier = Modifier.height(32.dp).testTag("copy_code_btn")
                             ) {
                                 Text(
@@ -312,7 +312,7 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                             // Status Badge
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
+                                    .clip(MaterialTheme.shapes.extraSmall)
                                     .background(
                                         if (ref.status == "completed") MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
                                         else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
@@ -358,7 +358,7 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                                 onClick = { viewModel.simulateNewReferralSignUp() },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                                shape = RoundedCornerShape(6.dp),
+                                shape = MaterialTheme.shapes.extraSmall,
                                 modifier = Modifier.weight(1f).testTag("simulate_signup_btn")
                             ) {
                                 Text("1. Friend Sign-up", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
@@ -367,7 +367,7 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                                 onClick = { viewModel.simulateReferralFirstTripCompletion() },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                                shape = RoundedCornerShape(6.dp),
+                                shape = MaterialTheme.shapes.extraSmall,
                                 modifier = Modifier.weight(1f).testTag("simulate_trip_btn")
                             ) {
                                 Text("2. Friend's 1st Ride", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))

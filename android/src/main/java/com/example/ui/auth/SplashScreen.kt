@@ -41,7 +41,7 @@ fun SplashScreen(viewModel: BodaViewModel) {
                 contentDescription = "Boda Gulu Brand Logo",
                 modifier = Modifier
                     .size(140.dp)
-                    .clip(RoundedCornerShape(24.dp)),
+                    .clip(MaterialTheme.shapes.medium),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(16.dp))

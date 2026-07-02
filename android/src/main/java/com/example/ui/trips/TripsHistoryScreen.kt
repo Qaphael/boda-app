@@ -130,7 +130,7 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
+                                        .clip(MaterialTheme.shapes.extraSmall)
                                         .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
                                         .padding(8.dp)
                                 ) {

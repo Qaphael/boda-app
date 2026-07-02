@@ -179,7 +179,7 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
                         val isSelected = viewModel.selectedPaymentMethod == method
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(MaterialTheme.shapes.small)
                                 .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                 .clickable { viewModel.selectedPaymentMethod = method }
                                 .padding(horizontal = 12.dp, vertical = 8.dp)

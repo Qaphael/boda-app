@@ -181,7 +181,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(MaterialTheme.shapes.small)
                                 .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background)
                                 .clickable {
                                     coroutineScope.launch {
@@ -238,7 +238,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(MaterialTheme.shapes.small)
                                 .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background)
                                 .clickable {
                                     viewModel.updateAppThemeSetting(mode)
@@ -345,9 +345,9 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(110.dp)
-                        .clip(RoundedCornerShape(6.dp))
+                        .clip(MaterialTheme.shapes.extraSmall)
                         .background(MaterialTheme.colorScheme.background)
-                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.extraSmall)
                         .padding(8.dp)
                 ) {
                     LazyColumn(
@@ -400,7 +400,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)
         ) {
             Row(
                 modifier = Modifier

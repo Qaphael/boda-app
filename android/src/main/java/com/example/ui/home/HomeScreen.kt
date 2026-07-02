@@ -98,7 +98,7 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
         }
 
         Card(
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+            shape = MaterialTheme.shapes.large,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
@@ -121,44 +121,21 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(4.dp)
-                ) {
-                    val isRide = viewModel.serviceType == "ride"
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (isRide) MaterialTheme.colorScheme.primary else Color.Transparent)
-                            .clickable { viewModel.serviceType = "ride" }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.TwoWheeler, contentDescription = null, tint = if (isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(BodaLang.get(viewModel.appLanguage, "ride"), color = if (isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (!isRide) MaterialTheme.colorScheme.primary else Color.Transparent)
-                            .clickable { viewModel.serviceType = "delivery" }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.LocalShipping, contentDescription = null, tint = if (!isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(BodaLang.get(viewModel.appLanguage, "delivery"), color = if (!isRide) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                        }
-                    }
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                        onClick = { viewModel.serviceType = "ride" },
+                        selected = viewModel.serviceType == "ride",
+                        icon = { Icon(Icons.Default.TwoWheeler, null) },
+                        label = { Text(BodaLang.get(viewModel.appLanguage, "ride")) }
+                    )
+                    SegmentedButton(
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                        onClick = { viewModel.serviceType = "delivery" },
+                        selected = viewModel.serviceType == "delivery",
+                        icon = { Icon(Icons.Default.LocalShipping, null) },
+                        label = { Text(BodaLang.get(viewModel.appLanguage, "delivery")) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -166,13 +143,10 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.surface)
                         .clickable { viewModel.navigateTo(Screen.SearchPlaces) }
                         .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(BodaLang.get(viewModel.appLanguage, "pickup"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
@@ -185,7 +159,7 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(MaterialTheme.shapes.small)
                         .background(MaterialTheme.colorScheme.surface)
                         .clickable { viewModel.navigateTo(Screen.SearchPlaces) }
                         .padding(14.dp),
@@ -207,20 +181,14 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         items(savedPlaces.take(5)) { place ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(if (viewModel.dropoffPlace?.id == place.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
-                                    .border(0.5.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp))
-                                    .clickable {
-                                        viewModel.dropoffPlace = place
-                                        viewModel.dropoffText = place.name
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Text(place.label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                    color = if (viewModel.dropoffPlace?.id == place.id) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.outline)
-                            }
+                            FilterChip(
+                                selected = viewModel.dropoffPlace?.id == place.id,
+                                onClick = {
+                                    viewModel.dropoffPlace = place
+                                    viewModel.dropoffText = place.name
+                                },
+                                label = { Text(place.label, style = MaterialTheme.typography.labelSmall) }
+                            )
                         }
                     }
                 }
@@ -299,7 +267,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
         }
 
         Card(
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+            shape = MaterialTheme.shapes.large,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()

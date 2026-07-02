@@ -95,7 +95,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                         contentDescription = slideTitle,
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(16.dp)),
+                            .clip(MaterialTheme.shapes.medium),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -366,9 +366,9 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(MaterialTheme.shapes.small)
                                 .background(MaterialTheme.colorScheme.surface)
-                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                                 .height(56.dp)
                                 .padding(horizontal = 16.dp),
                             contentAlignment = Alignment.Center
@@ -389,7 +389,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                                 unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
                             ),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = MaterialTheme.shapes.small,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(56.dp)
@@ -469,7 +469,7 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                             unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = MaterialTheme.shapes.small,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
@@ -582,7 +582,7 @@ fun GoogleSignInButton(
         onClick = onClick,
         enabled = !isLoading,
         modifier = modifier.height(56.dp),
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.small,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,

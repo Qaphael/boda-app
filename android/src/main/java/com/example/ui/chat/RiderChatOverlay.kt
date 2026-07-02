@@ -57,7 +57,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
         contentAlignment = Alignment.BottomCenter
     ) {
         Card(
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+            shape = MaterialTheme.shapes.large,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
@@ -162,9 +162,9 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                     items(quickChips) { chip ->
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(16.dp))
+                                .clip(MaterialTheme.shapes.medium)
                                 .background(MaterialTheme.colorScheme.surface)
-                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
                                 .clickable {
                                     viewModel.riderChatInputText = chip
                                     viewModel.sendRiderChatMessage()
@@ -213,7 +213,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
-                        shape = RoundedCornerShape(20.dp),
+                        shape = MaterialTheme.shapes.medium,
                         modifier = Modifier
                             .weight(1f)
                             .heightIn(max = 48.dp)

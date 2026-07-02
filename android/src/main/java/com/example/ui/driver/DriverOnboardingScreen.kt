@@ -210,9 +210,9 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(MaterialTheme.shapes.small)
                             .background(if (viewModel.driverRegStage == s) MaterialTheme.colorScheme.surface else Color.Transparent)
-                            .border(1.dp, if (viewModel.driverRegStage == s) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                            .border(1.dp, if (viewModel.driverRegStage == s) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                             .clickable { viewModel.driverRegStage = s }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -236,9 +236,9 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(horizontal = 4.dp)
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(MaterialTheme.shapes.small)
                                 .background(if (viewModel.driverRegHelmetColor == color) MaterialTheme.colorScheme.surface else Color.Transparent)
-                                .border(1.dp, if (viewModel.driverRegHelmetColor == color) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                .border(1.dp, if (viewModel.driverRegHelmetColor == color) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                                 .clickable { viewModel.driverRegHelmetColor = color }
                                 .padding(vertical = 10.dp),
                             contentAlignment = Alignment.Center
@@ -287,7 +287,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp)
-                            .border(1.dp, if (isUploaded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                            .border(1.dp, if (isUploaded) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
                     ) {
                         Row(
                             modifier = Modifier
