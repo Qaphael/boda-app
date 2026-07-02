@@ -263,7 +263,7 @@ fun GuluMapView(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .background(mapSurfaceColor.copy(alpha = 0.9f))
-                    .padding(6.dp)
+                    .padding(8.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

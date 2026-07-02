@@ -57,7 +57,7 @@ fun EmergencyContactsScreen(viewModel: BodaViewModel, contacts: List<EmergencyCo
         // Contact fields insertion
         if (contacts.size < 3) {
             BodaCard(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(14.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text("Add Emergency Contact Link", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(8.dp))
                     BodaTextField(

@@ -164,7 +164,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         BodaCard(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text("Select Local Gulu Dialect:", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -221,7 +221,7 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         BodaCard(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text("Select Theme mode for Boda Gulu:", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(

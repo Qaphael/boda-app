@@ -90,7 +90,7 @@ fun SupportScreen(viewModel: BodaViewModel) {
                                     else if (isSystem) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                     else MaterialTheme.colorScheme.surfaceVariant
                                 )
-                                .padding(10.dp)
+                                .padding(8.dp)
                                 .fillMaxWidth(if (isSystem) 0.9f else 0.75f)
                         ) {
                             Text(

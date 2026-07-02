@@ -91,6 +91,7 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
 
         ElevatedCard(
             shape = MaterialTheme.shapes.large,
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 340.dp)

@@ -106,7 +106,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                     modifier = Modifier
                         .weight(1f)
                         .height(6.dp)
-                        .padding(horizontal = 2.dp)
+                        .padding(horizontal = 4.dp)
                         .clip(RoundedCornerShape(3.dp))
                         .background(
                             if (i <= step) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
@@ -359,7 +359,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 BodaCard(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text("1. What is the maximum speed limit for Bodas inside Gulu Town center?", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(8.dp))
                         listOf("30 km/h (Town Core Limit)", "60 km/h (High Speed)", "No speed limit").forEach { choice ->
@@ -385,7 +385,7 @@ fun DriverOnboardingScreen(viewModel: BodaViewModel) {
                 BodaCard(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text("2. What are you mandatory required to provide to all passengers?", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(8.dp))
                         listOf("A clean spare Helmet and Reflector Jacket", "Nothing, passenger holds tightly", "A bottle of water").forEach { choice ->

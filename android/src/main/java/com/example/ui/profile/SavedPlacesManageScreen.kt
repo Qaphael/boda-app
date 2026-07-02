@@ -51,7 +51,7 @@ fun SavedPlacesManageScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPla
         Spacer(modifier = Modifier.height(8.dp))
 
         BodaCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text("Add New Location Bookmark", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 BodaTextField(
