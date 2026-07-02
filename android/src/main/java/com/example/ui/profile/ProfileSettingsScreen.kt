@@ -17,10 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Build
@@ -37,11 +34,15 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TwoWheeler
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -57,7 +58,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.data.EmergencyContact
 import com.example.data.UserProfile
@@ -74,7 +74,6 @@ import com.example.ui.home.updateLanguage
 import com.example.ui.home.saveUserProfile
 import com.example.ui.home.updateAppThemeSetting
 import com.example.ui.home.toggleNetworkConnection
-import com.example.ui.home.connectPostgresWebSocket
 import com.example.ui.auth.signOut
 import com.example.ui.auth.deleteAccount
 import kotlinx.coroutines.launch
@@ -101,27 +100,28 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // Top Header
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
+            val initials = (user?.name ?: "Boda Gulu Customer").split(" ")
+                .filter { it.isNotEmpty() }.take(2).joinToString("") { it.first().uppercase() }
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(72.dp)
             ) {
-                Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp))
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Text(initials, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text(user?.name ?: "Boda Gulu Customer", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                Text(user?.name ?: "Boda Gulu Customer", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge)
                 Text(user?.phoneNumber ?: "No verified phone", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    "$tripCount trips · ⭐ ${"%.1f".format(avgRating)} rating",
+                    "$tripCount trips · ${"%.1f".format(avgRating)} rating",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(top = 2.dp)
@@ -269,132 +269,6 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // PostgreSQL Real-time WebSocket Sync & Room Cache Control Center
-        Text("PostgreSQL Real-time Sync & Cache Monitor", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-        Spacer(modifier = Modifier.height(8.dp))
-        BodaCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(14.dp)) {
-                // Connection state row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(if (viewModel.isOnline) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (viewModel.isOnline) "Postgres WebSocket Connected" else "Postgres Offline (Room Active)",
-                            color = MaterialTheme.colorScheme.onBackground,
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                    }
-
-                    // Switch to toggle online/offline
-                    Switch(
-                        checked = viewModel.isOnline,
-                        onCheckedChange = { viewModel.toggleNetworkConnection() },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.tertiary,
-                            checkedTrackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f),
-                            uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Cache stats row
-                val cachedTrips = viewModel.trips.collectAsState().value
-                val unsyncedCount = viewModel.unsyncedTripsCount.collectAsState().value
-                val cachedPlacesCount = viewModel.savedPlaces.collectAsState().value.size
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Cached Trips", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                        Text("${cachedTrips.size}", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Cached Places", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                        Text("$cachedPlacesCount", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Unsynced to PG", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                        Text("$unsyncedCount", color = if (unsyncedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Real-time scrolling CDC WebSocket log terminal!
-                Text("PostgreSQL Live CDC Replication Log:", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(110.dp)
-                        .clip(MaterialTheme.shapes.extraSmall)
-                        .background(MaterialTheme.colorScheme.background)
-                        .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.extraSmall)
-                        .padding(8.dp)
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        items(viewModel.postgresWebSocketLogs) { log ->
-                            Text(
-                                text = log,
-                                color = if (log.contains("SUCCESS") || log.contains("\u2713")) MaterialTheme.colorScheme.tertiary else if (log.contains("Warning") || log.contains("offline")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Forced manual replication trigger
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    BodaSecondaryButton(
-                        text = "Force PG Sync",
-                        onClick = {
-                            viewModel.connectPostgresWebSocket()
-                        },
-                        enabled = viewModel.isOnline,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    BodaSecondaryButton(
-                        text = "Reset Sync",
-                        onClick = {
-                            coroutineScope.launch {
-                                viewModel.connectPostgresWebSocket()
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Dual Mode Switch: Driver Mode Toggle
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
@@ -454,114 +328,57 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         Spacer(modifier = Modifier.height(16.dp))
 
         // Settings Buttons list
-        Text("Preferences & Customization", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-        Spacer(modifier = Modifier.height(8.dp))
+        Text("Preferences", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
 
         // Option: Emergency Contacts
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { viewModel.navigateTo(Screen.EmergencyContacts) }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Emergency, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                    Text("Emergency Contacts", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
-                    Text("${contacts.size} of 3 emergency linkages setup", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+        ListItem(
+            headlineContent = { Text("Emergency Contacts") },
+            supportingContent = { Text("${contacts.size} of 3 emergency linkages setup") },
+            leadingContent = { Icon(Icons.Default.Emergency, null, tint = MaterialTheme.colorScheme.error) },
+            trailingContent = { Icon(Icons.Default.ChevronRight, null) },
+            modifier = Modifier.clickable { viewModel.navigateTo(Screen.EmergencyContacts) }
+        )
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
         // Option: Saved Places
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { viewModel.navigateTo(Screen.SavedPlacesManage) }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Bookmark, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Manage Saved Places", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
-            }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+        ListItem(
+            headlineContent = { Text("Manage Saved Places") },
+            leadingContent = { Icon(Icons.Default.Bookmark, null, tint = MaterialTheme.colorScheme.primary) },
+            trailingContent = { Icon(Icons.Default.ChevronRight, null) },
+            modifier = Modifier.clickable { viewModel.navigateTo(Screen.SavedPlacesManage) }
+        )
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
         // Option: Help & Support
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { viewModel.navigateTo(Screen.Support) }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Help, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Help & Support", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
-            }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+        ListItem(
+            headlineContent = { Text("Help & Support") },
+            leadingContent = { Icon(Icons.Default.Help, null, tint = MaterialTheme.colorScheme.primary) },
+            trailingContent = { Icon(Icons.Default.ChevronRight, null) },
+            modifier = Modifier.clickable { viewModel.navigateTo(Screen.Support) }
+        )
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-        // Option: System Overlay Triggers (For testing and complete 75 screen path coverage)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { viewModel.showDowntimeNotice = true }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Build, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Simulate App Maintenance Error", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+        // Option: System Overlay Triggers
+        ListItem(
+            headlineContent = { Text("Simulate App Maintenance Error") },
+            leadingContent = { Icon(Icons.Default.Build, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+            modifier = Modifier.clickable { viewModel.showDowntimeNotice = true }
+        )
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { viewModel.showSuspendedNotice = true }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Gavel, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Simulate Account Suspension Error", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+        ListItem(
+            headlineContent = { Text("Simulate Account Suspension Error") },
+            leadingContent = { Icon(Icons.Default.Gavel, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+            modifier = Modifier.clickable { viewModel.showSuspendedNotice = true }
+        )
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { viewModel.isOffline = true }
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.CloudOff, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Simulate Offline State Error Banner", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+        ListItem(
+            headlineContent = { Text("Simulate Offline State Error Banner") },
+            leadingContent = { Icon(Icons.Default.CloudOff, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+            modifier = Modifier.clickable { viewModel.isOffline = true }
+        )
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
         Spacer(Modifier.height(16.dp))
         BodaSecondaryButton(
@@ -573,8 +390,8 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
         if (showDeleteConfirmDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmDialog = false },
-                title = { Text("Delete Account?", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold) },
-                text = { Text("Are you sure you want to delete your account? This action cannot be undone and you will lose all Gulu wallet balances, trip history, and settings.", color = MaterialTheme.colorScheme.outline) },
+                title = { Text("Delete Account?") },
+                text = { Text("Are you sure you want to delete your account? This action cannot be undone and you will lose all Gulu wallet balances, trip history, and settings.") },
                 containerColor = MaterialTheme.colorScheme.surface,
                 confirmButton = {
                     BodaErrorButton(
@@ -587,19 +404,19 @@ fun ProfileSettingsScreen(viewModel: BodaViewModel, user: UserProfile?, contacts
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                        Text("Cancel", color = MaterialTheme.colorScheme.onBackground)
+                        Text("Cancel")
                     }
                 }
             )
         }
 
-        Spacer(Modifier.height(32.dp))
-        Text(
-            "Delete account",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.clickable { showDeleteConfirmDialog = true }
-        )
+        Spacer(Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = { showDeleteConfirmDialog = true },
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+            modifier = Modifier.fillMaxWidth()
+        ) { Text("Delete Account") }
         Spacer(Modifier.height(16.dp))
     }
 }

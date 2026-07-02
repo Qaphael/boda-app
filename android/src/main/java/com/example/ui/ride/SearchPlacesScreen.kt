@@ -8,12 +8,10 @@ import com.example.ui.home.navigateBack
 import com.example.ui.components.BodaTextField
 import com.example.ui.components.BodaSecondaryButton
 import com.example.data.SavedPlace
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -25,7 +23,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,7 +65,6 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -76,7 +72,7 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Select Locations", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+            Text("Select Locations", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -139,54 +135,52 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
 
         // --- NEW OPTION: CURRENT LOCATION ---
         val loc = viewModel.currentLocation
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surface)
-                .clickable {
-                    val currentLocation = if (loc != null) {
-                        SavedPlace(
-                            label = "Current Location",
-                            name = "Current Location",
-                            latitude = loc.latitude,
-                            longitude = loc.longitude
-                        )
+        Surface(
+            onClick = {
+                val currentLocation = if (loc != null) {
+                    SavedPlace(
+                        label = "Current Location",
+                        name = "Current Location",
+                        latitude = loc.latitude,
+                        longitude = loc.longitude
+                    )
+                } else {
+                    SavedPlace(
+                        label = "Current Location",
+                        name = "Gulu City Centre",
+                        latitude = 2.7750,
+                        longitude = 32.2950
+                    )
+                }
+                if (activeFocus == "pickup") {
+                    viewModel.pickupPlace = currentLocation
+                    viewModel.pickupText = currentLocation.name
+                    activeFocus = "dropoff"
+                } else {
+                    viewModel.dropoffPlace = currentLocation
+                    viewModel.dropoffText = currentLocation.name
+                    if (viewModel.pickupPlace != null) {
+                        viewModel.navigateTo(Screen.RoutePreview)
                     } else {
-                        SavedPlace(
-                            label = "Current Location",
-                            name = "Gulu City Centre",
-                            latitude = 2.7750,
-                            longitude = 32.2950
-                        )
-                    }
-                    if (activeFocus == "pickup") {
-                        viewModel.pickupPlace = currentLocation
-                        viewModel.pickupText = currentLocation.name
-                        activeFocus = "dropoff"
-                    } else {
-                        viewModel.dropoffPlace = currentLocation
-                        viewModel.dropoffText = currentLocation.name
-                        if (viewModel.pickupPlace != null) {
-                            viewModel.navigateTo(Screen.RoutePreview)
-                        } else {
-                            activeFocus = "pickup"
-                        }
+                        activeFocus = "pickup"
                     }
                 }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            },
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(Icons.Default.MyLocation, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text("Use Current Location", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
-                Text(
-                    if (loc != null) "GPS: ${"%.4f".format(loc.latitude)}, ${"%.4f".format(loc.longitude)}"
-                    else "Waiting for GPS...",
-                    color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodySmall
-                )
-            }
+            ListItem(
+                headlineContent = { Text("Use Current Location") },
+                supportingContent = {
+                    Text(
+                        if (loc != null) "GPS: ${"%.4f".format(loc.latitude)}, ${"%.4f".format(loc.longitude)}"
+                        else "Waiting for GPS...",
+                        color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodySmall
+                    )
+                },
+                leadingContent = { Icon(Icons.Default.MyLocation, null, tint = MaterialTheme.colorScheme.tertiary) }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -229,40 +223,34 @@ fun SearchPlacesScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>) 
                 }
             } else {
                 items(filteredPlaces) { place ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                if (activeFocus == "pickup") {
-                                    viewModel.pickupPlace = place
-                                    viewModel.pickupText = place.name
-                                    activeFocus = "dropoff"
+                    val isSaved = savedPlaces.any { it.name == place.name }
+                    ListItem(
+                        headlineContent = { Text(place.name, style = MaterialTheme.typography.bodyLarge) },
+                        overlineContent = { Text(place.label, style = MaterialTheme.typography.labelSmall) },
+                        leadingContent = {
+                            Icon(
+                                imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.Place,
+                                contentDescription = null,
+                                tint = if (isSaved) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            if (activeFocus == "pickup") {
+                                viewModel.pickupPlace = place
+                                viewModel.pickupText = place.name
+                                activeFocus = "dropoff"
+                            } else {
+                                viewModel.dropoffPlace = place
+                                viewModel.dropoffText = place.name
+                                if (viewModel.pickupPlace != null) {
+                                    viewModel.navigateTo(Screen.RoutePreview)
                                 } else {
-                                    viewModel.dropoffPlace = place
-                                    viewModel.dropoffText = place.name
-                                    if (viewModel.pickupPlace != null) {
-                                        viewModel.navigateTo(Screen.RoutePreview)
-                                    } else {
-                                        activeFocus = "pickup"
-                                    }
+                                    activeFocus = "pickup"
                                 }
                             }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val isSaved = savedPlaces.any { it.name == place.name }
-                        Icon(
-                            imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.Place,
-                            contentDescription = null,
-                            tint = if (isSaved) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(place.label, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
-                            Text(place.name, color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
                         }
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.surface)
+                    )
+                    HorizontalDivider()
                 }
             }
         }

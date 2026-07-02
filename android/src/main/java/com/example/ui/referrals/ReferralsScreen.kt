@@ -3,7 +3,6 @@ package com.example.ui.referrals
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,11 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -35,6 +34,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -72,7 +72,6 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         // Top Back Header
@@ -283,50 +282,17 @@ fun ReferralsScreen(viewModel: BodaViewModel, referrals: List<Referral>) {
                 }
             } else {
                 items(referrals) { ref ->
-                    BodaCard(
-                        testTag = "referral_item_${ref.id}",
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(36.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground, modifier = Modifier.size(18.dp))
-                                }
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(ref.referredName, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
-                                    Text(ref.referredPhone, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-
-                            // Status Badge
-                            Box(
-                                modifier = Modifier
-                                    .clip(MaterialTheme.shapes.extraSmall)
-                                    .background(
-                                        if (ref.status == "completed") MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = if (ref.status == "completed") "UGX +3,000" else "Pending 1st Ride",
-                                    color = if (ref.status == "completed") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                                )
-                            }
-                        }
-                    }
+                    ListItem(
+                        headlineContent = { Text(ref.referredName, style = MaterialTheme.typography.bodyLarge) },
+                        supportingContent = { Text(ref.status, style = MaterialTheme.typography.bodyMedium) },
+                        trailingContent = {
+                            Text("UGX ${ref.rewardAmount.toInt()}",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.tertiary)
+                        },
+                        leadingContent = { Icon(Icons.Default.CardGiftcard, null, tint = MaterialTheme.colorScheme.primary) }
+                    )
+                    HorizontalDivider()
                 }
             }
 

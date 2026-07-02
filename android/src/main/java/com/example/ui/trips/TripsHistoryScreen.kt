@@ -41,7 +41,6 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text("Your Trips & Deliveries", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineSmall)
@@ -73,72 +72,23 @@ fun TripsHistoryScreen(viewModel: BodaViewModel, trips: List<Trip>) {
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(trips) { trip ->
-                    BodaCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = if (trip.type == "ride") Icons.Default.TwoWheeler else Icons.Default.LocalShipping,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(trip.type.replaceFirstChar { it.uppercase() }, color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
-                                }
-                                Text(
-                                    text = "UGX ${trip.fare.toInt()}",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("From: ${trip.pickupName}", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
-                            Text("To: ${trip.dropoffName}", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodySmall)
-
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                                Text("Rider: ${trip.riderName} (${trip.riderPlate})", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelSmall)
-                                Text(
-                                    text = trip.status.uppercase(),
-                                    color = when (trip.status) {
-                                        "completed" -> MaterialTheme.colorScheme.tertiary
-                                        "canceled" -> MaterialTheme.colorScheme.error
-                                        else -> MaterialTheme.colorScheme.primary
-                                    },
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
-                                )
-                            }
-
-                            if (trip.status == "completed") {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row {
-                                    BodaErrorButton(
-                                        text = "Dispute Fare / Trip",
-                                        onClick = { displayDisputeDialog = trip },
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            } else if (trip.status == "disputed") {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .clip(MaterialTheme.shapes.extraSmall)
-                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
-                                        .padding(8.dp)
-                                ) {
-                                    Text("Disputed Filed: ${trip.disputeReason}. Gulu team is reviewing evidence.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
+                    ListItem(
+                        headlineContent = { Text("${trip.pickupName} → ${trip.dropoffName}", style = MaterialTheme.typography.bodyLarge) },
+                        supportingContent = { Text(trip.status, style = MaterialTheme.typography.bodySmall) },
+                        trailingContent = {
+                            Text("UGX ${trip.fare.toInt()}", style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurface)
+                        },
+                        overlineContent = { Text(trip.createdAt, style = MaterialTheme.typography.labelSmall) },
+                        leadingContent = {
+                            Icon(
+                                imageVector = if (trip.type == "ride") Icons.Default.TwoWheeler else Icons.Default.LocalShipping,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
-                    }
+                    )
+                    HorizontalDivider()
                 }
             }
         }

@@ -1,6 +1,5 @@
 package com.example.ui.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,8 +27,7 @@ fun SplashScreen(viewModel: BodaViewModel) {
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -48,13 +46,13 @@ fun SplashScreen(viewModel: BodaViewModel) {
             Text(
                 "Boda Gulu",
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.displayMedium
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 BodaLang.get(viewModel.appLanguage, "splash_tagline"),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(48.dp))
             if (!authChecked) {

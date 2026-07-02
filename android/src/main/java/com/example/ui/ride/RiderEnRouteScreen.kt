@@ -36,7 +36,6 @@ fun RiderEnRouteScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
         Text(BodaLang.get(viewModel.appLanguage, "rider_enroute"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)

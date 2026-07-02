@@ -1,7 +1,6 @@
 package com.example.ui.wallet
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -22,14 +20,15 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.TwoWheeler
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,11 +53,10 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text("Boda Gulu Wallet", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineSmall)
+        Text("Boda Gulu Wallet", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
         // Balance Card
@@ -68,7 +66,7 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
             Column(modifier = Modifier.padding(20.dp)) {
                 Text("Available Escrow Balance", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("UGX ${balance.toInt()}", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold))
+                Text("UGX ${balance.toInt()}", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.displaySmall)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Secure payments around Gulu without physical cash.", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.labelSmall)
             }
@@ -91,9 +89,9 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
                 (txns.firstOrNull()?.provider ?: "MTN") to "Last used"
             )
             stats.forEach { pair ->
-                BodaCard(modifier = Modifier.weight(1f)) {
-                    Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(pair.first, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                Card(modifier = Modifier.weight(1f)) {
+                    Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(pair.first, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
                         Text(pair.second, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                     }
                 }
@@ -103,7 +101,7 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
         Spacer(modifier = Modifier.height(16.dp))
 
         // Quick Top-up selector
-        Text("MTN / Airtel Quick Deposit", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+        Text("Quick Deposit", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleSmall)
         Spacer(modifier = Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             listOf("2000", "5000", "10000", "20000").forEach { valAmount ->
@@ -148,13 +146,13 @@ fun WalletScreen(viewModel: BodaViewModel, balance: Double, txns: List<WalletTra
         }
 
         if (viewModel.walletTopupStatus == "success") {
-            Text("Top up successful! Ref: ${viewModel.activeTransactionReference}", color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), modifier = Modifier.padding(top = 8.dp))
+            Text("Top up successful! Ref: ${viewModel.activeTransactionReference}", color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Historic Ledger list
-        Text("Transaction History Ledger", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+        Text("Transaction History Ledger", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleSmall)
         Spacer(modifier = Modifier.height(8.dp))
 
         if (txns.isEmpty()) {

@@ -55,7 +55,6 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -65,15 +64,12 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Skip",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier
-                        .clickable { viewModel.completeOnboardingCarousel() }
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                        .testTag("skip_onboarding_btn")
-                )
+                TextButton(
+                    onClick = { viewModel.completeOnboardingCarousel() },
+                    modifier = Modifier.testTag("skip_onboarding_btn")
+                ) {
+                    Text("Skip", style = MaterialTheme.typography.labelLarge)
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -106,14 +102,14 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
             Text(
                 text = slideTitle,
                 color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = slideDesc,
-                color = MaterialTheme.colorScheme.outline,
-                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -123,10 +119,16 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                 for (i in 0..2) {
                     Box(
                         modifier = Modifier
-                            .padding(6.dp)
-                            .size(if (viewModel.onboardingSlideIndex == i) 14.dp else 8.dp)
+                            .padding(4.dp)
+                            .height(8.dp)
+                            .width(if (viewModel.onboardingSlideIndex == i) 24.dp else 8.dp)
                             .clip(CircleShape)
-                            .background(if (viewModel.onboardingSlideIndex == i) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                            .background(
+                                if (viewModel.onboardingSlideIndex == i)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.outlineVariant
+                            )
                     )
                 }
             }
@@ -166,7 +168,6 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -291,7 +292,6 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -376,23 +376,14 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                             Text("+256", color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedTextField(
+                        BodaTextField(
                             value = viewModel.phoneInput,
                             onValueChange = { viewModel.phoneInput = it.take(9) },
-                            placeholder = { Text("772 123456", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                                unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
-                            ),
+                            label = "Phone Number",
+                            placeholder = "772 123456",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                            shape = MaterialTheme.shapes.small,
                             modifier = Modifier
                                 .weight(1f)
-                                .height(56.dp)
                                 .testTag("phone_input")
                         )
                     }
@@ -456,23 +447,14 @@ fun OnboardingScreen(viewModel: BodaViewModel) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(BodaLang.get(viewModel.appLanguage, "otp_sub"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                     Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
+                    BodaTextField(
                         value = viewModel.otpInput,
                         onValueChange = { viewModel.otpInput = it.take(6) },
-                        placeholder = { Text("Enter 123456", color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = MaterialTheme.colorScheme.onBackground,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
+                        label = "Verification Code",
+                        placeholder = "Enter 123456",
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = MaterialTheme.shapes.small,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
                             .testTag("otp_input")
                     )
                     Spacer(modifier = Modifier.height(8.dp))

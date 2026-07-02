@@ -12,7 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -40,14 +39,13 @@ fun PostTripScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(8.dp))
-        Text(BodaLang.get(viewModel.appLanguage, "trip_completed"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineSmall)
+        Text(BodaLang.get(viewModel.appLanguage, "trip_completed"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(4.dp))
         Text("Your ride with ${trip.riderName} is finished.", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.bodyMedium)
 
@@ -68,7 +66,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("UGX ${trip.fare.toInt()}",
-                        color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
+                        color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
                     Text("via ${trip.paymentMethod}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                 }
             }
@@ -83,7 +81,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                     Text("Total Charged Amount", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium)
-                    Text("UGX ${trip.fare.toInt()}", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
+                    Text("UGX ${trip.fare.toInt()}", color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.displaySmall)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -110,7 +108,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Stars Rating Form
-        Text(BodaLang.get(viewModel.appLanguage, "rate_rider"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelLarge)
+        Text(BodaLang.get(viewModel.appLanguage, "rate_rider"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
         Row {
             for (i in 1..5) {
@@ -118,7 +116,7 @@ fun PostTripScreen(viewModel: BodaViewModel) {
                     Icon(
                         imageVector = if (i <= starRating) Icons.Default.Star else Icons.Default.StarBorder,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = if (i <= starRating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                         modifier = Modifier.size(36.dp)
                     )
                 }

@@ -54,7 +54,6 @@ fun RoutePreviewScreen(viewModel: BodaViewModel, walletBalance: Double) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally

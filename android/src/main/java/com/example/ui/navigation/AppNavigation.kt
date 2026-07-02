@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import com.example.ui.components.*
@@ -96,26 +95,34 @@ fun BodaAppContent(viewModel: BodaViewModel) {
         }
     }
 
-    val scaffoldBg = MaterialTheme.colorScheme.background
+    val showBottomNav = when (viewModel.currentScreen) {
+        Screen.Home, Screen.Wallet, Screen.TripsHistory,
+        Screen.ProfileSettings, Screen.Referrals -> true
+        else -> false
+    }
+
+    val mapScreens = listOf(Screen.Home, Screen.ActiveTrip, Screen.RiderEnRoute, Screen.Matching)
+    val isMapScreen = viewModel.currentScreen in mapScreens
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .drawBehind {
-                drawRect(scaffoldBg)
-            },
+        modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            if (viewModel.currentScreen in listOf(Screen.Home, Screen.TripsHistory, Screen.Wallet, Screen.ProfileSettings)) {
+            if (showBottomNav) {
                 BodaBottomNavigation(viewModel)
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets.safeDrawing,
     ) { innerPadding ->
         ProvideTextStyle(TextStyle(fontFamily = NunitoFamily)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .then(
+                    if (isMapScreen) Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                    else Modifier.padding(innerPadding)
+                )
         ) {
             when (viewModel.currentScreen) {
                 is Screen.Splash -> SplashScreen(viewModel)

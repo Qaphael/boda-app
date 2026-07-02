@@ -66,7 +66,6 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
         Row(
@@ -75,17 +74,14 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(BodaLang.get(viewModel.appLanguage, "active_trip"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                Text("Transit to ${trip.dropoffName.take(18)}...", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold))
+                Text(BodaLang.get(viewModel.appLanguage, "active_trip"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+                Text("Transit to ${trip.dropoffName.take(18)}", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.titleLarge)
             }
-            Box(
-                modifier = Modifier
-                    .clip(MaterialTheme.shapes.small)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(horizontal = 10.dp, vertical = 6.dp)
-            ) {
-                Text("${viewModel.simulationCountdown}s ETA", color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-            }
+            AssistChip(
+                onClick = {},
+                label = { Text("${viewModel.simulationCountdown}s ETA", style = MaterialTheme.typography.labelLarge) },
+                leadingIcon = { Icon(Icons.Default.Schedule, null, Modifier.size(18.dp)) }
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -252,12 +248,18 @@ fun ActiveTripScreen(viewModel: BodaViewModel) {
                 modifier = Modifier.weight(1f)
             )
 
-            BodaErrorButton(
-                text = "Gulu Safety & SOS",
+            Button(
                 onClick = { displaySafetySheet = true },
-                icon = Icons.Default.Security,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                ),
                 modifier = Modifier.weight(1.5f)
-            )
+            ) {
+                Icon(Icons.Default.Emergency, null)
+                Spacer(Modifier.width(8.dp))
+                Text("SOS", style = MaterialTheme.typography.labelLarge)
+            }
         }
 
         // All steps list popup dialog

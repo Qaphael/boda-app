@@ -4,7 +4,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.data.SavedPlace
@@ -62,24 +60,18 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                 .align(Alignment.TopCenter),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { viewModel.navigateTo(Screen.ProfileSettings) },
-                contentAlignment = Alignment.Center
-            ) {
-                val name = viewModel.userProfile.collectAsState().value?.name ?: "?"
-                val initials = name.split(" ")
-                    .filter { it.isNotEmpty() }
-                    .take(2)
-                    .joinToString("") { it.first().uppercase() }
-                Text(initials, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+            val name = viewModel.userProfile.collectAsState().value?.name ?: "?"
+            val initials = name.split(" ")
+                .filter { it.isNotEmpty() }
+                .take(2)
+                .joinToString("") { it.first().uppercase() }
+            FilledIconButton(onClick = { viewModel.navigateTo(Screen.ProfileSettings) }) {
+                Text(initials, style = MaterialTheme.typography.labelLarge)
             }
 
             Column(horizontalAlignment = Alignment.End) {
@@ -91,15 +83,14 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                     hour < 17 -> "Good afternoon"
                     else -> "Good evening"
                 }
-                Text("$greeting, $userName", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.labelSmall)
+                Text("$greeting, $userName", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                 Text("UGX ${bal.toInt().toString().reversed().chunked(3).joinToString(",").reversed()}",
-                    color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
+                    color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleSmall)
             }
         }
 
-        Card(
+        ElevatedCard(
             shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 340.dp)
@@ -117,7 +108,7 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
                         .width(32.dp)
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -140,37 +131,32 @@ fun PassengerHomeScreen(viewModel: BodaViewModel, savedPlaces: List<SavedPlace>)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.small)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .clickable { viewModel.navigateTo(Screen.SearchPlaces) }
-                        .padding(14.dp),
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(BodaLang.get(viewModel.appLanguage, "pickup"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                        Text(viewModel.pickupPlace?.name ?: "Set current Gulu pickup...", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
-                    }
+                Surface(
+                    onClick = { viewModel.navigateTo(Screen.SearchPlaces) },
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    ListItem(
+                        headlineContent = { Text(viewModel.pickupPlace?.name ?: "Set current Gulu pickup...", maxLines = 1) },
+                        overlineContent = { Text(BodaLang.get(viewModel.appLanguage, "pickup")) },
+                        leadingContent = { Icon(Icons.Default.MyLocation, null, tint = MaterialTheme.colorScheme.tertiary) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.small)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .clickable { viewModel.navigateTo(Screen.SearchPlaces) }
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    onClick = { viewModel.navigateTo(Screen.SearchPlaces) },
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(BodaLang.get(viewModel.appLanguage, "dropoff"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                        Text(viewModel.dropoffPlace?.name ?: BodaLang.get(viewModel.appLanguage, "where_to"), color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
-                    }
+                    ListItem(
+                        headlineContent = { Text(viewModel.dropoffPlace?.name ?: BodaLang.get(viewModel.appLanguage, "where_to"), maxLines = 1) },
+                        overlineContent = { Text(BodaLang.get(viewModel.appLanguage, "dropoff")) },
+                        leadingContent = { Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.error) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -239,21 +225,15 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
                 .align(Alignment.TopCenter),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { viewModel.navigateTo(Screen.ProfileSettings) },
-                contentAlignment = Alignment.Center
-            ) {
-                val name = viewModel.userProfile.collectAsState().value?.name ?: "?"
-                val initials = name.split(" ").filter { it.isNotEmpty() }.take(2).joinToString("") { it.first().uppercase() }
-                Text(initials, color = MaterialTheme.colorScheme.onPrimary, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+            val name = viewModel.userProfile.collectAsState().value?.name ?: "?"
+            val initials = name.split(" ").filter { it.isNotEmpty() }.take(2).joinToString("") { it.first().uppercase() }
+            FilledIconButton(onClick = { viewModel.navigateTo(Screen.ProfileSettings) }) {
+                Text(initials, style = MaterialTheme.typography.labelLarge)
             }
 
             Column(horizontalAlignment = Alignment.End) {
@@ -266,9 +246,8 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
             }
         }
 
-        Card(
+        ElevatedCard(
             shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
@@ -284,7 +263,7 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
                         .width(32.dp)
                         .height(4.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -363,61 +342,30 @@ fun DriverHomeScreen(viewModel: BodaViewModel) {
 
 @Composable
 fun BodaBottomNavigation(viewModel: BodaViewModel) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.background,
-        windowInsets = WindowInsets.navigationBars
-    ) {
+    NavigationBar {
         val curr = viewModel.currentScreen
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text("Home") },
-            selected = curr == Screen.Home || curr == Screen.RoutePreview || curr == Screen.Matching || curr == Screen.RiderEnRoute || curr == Screen.ActiveTrip || curr == Screen.PostTrip,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary,
-                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
-                unselectedTextColor = MaterialTheme.colorScheme.onBackground
-            ),
+            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+            label = { Text(BodaLang.get(viewModel.appLanguage, "home_title")) },
+            selected = curr == Screen.Home,
             onClick = { viewModel.navigateTo(Screen.Home) }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.History, contentDescription = null) },
+            icon = { Icon(Icons.Default.History, contentDescription = "History") },
             label = { Text(BodaLang.get(viewModel.appLanguage, "history")) },
             selected = curr == Screen.TripsHistory,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary,
-                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
-                unselectedTextColor = MaterialTheme.colorScheme.onBackground
-            ),
             onClick = { viewModel.navigateTo(Screen.TripsHistory) }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.AccountBalanceWallet, contentDescription = null) },
-            label = { Text("Wallet") },
+            icon = { Icon(Icons.Default.AccountBalanceWallet, contentDescription = "Wallet") },
+            label = { Text(BodaLang.get(viewModel.appLanguage, "wallet")) },
             selected = curr == Screen.Wallet,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary,
-                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
-                unselectedTextColor = MaterialTheme.colorScheme.onBackground
-            ),
             onClick = { viewModel.navigateTo(Screen.Wallet) }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Person, contentDescription = null) },
-            label = { Text("Profile") },
+            icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+            label = { Text(BodaLang.get(viewModel.appLanguage, "profile")) },
             selected = curr == Screen.ProfileSettings || curr == Screen.EmergencyContacts || curr == Screen.SavedPlacesManage,
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                selectedTextColor = MaterialTheme.colorScheme.primary,
-                indicatorColor = MaterialTheme.colorScheme.primary,
-                unselectedIconColor = MaterialTheme.colorScheme.onBackground,
-                unselectedTextColor = MaterialTheme.colorScheme.onBackground
-            ),
             onClick = { viewModel.navigateTo(Screen.ProfileSettings) }
         )
     }

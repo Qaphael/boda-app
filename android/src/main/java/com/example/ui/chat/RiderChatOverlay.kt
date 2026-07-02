@@ -58,7 +58,7 @@ fun RiderChatOverlay(viewModel: BodaViewModel) {
     ) {
         Card(
             shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.75f)

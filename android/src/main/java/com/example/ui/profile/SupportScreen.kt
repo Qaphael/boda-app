@@ -44,7 +44,6 @@ fun SupportScreen(viewModel: BodaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Row(
